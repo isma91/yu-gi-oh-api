@@ -6,6 +6,8 @@
 parameters:
     UPLOAD_DIR: '%kernel.project_dir%/var/upload'
     CARD_DIR: '%UPLOAD_DIR%/card'
+    JWT_ALGO: '%env(JWT_ALGO)%'
+    JWT_SECRET: '%env(JWT_SECRET)%'
 
 services:
     # default configuration for services in *this* file
