@@ -19,8 +19,9 @@ Run `php bin/console doctrine:database:create` to have your empty database.
 
 Run `php bin/console doctrine:schema:update --force --complete` to create all table with relation.
 
-Finally, run `php bin/console doctrine:fixtures:load --append` to have some basic needed before an import
-like **Category**, **Property** with **PropertyType** and **SubProperty** with **SubPropertyType**.
+Change `$username` and `$password` value in `src/DataFixtures/User.php`
+
+Finally, run `php bin/console doctrine:fixtures:load --append` to have some basic needed with an Admin ready to use.
 
 ### Get all Card first time
 
