@@ -9,11 +9,15 @@ security:
             entity:
                 class: App\Entity\User
                 property: username
+    role_hierarchy:
+        ROLE_ADMIN: [ROLE_USER]
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
+            custom_authenticators:
+                - App\Security\JWTAuthenticator
             lazy: true
             provider: app_user_provider
 
