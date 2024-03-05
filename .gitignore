@@ -13,3 +13,7 @@
 ###> phpStorm ###
 /.idea
 ###< phpStorm ###
+
+###> Backup folder with database & upload folder ziped ###
+/backup
+###< Backup folder with database & upload folder ziped ###
