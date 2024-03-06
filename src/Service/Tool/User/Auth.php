@@ -158,20 +158,6 @@ class Auth
     }
 
     /**
-     * @param string $roleFrontName
-     * @return string|null
-     */
-    public function getRoleFromFrontName(string $roleFrontName): ?string
-    {
-        $roleFrontNameArray = $this->_getRoleOrder();
-        foreach ($roleFrontNameArray as $roleName => $v) {
-            $roleFrontNameArray[$roleName] = $this->param->get($roleName);
-        }
-        $role = array_search($roleFrontName, $roleFrontNameArray, TRUE);
-        return $role !== FALSE ? $role : NULL;
-    }
-
-    /**
      * @param UserEntity $user
      * @param string $plainPassword
      * @return string
