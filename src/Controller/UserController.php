@@ -53,4 +53,18 @@ class UserController extends CustomAbstractController
         }
         return $this->sendSuccess("User login successfully refreshed", $data);
     }
+
+    #[Route("/logout", name: "_logout", methods: ["GET"])]
+    public function logout(Request $request, UserService $userService):JsonResponse
+    {
+        $jwt = $this->getJwt($request);
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug
+        ] = $userService->logout($jwt);
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug);
+        }
+        return $this->sendSuccess("User successfully logout.");
+    }
 }
