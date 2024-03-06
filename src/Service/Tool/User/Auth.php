@@ -176,4 +176,15 @@ class Auth
     {
         return $this->_createPassword($user, $plainPassword);
     }
+
+    /**
+     * @param UserEntity $user
+     * @return void
+     */
+    public function logout(UserEntity $user): void
+    {
+        $user->setToken(NULL);
+        $this->userORMService->persist($user);
+        $this->userORMService->flush();
+    }
 }

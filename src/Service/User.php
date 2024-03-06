@@ -103,4 +103,25 @@ class User
         }
         return $response;
     }
+
+    /**
+     * @param string $jwt
+     * @return array
+     */
+    public function logout(string $jwt):array
+    {
+        $response = [...$this->customGenericService->getEmptyReturnResponse()];
+        try {
+            $user = $this->userAuthService->checkJwt($jwt);
+            if ($user === NULL) {
+                $response["error"] = "No user found.";
+                return $response;
+            }
+            $this->userAuthService->logout($user);
+        } catch (Exception $e) {
+            $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
+            $response["error"] = "Error while logout.";
+        }
+        return $response;
+    }
 }
