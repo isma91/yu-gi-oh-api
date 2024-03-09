@@ -5,7 +5,7 @@ namespace App\Service\Tool\Card;
 
 use App\Entity\Card;
 use App\Repository\CardRepository;
-use App\Service\Tool\AbstractORM;
+use App\Service\Tool\Abstract\AbstractORM;
 use App\Service\Tool\ORMSearch;
 use Doctrine\ORM\EntityManagerInterface;
 

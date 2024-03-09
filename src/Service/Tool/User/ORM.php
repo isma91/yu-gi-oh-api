@@ -5,7 +5,7 @@ namespace App\Service\Tool\User;
 
 use App\Entity\User as UserEntity;
 use App\Repository\UserRepository;
-use App\Service\Tool\AbstractORM;
+use App\Service\Tool\Abstract\AbstractORM;
 use App\Service\Tool\ORMSlugName;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\String\Slugger\SluggerInterface;

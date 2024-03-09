@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service\Tool;
+namespace App\Service\Tool\Abstract;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityManagerInterface;
