@@ -2,7 +2,7 @@
 
 namespace App\Service\Tool\CardPicture;
 
-use App\Service\Tool\FileInterface;
+use App\Service\Tool\Interface\FileInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
