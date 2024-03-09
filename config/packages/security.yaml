@@ -32,6 +32,7 @@ security:
     access_control:
         - { path: ^/user/refresh-login, roles: [ ROLE_USER ] }
         - { path: ^/user/logout, roles: [ ROLE_USER ] }
+        - { path: ^/search/card, roles: [ ROLE_USER ] }
 
 when@test:
     security:
