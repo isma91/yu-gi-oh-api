@@ -79,4 +79,24 @@ abstract class CustomAbstractController extends AbstractController
     {
         return $this->jsonResponse->sendSuccess($message, $data, $httpCode);
     }
+
+    /**
+     * @param object $service
+     * @param string $returnFieldName
+     * @param string $entityHumanName
+     * @return JsonResponse
+     */
+    public function genericGetAll(object $service, string $returnFieldName, string $entityHumanName): JsonResponse
+    {
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug,
+            $returnFieldName => $curriculum
+        ] = $service->getAll();
+        $data = [$returnFieldName => $curriculum];
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug, $data);
+        }
+        return $this->sendSuccess("$entityHumanName list", $data);
+    }
 }
