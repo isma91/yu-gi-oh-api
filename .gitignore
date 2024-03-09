@@ -14,6 +14,11 @@
 /.idea
 ###< phpStorm ###
 
+###< card upload folder ###
+!/var/upload/card/.gitignore
+!/var/upload/card/default.png
+###> card upload folder ###
+
 ###> Backup folder with database & upload folder ziped ###
 /backup
 ###< Backup folder with database & upload folder ziped ###
