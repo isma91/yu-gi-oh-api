@@ -33,6 +33,13 @@ security:
         - { path: ^/user/refresh-login, roles: [ ROLE_USER ] }
         - { path: ^/user/logout, roles: [ ROLE_USER ] }
         - { path: ^/search/card, roles: [ ROLE_USER ] }
+        - { path: ^/archetype/all, roles: [ ROLE_USER ] }
+        - { path: ^/card-attribute/all, roles: [ ROLE_USER ] }
+        - { path: ^/category/all, roles: [ ROLE_USER ] }
+        - { path: ^/property-type/all, roles: [ ROLE_USER ] }
+        - { path: ^/sub-property-type/all, roles: [ ROLE_USER ] }
+        - { path: ^/sub-type/all, roles: [ ROLE_USER ] }
+        - { path: ^/type/all, roles: [ ROLE_USER ] }
 
 when@test:
     security:
