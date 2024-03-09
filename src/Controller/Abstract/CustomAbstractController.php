@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Abstract;
 
 use App\Controller\Interface\CheckParameterInterface;
 use App\Controller\Interface\JsonResponseInterface;

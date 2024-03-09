@@ -2,10 +2,11 @@
 
 namespace App\Controller;
 
+use App\Controller\Abstract\CustomAbstractController;
+use App\Service\Search as SearchService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Service\Search as SearchService;
 
 #[Route('/search', name: 'api_search')]
 class SearchController extends CustomAbstractController

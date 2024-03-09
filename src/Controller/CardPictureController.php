@@ -2,11 +2,12 @@
 
 namespace App\Controller;
 
+use App\Controller\Abstract\CustomAbstractController;
+use App\Service\CardPicture as CardPictureService;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Requirement\Requirement;
-use App\Service\CardPicture as CardPictureService;
 
 #[Route("/card-picture", name: "card_picture_api")]
 class CardPictureController extends CustomAbstractController

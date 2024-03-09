@@ -2,10 +2,11 @@
 
 namespace App\Controller;
 
+use App\Controller\Abstract\CustomAbstractController;
+use App\Service\User as UserService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Service\User as UserService;
 
 #[Route('/user', name: 'api_user')]
 class UserController extends CustomAbstractController
