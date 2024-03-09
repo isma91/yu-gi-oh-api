@@ -16,18 +16,19 @@ class Category
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups("search_card")]
+    #[Groups(["search_card", "category_list"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups("search_card")]
+    #[Groups(["search_card", "category_list"])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups("search_card")]
+    #[Groups(["search_card", "category_list"])]
     private ?string $slugName = null;
 
     #[ORM\ManyToMany(targetEntity: SubCategory::class)]
+    #[Groups(["category_list"])]
     private Collection $subCategories;
 
     public function __construct()

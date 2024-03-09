@@ -16,20 +16,20 @@ class SubProperty
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups("search_card")]
+    #[Groups(["search_card", "sub_property_type_list"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups("search_card")]
+    #[Groups(["search_card", "sub_property_type_list"])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups("search_card")]
+    #[Groups(["search_card", "sub_property_type_list"])]
     private ?string $slugName = null;
 
     #[ORM\ManyToOne(inversedBy: 'subProperties')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups("search_card")]
+    #[Groups(["search_card"])]
     private ?SubPropertyType $subPropertyType = null;
 
     #[ORM\ManyToMany(targetEntity: Card::class, inversedBy: 'subProperties')]
