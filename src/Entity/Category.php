@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
 class Category
@@ -15,19 +16,19 @@ class Category
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups("search_card")]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups("search_card")]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups("search_card")]
     private ?string $slugName = null;
 
     #[ORM\ManyToMany(targetEntity: SubCategory::class)]
     private Collection $subCategories;
-
-    #[ORM\Column]
-    private ?bool $acceptSubCategory = false;
 
     public function __construct()
     {
@@ -83,18 +84,6 @@ class Category
     public function removeSubCategory(SubCategory $subCategory): static
     {
         $this->subCategories->removeElement($subCategory);
-
-        return $this;
-    }
-
-    public function isAcceptSubCategory(): ?bool
-    {
-        return $this->acceptSubCategory;
-    }
-
-    public function setAcceptSubCategory(bool $acceptSubCategory): static
-    {
-        $this->acceptSubCategory = $acceptSubCategory;
 
         return $this;
     }
