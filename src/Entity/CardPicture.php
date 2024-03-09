@@ -6,14 +6,17 @@ use App\Repository\CardPictureRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: CardPictureRepository::class)]
 class CardPicture
 {
+    private const CARD_PICTURE_ROUTE_BASE = "card-picture";
     use TimestampableEntity;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups("search_card")]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -37,6 +40,32 @@ class CardPicture
         return $this->id;
     }
 
+    /**
+     * @param string|null $string
+     * @return string|null
+     */
+    private function _getUrl(?string $string): ?string
+    {
+        $url = NULL;
+        $cardEntity = $this->card;
+        $pictureIdYGO = $this->idYGO;
+        if ($string !== NULL && $cardEntity !== NULL && $pictureIdYGO !== NULL) {
+            $cardEntityUuid = $cardEntity->getUuid();
+            if ($cardEntityUuid === NULL) {
+                return NULL;
+            }
+            $url = sprintf(
+                "/%s/%s/%s/%s/%s",
+                self::CARD_PICTURE_ROUTE_BASE,
+                "display",
+                $cardEntityUuid->__toString(),
+                $pictureIdYGO,
+                $string
+            );
+        }
+        return $url;
+    }
+
     public function getPicture(): ?string
     {
         return $this->picture;
@@ -47,6 +76,12 @@ class CardPicture
         $this->picture = $picture;
 
         return $this;
+    }
+
+    #[Groups("search_card")]
+    public function getPictureSmallUrl(): ?string
+    {
+        return $this->_getUrl($this->pictureSmall);
     }
 
     public function getPictureSmall(): ?string
