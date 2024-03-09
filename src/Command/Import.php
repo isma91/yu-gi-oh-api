@@ -140,7 +140,7 @@ class Import extends Command
         $this->cardAttributeRepository =$cardAttributeRepository;
         $this->slugger = $slugger;
         $this->filesystem = $filesystem;
-        $this->cardUploadPath = $param->get('CARD_DIR');
+        $this->cardUploadPath = $param->get('CARD_UPLOAD_DIR');
         $this->guzzleClient = new GuzzleClient([
             "allow_redirect" => TRUE,
             "http_errors" => TRUE,
@@ -406,6 +406,13 @@ class Import extends Command
             $cardEntityArray = [];
             $cardSetNewArray = [];
             $countNewCard = 0;
+            $subCategoryMonsterArray = [];
+            $categoryMonsterEntity = $categoryArray["monster"];
+            $categoryMonsterSubCategoryArray = $categoryMonsterEntity->getSubCategories();
+            foreach ($categoryMonsterSubCategoryArray as $subCategory) {
+                $subCategoryMonsterArray[$subCategory->getSlugName()] = $subCategory;
+            }
+            $subCategoryMonsterKeyArray = array_keys($subCategoryMonsterArray);
             foreach ($requestCardInfoArray as $cardInfoArray) {
                 if ($limitCardToAdd !== NULL && $countNewCard >= $limitCardToAdd) {
                     break;
@@ -445,7 +452,8 @@ class Import extends Command
                         ->setIdYGO($cardInfoId)
                         ->setName($cardInfoName)
                         ->setSlugName($this->slugify($cardInfoName))
-                        ->setDescription($cardInfoDesc);
+                        ->setDescription($cardInfoDesc)
+                        ->setSlugDescription($this->slugify($cardInfoDesc));
                 } else {
                     $output->writeln(
                         sprintf(
@@ -472,6 +480,10 @@ class Import extends Command
                 $cardInfoLevel = NULL;
                 $isXYZ = FALSE;
                 $isLink = FALSE;
+                $isToken = FALSE;
+                $isPendulum = FALSE;
+                $cardPendulumDescription = NULL;
+                $cardPendulumMonsterDescription = NULL;
                 if (isset($cardInfoArray["archetype"]) === TRUE) {
                     $cardInfoArchetype = $cardInfoArray["archetype"];
                 }
@@ -493,6 +505,12 @@ class Import extends Command
                 if (isset($cardInfoArray["level"]) === TRUE) {
                     $cardInfoLevel = $cardInfoArray["level"];
                 }
+                if (isset($cardInfoArray["pend_desc"]) === TRUE) {
+                    $cardPendulumDescription = $cardInfoArray["pend_desc"];
+                }
+                if (isset($cardInfoArray["monster_desc"]) === TRUE) {
+                    $cardPendulumMonsterDescription = $cardInfoArray["monster_desc"];
+                }
 
                 if (in_array("token", $cardInfoTypeArray, TRUE) === TRUE) {
                     $cardCategorySlugName = "token";
@@ -501,6 +519,7 @@ class Import extends Command
                 $monsterKeyNumber = array_search("monster", $cardInfoTypeArray, TRUE);
                 $isMonster = $monsterKeyNumber !== FALSE;
                 if ($cardCategorySlugName === "token") {
+                    $isToken = TRUE;
                     $isEffect = FALSE;
                 } elseif ($isMonster === TRUE) {
                     $cardCategorySlugName = "monster";
@@ -516,28 +535,45 @@ class Import extends Command
                     if (empty($cardInfoTypeArray) === FALSE) {
                         $this->outputAddingEntityToCard($output, "SubType");
                         foreach ($cardInfoTypeArray as $cardInfoSubTypeSlugName) {
-                            $cardInfoSubType = $cardInfoTypeArrayWithSlugNameAsKey[$cardInfoSubTypeSlugName];
-                            $subTypeEntity = $this->findSubTypeFromSubTypeArray($cardInfoSubTypeSlugName, $subTypeArray);
-                            if ($subTypeEntity === NULL) {
-                                $subTypeNewKeyArray = array_keys($subTypeNewArray);
-                                if (in_array($cardInfoSubTypeSlugName, $subTypeNewKeyArray, TRUE) === TRUE) {
-                                    $subTypeEntity = $subTypeNewArray[$cardInfoSubTypeSlugName];
-                                } else {
-                                    $subTypeEntity = $this->createSubType($cardInfoSubType);
-                                    $subTypeNewArray[$cardInfoSubTypeSlugName] = $subTypeEntity;
-                                    $this->outputNewEntityCreated(
-                                        $output,
-                                        "SubType",
-                                        $cardInfoSubType
-                                    );
+                            $subTypeIsSubCategoryMonster = in_array($cardInfoSubTypeSlugName, $subCategoryMonsterKeyArray, TRUE);
+                            if ($subTypeIsSubCategoryMonster === FALSE) {
+                                $cardInfoSubType = $cardInfoTypeArrayWithSlugNameAsKey[$cardInfoSubTypeSlugName];
+                                $subTypeEntity = $this->findSubTypeFromSubTypeArray($cardInfoSubTypeSlugName, $subTypeArray);
+                                if ($subTypeEntity === NULL) {
+                                    $subTypeNewKeyArray = array_keys($subTypeNewArray);
+                                    if (in_array($cardInfoSubTypeSlugName, $subTypeNewKeyArray, TRUE) === TRUE) {
+                                        $subTypeEntity = $subTypeNewArray[$cardInfoSubTypeSlugName];
+                                    } else {
+                                        $subTypeEntity = $this->createSubType($cardInfoSubType);
+                                        $subTypeNewArray[$cardInfoSubTypeSlugName] = $subTypeEntity;
+                                        $this->outputNewEntityCreated(
+                                            $output,
+                                            "SubType",
+                                            $cardInfoSubType
+                                        );
+                                    }
                                 }
+                                $cardEntity->addSubType($subTypeEntity);
+                                $subTypeEntity->addCard($cardEntity);
+                                $this->em->persist($subTypeEntity);
+                            } else {
+                                $subCategoryMonster = $subCategoryMonsterArray[$cardInfoSubTypeSlugName];
+                                if ($subCategoryMonster === NULL) {
+                                    //@todo add to logger
+                                    [
+                                        "newArray" => $subTypeNewArray,
+                                        "array" => $subTypeArray
+                                    ] = $this->removeCardEntityFromAllSubTypeArray(
+                                        $cardEntity,
+                                        $subTypeArray,
+                                        $subTypeNewArray
+                                    );
+                                    continue;
+                                }
+                                $cardEntity->setSubCategory($subCategoryMonster);
                             }
-                            $cardEntity->addSubType($subTypeEntity);
-                            $subTypeEntity->addCard($cardEntity);
-                            $this->em->persist($subTypeEntity);
                             if ($cardInfoSubTypeSlugName === "pendulum") {
                                 if ($cardInfoPendulumScale === NULL) {
-                                    $subTypeEntity->removeCard($cardEntity);
                                     [
                                         "newArray" => $subTypeNewArray,
                                         "array" => $subTypeArray
@@ -556,7 +592,6 @@ class Import extends Command
                                     $subPropertyTypeEntity,
                                 );
                                 if ($subPropertyEntity === NULL) {
-                                    $subTypeEntity->removeCard($cardEntity);
                                     [
                                         "newArray" => $subTypeNewArray,
                                         "array" => $subTypeArray
@@ -569,8 +604,10 @@ class Import extends Command
                                     continue;
                                 }
                                 $subPropertyEntity->addCard($cardEntity);
-                                $cardEntity->addSubProperty($subPropertyEntity);
-                                $this->em->persist($subTypeEntity);
+                                $cardEntity->addSubProperty($subPropertyEntity)
+                                    ->setPendulumDescription($cardPendulumDescription)
+                                    ->setMonsterDescription($cardPendulumMonsterDescription);
+                                $isPendulum = TRUE;
                             } elseif ($cardInfoSubTypeSlugName === "link") {
                                 $isLink = TRUE;
                                 $subPropertyTypeEntity = $subPropertyTypeArray["link-arrow"];
@@ -581,7 +618,6 @@ class Import extends Command
                                         $subPropertyTypeEntity,
                                     );
                                     if ($subPropertyEntity === NULL) {
-                                        $subTypeEntity->removeCard($cardEntity);
                                         [
                                             "newArray" => $subTypeNewArray,
                                             "array" => $subTypeArray
@@ -595,7 +631,6 @@ class Import extends Command
                                     }
                                     $subPropertyEntity->addCard($cardEntity);
                                     $cardEntity->addSubProperty($subPropertyEntity);
-                                    $this->em->persist($subTypeEntity);
                                 }
                             } elseif ($cardInfoSubTypeSlugName === "xyz") {
                                 $isXYZ = TRUE;
@@ -605,7 +640,8 @@ class Import extends Command
                 } else {
                     $cardCategorySlugName = $cardInfoTypeArray[0];
                 }
-                $cardEntity->setIsEffect($isEffect);
+                $cardEntity->setIsEffect($isEffect)
+                    ->setIsPendulum($isPendulum);
                 $categoryEntity = $this->findCategoryFromCategoryArray($cardCategorySlugName, $categoryArray);
                 if ($categoryEntity === NULL) {
                     [
@@ -619,8 +655,8 @@ class Import extends Command
                     //@TODO: Put in logger
                     continue;
                 }
-                //Category with accepted SubCategory are only Spell/Trap card
-                if ($categoryEntity->isAcceptSubCategory() === TRUE) {
+                //Category who are not Token nor Monster are only Spell/Trap card
+                if ($isToken === FALSE && $isMonster === FALSE) {
                     $this->outputAddingEntityToCard($output, "SubCategory");
                     $subCategoryEntity = $this->findSubCategory($cardInfoRaceSlugName, $subCategoryArray, $categoryEntity);
                     if ($subCategoryEntity === NULL) {
