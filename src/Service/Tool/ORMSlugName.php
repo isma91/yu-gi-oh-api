@@ -3,19 +3,17 @@
 namespace App\Service\Tool;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
-abstract class AbstractORMSlugName extends AbstractORM
+class ORMSlugName
 {
     public ServiceEntityRepository $repository;
     public SluggerInterface $slugger;
 
-    public function __construct(EntityManagerInterface $em, ServiceEntityRepository $repository, SluggerInterface $slugger)
+    public function __construct(ServiceEntityRepository $repository, SluggerInterface $slugger)
     {
         $this->repository = $repository;
         $this->slugger = $slugger;
-        parent::__construct($em, $repository);
     }
 
     /**
@@ -34,7 +32,7 @@ abstract class AbstractORMSlugName extends AbstractORM
     public function findBySlugName(string $string): ?object
     {
         $slugName = $this->slugify($string);
-        return $this->findOneBy(["slugName" => $slugName]);
+        return $this->repository->findOneBy(["slugName" => $slugName]);
     }
 
 }

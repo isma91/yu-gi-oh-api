@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 
 
@@ -18,49 +19,63 @@ class Card
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(["search_card"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(["search_card"])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(["search_card"])]
     private ?string $slugName = null;
 
     #[ORM\Column(type: 'uuid')]
+    #[Groups(["search_card"])]
     private ?Uuid $uuid = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true)]
+    #[Groups(["search_card"])]
     private ?CardAttribute $attribute = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true)]
+    #[Groups(["search_card"])]
     private ?Property $property = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(["search_card"])]
     private ?Category $category = null;
 
     #[ORM\OneToMany(mappedBy: 'card', targetEntity: CardPicture::class)]
+    #[Groups(["search_card"])]
     private Collection $pictures;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true)]
+    #[Groups(["search_card"])]
     private ?Type $type = null;
 
     #[ORM\ManyToMany(targetEntity: SubType::class, inversedBy: 'cards')]
+    #[Groups(["search_card"])]
     private Collection $subTypes;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(["search_card"])]
     private ?bool $isEffect = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(["search_card"])]
     private ?string $description = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(["search_card"])]
     private ?int $attackPoints = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(["search_card"])]
     private ?int $defensePoints = null;
 
     #[ORM\ManyToOne]
@@ -74,10 +89,28 @@ class Card
     private Collection $cardSets;
 
     #[ORM\ManyToMany(targetEntity: SubProperty::class, mappedBy: 'cards')]
+    #[Groups(["search_card"])]
     private Collection $subProperties;
 
     #[ORM\ManyToOne]
+    #[Groups(["search_card"])]
     private ?SubCategory $subCategory = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: false)]
+    #[Groups(["search_card"])]
+    private ?string $slugDescription = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(["search_card"])]
+    private ?string $pendulumDescription = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(["search_card"])]
+    private ?string $monsterDescription = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(["search_card"])]
+    private ?bool $isPendulum = null;
 
     public function __construct()
     {
@@ -367,6 +400,54 @@ class Card
     public function setSubCategory(?SubCategory $subCategory): static
     {
         $this->subCategory = $subCategory;
+
+        return $this;
+    }
+
+    public function getSlugDescription(): ?string
+    {
+        return $this->slugDescription;
+    }
+
+    public function setSlugDescription(string $slugDescription): static
+    {
+        $this->slugDescription = $slugDescription;
+
+        return $this;
+    }
+
+    public function getPendulumDescription(): ?string
+    {
+        return $this->pendulumDescription;
+    }
+
+    public function setPendulumDescription(?string $pendulumDescription): static
+    {
+        $this->pendulumDescription = $pendulumDescription;
+
+        return $this;
+    }
+
+    public function getMonsterDescription(): ?string
+    {
+        return $this->monsterDescription;
+    }
+
+    public function setMonsterDescription(?string $monsterDescription): static
+    {
+        $this->monsterDescription = $monsterDescription;
+
+        return $this;
+    }
+
+    public function isIsPendulum(): ?bool
+    {
+        return $this->isPendulum;
+    }
+
+    public function setIsPendulum(?bool $isPendulum): static
+    {
+        $this->isPendulum = $isPendulum;
 
         return $this;
     }

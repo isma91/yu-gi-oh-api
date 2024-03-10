@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: SubPropertyTypeRepository::class)]
 class SubPropertyType
@@ -15,15 +16,19 @@ class SubPropertyType
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(["search_card", "sub_property_type_list"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(["search_card", "sub_property_type_list"])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(["search_card", "sub_property_type_list"])]
     private ?string $slugName = null;
 
     #[ORM\OneToMany(mappedBy: 'subPropertyType', targetEntity: SubProperty::class)]
+    #[Groups(["sub_property_type_list"])]
     private Collection $subProperties;
 
     public function __construct()

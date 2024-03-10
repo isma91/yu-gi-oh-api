@@ -3,9 +3,12 @@
 namespace App\Service;
 
 use App\Entity\User as UserEntity;
+use App\Service\Tool\Abstract\AbstractORM;
 use App\Service\Tool\User\Auth as UserAuthService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\FilterCollection;
+use Exception;
+use JsonException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\String\Slugger\SluggerInterface;
@@ -85,7 +88,7 @@ class CustomGeneric
      * @param object[] $entities
      * @param string[] $groups
      * @return array[array]
-     * @throws \JsonException
+     * @throws JsonException
      */
     public function getInfoSerialize(array $entities, array $groups): array
     {
@@ -104,5 +107,47 @@ class CustomGeneric
     public function slugify(string $name): string
     {
         return $this->slugger->slug($name)->lower()->toString();
+    }
+
+    /**
+     * @param AbstractORM $ORMService
+     * @param string $returnFieldName
+     * @param array $groupNameArray
+     * @param string $entityHumanName
+     * @param int|string|null $idOrUuid
+     * @param bool $isUuid
+     * @return array
+     */
+    public function getAllOrInfo(
+        AbstractORM $ORMService,
+        string $returnFieldName,
+        array $groupNameArray,
+        string $entityHumanName,
+        int|string|null $idOrUuid = NULL,
+        bool $isUuid = FALSE,
+    ): array
+    {
+        $response = [...$this->getEmptyReturnResponse(), $returnFieldName => []];
+        $isGetAll = ($idOrUuid === NULL);
+        try {
+            $findUniqueEntityFunName = ($isUuid === TRUE) ? "findByUuid" : "findById";
+            $entity = ($isGetAll === TRUE) ? $ORMService->findAll() : $ORMService->$findUniqueEntityFunName($idOrUuid);
+            $infoSerialize = [];
+            if ($isGetAll === TRUE) {
+                $infoSerialize = $this->getInfoSerialize($entity, $groupNameArray);
+            } elseif ($entity !== NULL) {
+                $infoSerialize = $this->getInfoSerialize([$entity], $groupNameArray)[0];
+            }
+            $response[$returnFieldName] = $infoSerialize;
+        } catch (JsonException|Exception $e) {
+            $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
+            $response["error"] = sprintf(
+                "Error while getting %s%s%s.",
+                $isGetAll === TRUE ? "all " : "",
+                $entityHumanName,
+                $isGetAll === TRUE ? "" : " info"
+            );
+        }
+        return $response;
     }
 }
