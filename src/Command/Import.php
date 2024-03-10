@@ -570,6 +570,12 @@ class Import extends Command
                                     );
                                     continue;
                                 }
+                                //some ritual are normal monster, extra-deck monster are all isEffect from the api
+                                if ($isEffect === FALSE && $subCategoryMonster->getSlugName() === "ritual") {
+                                    $isEffect = FALSE;
+                                } else {
+                                    $isEffect = TRUE;
+                                }
                                 $cardEntity->setSubCategory($subCategoryMonster);
                             }
                             if ($cardInfoSubTypeSlugName === "pendulum") {
