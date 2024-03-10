@@ -32,8 +32,50 @@ class CardRepository extends ServiceEntityRepository
     public function returnQueryBuilderSearchFilter(QueryBuilder $qb, array $filter): QueryBuilder
     {
         if (isset($filter["slugName"]) === TRUE) {
-            $qb->andWhere("card.slugName LIKE :card_slugName OR card.slugDescription LIKE :card_slugName")
-                ->setParameter("card_slugName", '%' . $filter["slugName"] . '%');
+            $qb->andWhere("card.slugName LIKE :cardSlugName OR card.slugDescription LIKE :cardSlugName")
+                ->setParameter("cardSlugName", '%' . $filter["slugName"] . '%');
+        }
+        if (isset($filter["isPendulum"]) === TRUE) {
+            $qb->andWhere("card.isPendulum = :isPendulum")
+                ->setParameter("isPendulum", $filter["isPendulum"]);
+        }
+        if (isset($filter["isEffect"]) === TRUE) {
+            $qb->andWhere("card.isEffect = :isEffect")
+                ->setParameter("isEffect", $filter["isEffect"]);
+        }
+        if (isset($filter["archetype"]) === TRUE) {
+            $qb->andWhere("card.archetype IN (:archetypeArray)")
+                ->setParameter("archetypeArray", $filter["archetype"]);
+        }
+        if (isset($filter["attribute"]) === TRUE) {
+            $qb->andWhere("card.attribute IN (:attributeArray)")
+                ->setParameter("attributeArray", $filter["attribute"]);
+        }
+        if (isset($filter["category"]) === TRUE) {
+            $qb->andWhere("card.category = :category")
+                ->setParameter("category", $filter["category"]);
+        }
+        if (isset($filter["subCategory"]) === TRUE) {
+            $qb->andWhere("card.subCategory = :subCategory")
+                ->setParameter("subCategory", $filter["subCategory"]);
+        }
+        if (isset($filter["property"]) === TRUE) {
+            $qb->andWhere("card.property IN (:propertyArray)")
+                ->setParameter("propertyArray", $filter["property"]);
+        }
+        if (isset($filter["subProperty"]) === TRUE) {
+            $qb->innerJoin("card.subProperties", "subProperties")
+                ->andWhere("subProperties.id IN (:subPropertyArray)")
+                ->setParameter("subPropertyArray", $filter["subProperty"]);
+        }
+        if (isset($filter["subType"]) === TRUE) {
+            $qb->innerJoin("card.subTypes", "subTypes")
+                ->andWhere("subTypes.id IN (:subTypeArray)")
+                ->setParameter("subTypeArray", $filter["subType"]);
+        }
+        if (isset($filter["type"]) === TRUE) {
+            $qb->andWhere("card.type IN (:typeArray)")
+                ->setParameter("typeArray", $filter["type"]);
         }
         return $qb;
     }
