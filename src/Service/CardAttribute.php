@@ -18,6 +18,14 @@ class CardAttribute
     }
 
     /**
+     * @return CardAttributeORMService
+     */
+    public function getORMService(): CardAttributeORMService
+    {
+        return $this->cardAttributeORMService;
+    }
+
+    /**
      * @return array[
      *  "error" => string,
      *  "errorDebug" => string,

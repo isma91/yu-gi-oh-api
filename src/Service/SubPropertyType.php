@@ -18,6 +18,14 @@ class SubPropertyType
     }
 
     /**
+     * @return SubPropertyTypeORMService
+     */
+    public function getORMService(): SubPropertyTypeORMService
+    {
+        return $this->subPropertyTypeORMService;
+    }
+
+    /**
      * @return array[
      *  "error" => string,
      *  "errorDebug" => string,

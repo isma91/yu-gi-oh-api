@@ -18,6 +18,14 @@ class PropertyType
     }
 
     /**
+     * @return PropertyTypeORMService
+     */
+    public function getORMService(): PropertyTypeORMService
+    {
+        return $this->propertyTypeORMService;
+    }
+
+    /**
      * @return array[
      *  "error" => string,
      *  "errorDebug" => string,

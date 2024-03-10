@@ -18,6 +18,14 @@ class SubType
     }
 
     /**
+     * @return SubTypeORMService
+     */
+    public function getORMService(): SubTypeORMService
+    {
+        return $this->subTypeORMService;
+    }
+
+    /**
      * @return array[
      *  "error" => string,
      *  "errorDebug" => string,

@@ -18,6 +18,14 @@ class Type
     }
 
     /**
+     * @return TypeORMService
+     */
+    public function getORMService(): TypeORMService
+    {
+        return $this->typeORMService;
+    }
+
+    /**
      * @return array[
      *  "error" => string,
      *  "errorDebug" => string,

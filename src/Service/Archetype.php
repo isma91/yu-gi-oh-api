@@ -18,6 +18,14 @@ class Archetype
     }
 
     /**
+     * @return ArchetypeORMService
+     */
+    public function getORMService(): ArchetypeORMService
+    {
+        return $this->archetypeORMService;
+    }
+
+    /**
      * @return array[
      *  "error" => string,
      *  "errorDebug" => string,

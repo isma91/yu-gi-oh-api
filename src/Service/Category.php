@@ -18,6 +18,14 @@ class Category
     }
 
     /**
+     * @return CategoryORMService
+     */
+    public function getORMService(): CategoryORMService
+    {
+        return $this->categoryORMService;
+    }
+
+    /**
      * @return array[
      *  "error" => string,
      *  "errorDebug" => string,
