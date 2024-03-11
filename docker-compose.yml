@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  web:
+    container_name: yu-gi-oh-api
+    restart: always
+    build: .
+    ports:
+      # exposed port : port in the container
+      - "7000:8080"
+    volumes:
+      # local folder : path in the container
+      - .:/var/www/html
