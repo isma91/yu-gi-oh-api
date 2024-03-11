@@ -26,15 +26,17 @@ class CardAttribute
     }
 
     /**
+     * @param string $jwt
      * @return array[
      *  "error" => string,
      *  "errorDebug" => string,
      *  "cardAttribute" => array[mixed],
      *  ]
      */
-    public function getAll(): array
+    public function getAll(string $jwt): array
     {
         return $this->customGenericService->getAllOrInfo(
+            $jwt,
             $this->cardAttributeORMService,
             "cardAttribute",
             ["card_attribute_list"],
