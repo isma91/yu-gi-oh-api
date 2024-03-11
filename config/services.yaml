@@ -13,6 +13,7 @@ parameters:
     ROLE_ADMIN_PLAIN_TEXT: '%env(ROLE_ADMIN_PLAIN_TEXT)%'
     ROLE_USER: '%env(ROLE_USER)%'
     ROLE_USER_PLAIN_TEXT: '%env(ROLE_USER_PLAIN_TEXT)%'
+    BACK_URL: '%env(BACK_URL)%'
 
 services:
     # default configuration for services in *this* file
