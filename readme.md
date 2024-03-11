@@ -42,3 +42,7 @@ In my case, 2 times is largely enough, next time the Import launches, we won't h
 ## Crontab
 
 Use the `cron.txt` file to help you with the implementation of various tasks such as Import in your cron daemon.
+
+## Documentation
+
+### you documentation is available at the `/swagger` route
