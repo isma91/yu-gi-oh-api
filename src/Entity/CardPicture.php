@@ -7,24 +7,33 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
+use OpenApi\Attributes as OA;
 
+#[OA\Schema(
+    description: "A Card can have many CardPicture."
+)]
 #[ORM\Entity(repositoryClass: CardPictureRepository::class)]
 class CardPicture
 {
     private const CARD_PICTURE_ROUTE_BASE = "card-picture";
     use TimestampableEntity;
+
+    #[OA\Property(description: "Internal unique identifier of the CardPicture", type: "integer", nullable: false)]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     #[Groups("search_card")]
     private ?int $id = null;
 
+    #[OA\Property(description: "file name of the classic picture", type: "string", nullable: true)]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $picture = null;
 
+    #[OA\Property(description: "file name of the picture cropped", type: "string", nullable: true)]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $pictureSmall = null;
 
+    #[OA\Property(description: "file name of the artwork only", type: "string", nullable: true)]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $artwork = null;
 
@@ -32,6 +41,7 @@ class CardPicture
     #[ORM\JoinColumn(nullable: false)]
     private ?Card $card = null;
 
+    #[OA\Property(description: "Unique identifier from remote api", type: "integer", nullable: false)]
     #[ORM\Column]
     private ?int $idYGO = null;
 
@@ -78,6 +88,7 @@ class CardPicture
         return $this;
     }
 
+    #[OA\Property(description: "get url for the classic picture", type: "string", nullable: true)]
     #[Groups("search_card")]
     public function getPictureSmallUrl(): ?string
     {

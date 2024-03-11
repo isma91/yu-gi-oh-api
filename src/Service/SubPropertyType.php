@@ -26,15 +26,17 @@ class SubPropertyType
     }
 
     /**
+     * @param string $jwt
      * @return array[
      *  "error" => string,
      *  "errorDebug" => string,
      *  "subPropertyType" => array[mixed],
      *  ]
      */
-    public function getAll(): array
+    public function getAll(string $jwt): array
     {
         return $this->customGenericService->getAllOrInfo(
+            $jwt,
             $this->subPropertyTypeORMService,
             "subPropertyType",
             ["sub_property_type_list"],

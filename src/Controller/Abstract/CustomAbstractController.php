@@ -81,18 +81,25 @@ abstract class CustomAbstractController extends AbstractController
     }
 
     /**
+     * @param Request $request
      * @param object $service
      * @param string $returnFieldName
      * @param string $entityHumanName
      * @return JsonResponse
      */
-    public function genericGetAll(object $service, string $returnFieldName, string $entityHumanName): JsonResponse
+    public function genericGetAll(
+        Request $request,
+        object $service,
+        string $returnFieldName,
+        string $entityHumanName
+    ): JsonResponse
     {
+        $jwt = $this->getJwt($request);
         [
             "error" => $error,
             "errorDebug" => $errorDebug,
             $returnFieldName => $curriculum
-        ] = $service->getAll();
+        ] = $service->getAll($jwt);
         $data = [$returnFieldName => $curriculum];
         if ($error !== "") {
             return $this->sendError($error, $errorDebug, $data);

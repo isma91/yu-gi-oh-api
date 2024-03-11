@@ -209,6 +209,7 @@ class Search
     }
 
     /**
+     * @param string $jwt
      * @param array $parameter
      * @param Archetype $archetypeService
      * @param CardAttribute $cardAttributeService
@@ -225,6 +226,7 @@ class Search
      *  ]
      */
     public function card(
+        string $jwt,
         array $parameter,
         ArchetypeService $archetypeService,
         CardAttributeService $cardAttributeService,
@@ -245,6 +247,11 @@ class Search
                 "offset" => $offset,
                 "limit" => $limit,
             ] = $parameter;
+            $user = $this->customGenericService->customGenericCheckJwt($jwt);
+            if ($user === NULL) {
+                $response["error"] = "No user found.";
+                return $response;
+            }
             $cardORMSearchService = $this->cardORMService->getORMSearch();
             if ($offset > 0) {
                 $cardORMSearchService->offset = $offset;

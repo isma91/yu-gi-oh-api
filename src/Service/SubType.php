@@ -26,15 +26,17 @@ class SubType
     }
 
     /**
+     * @param string $jwt
      * @return array[
      *  "error" => string,
      *  "errorDebug" => string,
      *  "subType" => array[mixed],
      *  ]
      */
-    public function getAll(): array
+    public function getAll(string $jwt): array
     {
         return $this->customGenericService->getAllOrInfo(
+            $jwt,
             $this->subTypeORMService,
             "subType",
             ["sub_type_list"],

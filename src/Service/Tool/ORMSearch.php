@@ -14,9 +14,21 @@ class ORMSearch
 
     public int $limit = 15;
 
+    public int $maxLimit = 100;
+
     public function __construct(ServiceEntityRepository $repository)
     {
         $this->repository = $repository;
+    }
+
+    /**
+     * To avoid server issue we limit the max number of result display
+     * @return void
+     */
+    public function setLimitBeforeSearch(): void
+    {
+        $limitToSet = ($this->limit <= $this->maxLimit) ? $this->limit : $this->maxLimit;
+        $this->limit = $limitToSet;
     }
 
     /**
@@ -25,6 +37,7 @@ class ORMSearch
      */
     public function findFromSearchFilter(array $filter): array
     {
+        $this->setLimitBeforeSearch();
         return $this->repository->findFromSearchFilter($filter, $this->offset, $this->limit);
     }
 

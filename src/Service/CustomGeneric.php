@@ -10,6 +10,7 @@ use Doctrine\ORM\Query\FilterCollection;
 use Exception;
 use JsonException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
@@ -110,6 +111,7 @@ class CustomGeneric
     }
 
     /**
+     * @param string $jwt
      * @param AbstractORM $ORMService
      * @param string $returnFieldName
      * @param array $groupNameArray
@@ -119,6 +121,7 @@ class CustomGeneric
      * @return array
      */
     public function getAllOrInfo(
+        string $jwt,
         AbstractORM $ORMService,
         string $returnFieldName,
         array $groupNameArray,
@@ -130,6 +133,11 @@ class CustomGeneric
         $response = [...$this->getEmptyReturnResponse(), $returnFieldName => []];
         $isGetAll = ($idOrUuid === NULL);
         try {
+            $user = $this->customGenericCheckJwt($jwt);
+            if ($user === NULL) {
+                $response["error"] = "No user found.";
+                return $response;
+            }
             $findUniqueEntityFunName = ($isUuid === TRUE) ? "findByUuid" : "findById";
             $entity = ($isGetAll === TRUE) ? $ORMService->findAll() : $ORMService->$findUniqueEntityFunName($idOrUuid);
             $infoSerialize = [];
@@ -149,5 +157,17 @@ class CustomGeneric
             );
         }
         return $response;
+    }
+
+    /**
+     * @param string $jwt
+     * @return UserEntity|null
+     */
+    public function customGenericCheckJwt(string $jwt): ?UserEntity
+    {
+        if ($jwt === "") {
+            throw new AuthenticationException("No User found.");
+        }
+        return $this->userAuthService->checkJWT($jwt);
     }
 }

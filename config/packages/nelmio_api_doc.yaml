@@ -1,0 +1,53 @@
+nelmio_api_doc:
+    use_validation_groups: true
+    documentation:
+        info:
+            title: Yu-Gi-Oh-API
+            description: API part for the isma91/yu-gi-oh project
+            version: 0.1.0
+        components:
+            schemas:
+                UserLogin:
+                    description: "User info after login"
+                    type: object
+                    properties:
+                        username:
+                            description: "Username/Pseudo of the User, unique field"
+                            type: "string"
+                            maxLength: 180
+                            nullable: false
+                        jwt:
+                            type: "string"
+                        role:
+                            type: "string"
+            securitySchemes:
+                Bearer:
+                    type: http
+                    scheme: bearer
+                    bearerFormat: JWT
+            security:
+                - Bearer: [ ]
+    models:
+        names:
+            - { alias: ArchetypeList, type: App\Entity\Archetype, groups: ["archetype_list"] }
+            - { alias: CardAttributeList, type: App\Entity\CardAttribute, groups: ["card_attribute_list"] }
+            - { alias: CategoryWithSubCategoryList, type: App\Entity\Category, groups: ["category_list"] }
+            - { alias: PropertyTypeWithPropertyList, type: App\Entity\PropertyType, groups: ["property_type_list"] }
+            - { alias: SubPropertyTypeWithSubPropertyList, type: App\Entity\SubPropertyType, groups: ["sub_property_type_list"] }
+            - { alias: SubTypeList, type: App\Entity\SubType, groups: ["sub_type_list"] }
+            - { alias: TypeList, type: App\Entity\Type, groups: ["type_list"] }
+            - { alias: SearchCardList, type: App\Entity\Card, groups: ["search_card"] }
+            - { alias: SearchCardCardAttribute, type: App\Entity\CardAttribute, groups: ["search_card"] }
+            - { alias: SearchCardCardPicture, type: App\Entity\CardPicture, groups: ["search_card"] }
+            - { alias: SearchCardCategory, type: App\Entity\Category, groups: ["search_card"] }
+            - { alias: SearchCardType, type: App\Entity\Type, groups: ["search_card"] }
+            - { alias: SearchCardSubType, type: App\Entity\SubType, groups: ["search_card"] }
+            - { alias: SearchCardArchetype, type: App\Entity\Archetype, groups: ["search_card"] }
+            - { alias: SearchCardSubProperty, type: App\Entity\SubProperty, groups: ["search_card"] }
+            - { alias: SearchCardSubCategory, type: App\Entity\SubCategory, groups: ["search_card"] }
+    areas: # to filter documented areas
+        default:
+            disable_default_routes: true
+        #path_patterns:
+            #- ^/(?![swagger|_error])
+            #- ^/archetype
