@@ -35,6 +35,10 @@ So, we're going to launch the import multiple times per slice of 5K cards each t
 
 In my case, 2 times is largely enough, next time the Import launches, we won't have too many new Entity problems.
 
+### Prepare Docker
+
+`docker-compose -f docker-compose.yml build` then `docker-compose -f docker-compose.yml up -d`
+
 ## Crontab
 
 Use the `cron.txt` file to help you with the implementation of various tasks such as Import in your cron daemon.
