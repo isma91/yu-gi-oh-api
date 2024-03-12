@@ -22,17 +22,17 @@ class Type
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["search_card", "type_list"])]
+    #[Groups(["search_card", "type_list", "card_info"])]
     private ?int $id = null;
 
     #[OA\Property(description: "Name of the Type", type: "string", maxLength: 255, nullable: false)]
     #[ORM\Column(length: 255)]
-    #[Groups(["search_card", "type_list"])]
+    #[Groups(["search_card", "type_list", "card_info"])]
     private ?string $name = null;
 
     #[OA\Property(description: "Slugify name of the Type", type: "string", maxLength: 255, nullable: false)]
     #[ORM\Column(length: 255)]
-    #[Groups(["search_card", "type_list"])]
+    #[Groups(["search_card", "type_list", "card_info"])]
     private ?string $slugName = null;
 
     public function getId(): ?int

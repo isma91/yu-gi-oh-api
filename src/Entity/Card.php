@@ -24,78 +24,103 @@ class Card
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private ?int $id = null;
 
     #[OA\Property(description: "Name of the Card", type: "string", maxLength: 255, nullable: false)]
     #[ORM\Column(length: 255)]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private ?string $name = null;
 
     #[OA\Property(description: "Slugify name of the Card", type: "string", maxLength: 255, nullable: false)]
     #[ORM\Column(length: 255)]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private ?string $slugName = null;
 
     #[OA\Property(description: "Uuid of the Card, true uniqueness field", type: "string", nullable: false)]
     #[ORM\Column(type: 'uuid')]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private ?Uuid $uuid = null;
 
     #[OA\Property(
         description: "Attribute of the Card",
         nullable: true,
-        oneOf: [new OA\Schema(ref: "#/components/schemas/SearchCardCardAttribute")]
+        oneOf: [
+            new OA\Schema(ref: "#/components/schemas/SearchCardCardAttribute"),
+            new OA\Schema(ref: "#/components/schemas/CardInfoCardAttribute"),
+        ]
     )]
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true)]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private ?CardAttribute $attribute = null;
 
-    #[OA\Property(description: "Property of the Card", nullable: true)]
+    #[OA\Property(
+        description: "Property of the Card",
+        nullable: true,
+        oneOf: [
+            new OA\Schema(ref: "#/components/schemas/SearchCardProperty"),
+            new OA\Schema(ref: "#/components/schemas/CardInfoProperty"),
+        ]
+    )]
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true)]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private ?Property $property = null;
 
     #[OA\Property(
         description: "Category of the Card",
-        nullable: true,
-        oneOf: [new OA\Schema(ref: "#/components/schemas/SearchCardCategory")]
+        nullable: false,
+        oneOf: [
+            new OA\Schema(ref: "#/components/schemas/SearchCardCategory"),
+            new OA\Schema(ref: "#/components/schemas/CardInfoCategory"),
+        ]
     )]
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private ?Category $category = null;
 
     #[OA\Property(
         description: "All CardPicture of the Card",
         type: "array",
-        items: new OA\Items(ref: "#/components/schemas/SearchCardCardPicture"),
-        nullable: true
+        items: new OA\Items(
+            oneOf: [
+                new OA\Schema(ref: "#/components/schemas/SearchCardCardPicture"),
+                new OA\Schema(ref: "#/components/schemas/CardInfoCardPicture"),
+            ]
+        ),
     )]
     #[ORM\OneToMany(mappedBy: 'card', targetEntity: CardPicture::class)]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private Collection $pictures;
 
     #[OA\Property(
         description: "Race of the Card",
         nullable: true,
-        oneOf: [new OA\Schema(ref: "#/components/schemas/SearchCardType")]
+        oneOf: [
+            new OA\Schema(ref: "#/components/schemas/SearchCardType"),
+            new OA\Schema(ref: "#/components/schemas/CardInfoType"),
+        ]
     )]
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true)]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private ?Type $type = null;
 
     #[OA\Property(
         description: "All Ability of the Card Monster",
         type: "array",
-        items: new OA\Items(ref: "#/components/schemas/SearchCardSubType"),
-        nullable: true
+        items: new OA\Items(
+            oneOf: [
+                new OA\Schema(ref: "#/components/schemas/SearchCardSubType"),
+                new OA\Schema(ref: "#/components/schemas/CardInfoSubType"),
+            ]
+        ),
+        nullable: true,
     )]
     #[ORM\ManyToMany(targetEntity: SubType::class, inversedBy: 'cards')]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private Collection $subTypes;
 
     #[OA\Property(
@@ -104,7 +129,7 @@ class Card
         nullable: true
     )]
     #[ORM\Column(nullable: true)]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private ?bool $isEffect = null;
 
     #[OA\Property(
@@ -113,7 +138,7 @@ class Card
         nullable: false
     )]
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private ?string $description = null;
 
     #[OA\Property(
@@ -122,7 +147,7 @@ class Card
         nullable: true
     )]
     #[ORM\Column(nullable: true)]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private ?int $attackPoints = null;
 
     #[OA\Property(
@@ -131,42 +156,63 @@ class Card
         nullable: true
     )]
     #[ORM\Column(nullable: true)]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private ?int $defensePoints = null;
 
     #[OA\Property(
         description: "Archetype of the Card",
         nullable: true,
-        oneOf: [new OA\Schema(ref: "#/components/schemas/SearchCardArchetype")]
+        oneOf: [new OA\Schema(ref: "#/components/schemas/CardInfoArchetype")]
     )]
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true)]
+    #[Groups(["card_info"])]
     private ?Archetype $archetype = null;
 
     #[OA\Property(description: "Unique identifier from the remote api", nullable: false)]
     #[ORM\Column(nullable: false)]
     private ?int $idYGO = null;
 
+    #[OA\Property(
+        description: "CardSet of the Card",
+        type: "array",
+        items: new OA\Items(
+            oneOf: [new OA\Schema(ref: "#/components/schemas/CardInfoCardSet")]
+        ),
+        nullable: true,
+    )]
     #[ORM\OneToMany(mappedBy: 'card', targetEntity: CardSet::class)]
+    #[Groups(["card_info"])]
     private Collection $cardSets;
 
     #[OA\Property(
         description: "List of all Pendulum/Link specification of the Card Monster",
         type: "array",
-        items: new OA\Items(ref: "#/components/schemas/SearchCardSubProperty"),
+        items: new OA\Items(
+            oneOf: [
+                new OA\Schema(ref: "#/components/schemas/SearchCardSubProperty"),
+                new OA\Schema(ref: "#/components/schemas/CardInfoSubProperty"),
+            ]
+        ),
         nullable: true
     )]
     #[ORM\ManyToMany(targetEntity: SubProperty::class, mappedBy: 'cards')]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private Collection $subProperties;
 
     #[OA\Property(
         description: "Sub Category of the Card",
-        nullable: true,
-        oneOf: [new OA\Schema(ref: "#/components/schemas/SearchCardSubCategory")]
+        type: "array",
+        items: new OA\Items(
+            oneOf: [
+                new OA\Schema(ref: "#/components/schemas/SearchCardSubCategory"),
+                new OA\Schema(ref: "#/components/schemas/CardInfoSubCategory"),
+            ]
+        ),
+        nullable: false,
     )]
     #[ORM\ManyToOne]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private ?SubCategory $subCategory = null;
 
     #[OA\Property(
@@ -175,7 +221,7 @@ class Card
         nullable: false
     )]
     #[ORM\Column(type: Types::TEXT, nullable: false)]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private ?string $slugDescription = null;
 
     #[OA\Property(
@@ -184,7 +230,7 @@ class Card
         nullable: true
     )]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private ?string $pendulumDescription = null;
 
     #[OA\Property(
@@ -193,7 +239,7 @@ class Card
         nullable: true
     )]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private ?string $monsterDescription = null;
 
     #[OA\Property(
@@ -202,7 +248,7 @@ class Card
         nullable: true
     )]
     #[ORM\Column(nullable: true)]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private ?bool $isPendulum = null;
 
     public function __construct()
