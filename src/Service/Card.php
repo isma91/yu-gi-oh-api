@@ -45,7 +45,6 @@ class Card
             }
             $response["card"] = $this->customGenericService->getInfoSerialize([$card], ["card_info"])[0];
         } catch (Exception $e) {
-            dd($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while getting Card info.";
         }

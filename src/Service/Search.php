@@ -287,7 +287,6 @@ class Search
             $response["card"] = $newCardArray;
             $response["cardAllResultCount"] = $cardAllResultCount;
         } catch (Exception $e) {
-            dd($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while search Card.";
         }
