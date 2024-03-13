@@ -1166,6 +1166,9 @@ class Import extends Command
                 } else {
                     $releaseDateTime = new DateTime($releaseDate);
                 }
+                if (empty($setCode) === TRUE) {
+                    $setCode = "";
+                }
                 $setEntity = new Set();
                 $setEntity->setName($setName)
                     ->setSlugName($setSlugName)
