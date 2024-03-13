@@ -22,22 +22,30 @@ class Property
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["search_card", "property_type_list"])]
+    #[Groups(["search_card", "property_type_list", "card_info"])]
     private ?int $id = null;
 
     #[OA\Property(description: "Name of the Property", type: "string", maxLength: 255, nullable: false)]
     #[ORM\Column(length: 255)]
-    #[Groups(["search_card", "property_type_list"])]
+    #[Groups(["search_card", "property_type_list", "card_info"])]
     private ?string $name = null;
 
     #[OA\Property(description: "Slugify name of the Property", type: "string", maxLength: 255, nullable: false)]
     #[ORM\Column(length: 255)]
-    #[Groups(["search_card", "property_type_list"])]
+    #[Groups(["search_card", "property_type_list", "card_info"])]
     private ?string $slugName = null;
 
+    #[OA\Property(
+        description: "Type of the Property",
+        nullable: false,
+        oneOf: [
+            new OA\Schema(ref: "#/components/schemas/SearchCardPropertyType"),
+            new OA\Schema(ref: "#/components/schemas/CardInfoPropertyType"),
+        ]
+    )]
     #[ORM\ManyToOne(cascade: ["persist"])]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(["search_card"])]
+    #[Groups(["search_card", "card_info"])]
     private ?PropertyType $propertyType = null;
 
     public function getId(): ?int

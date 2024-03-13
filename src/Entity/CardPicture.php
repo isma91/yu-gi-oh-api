@@ -22,7 +22,7 @@ class CardPicture
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups("search_card")]
+    #[Groups(["search_card", "card_info"])]
     private ?int $id = null;
 
     #[OA\Property(description: "file name of the classic picture", type: "string", nullable: true)]
@@ -76,6 +76,13 @@ class CardPicture
         return $url;
     }
 
+    #[OA\Property(description: "get url for the classic picture", type: "string", nullable: true)]
+    #[Groups(["card_info"])]
+    public function getPictureUrl(): ?string
+    {
+        return $this->_getUrl($this->picture);
+    }
+
     public function getPicture(): ?string
     {
         return $this->picture;
@@ -88,8 +95,8 @@ class CardPicture
         return $this;
     }
 
-    #[OA\Property(description: "get url for the classic picture", type: "string", nullable: true)]
-    #[Groups("search_card")]
+    #[OA\Property(description: "get url for the small picture", type: "string", nullable: true)]
+    #[Groups(["search_card", "card_info"])]
     public function getPictureSmallUrl(): ?string
     {
         return $this->_getUrl($this->pictureSmall);
@@ -105,6 +112,13 @@ class CardPicture
         $this->pictureSmall = $pictureSmall;
 
         return $this;
+    }
+
+    #[OA\Property(description: "get url for the artwork", type: "string", nullable: true)]
+    #[Groups(["card_info"])]
+    public function getArtworkUrl(): ?string
+    {
+        return $this->_getUrl($this->artwork);
     }
 
     public function getArtwork(): ?string

@@ -38,13 +38,30 @@ nelmio_api_doc:
             - { alias: TypeList, type: App\Entity\Type, groups: ["type_list"] }
             - { alias: SearchCardList, type: App\Entity\Card, groups: ["search_card"] }
             - { alias: SearchCardCardAttribute, type: App\Entity\CardAttribute, groups: ["search_card"] }
+            - { alias: SearchCardProperty, type: App\Entity\Property, groups: ["search_card"] }
+            - { alias: SearchCardPropertyType, type: App\Entity\PropertyType, groups: ["search_card"] }
             - { alias: SearchCardCardPicture, type: App\Entity\CardPicture, groups: ["search_card"] }
             - { alias: SearchCardCategory, type: App\Entity\Category, groups: ["search_card"] }
             - { alias: SearchCardType, type: App\Entity\Type, groups: ["search_card"] }
             - { alias: SearchCardSubType, type: App\Entity\SubType, groups: ["search_card"] }
-            - { alias: SearchCardArchetype, type: App\Entity\Archetype, groups: ["search_card"] }
             - { alias: SearchCardSubProperty, type: App\Entity\SubProperty, groups: ["search_card"] }
+            - { alias: SearchCardSubPropertyType, type: App\Entity\SubPropertyType, groups: ["search_card"] }
             - { alias: SearchCardSubCategory, type: App\Entity\SubCategory, groups: ["search_card"] }
+            - { alias: CardInfo, type: App\Entity\Card, groups: ["card_info"] }
+            - { alias: CardInfoAttribute, type: App\Entity\CardAttribute, groups: ["card_info"] }
+            - { alias: CardInfoProperty, type: App\Entity\Property, groups: ["card_info"] }
+            - { alias: CardInfoPropertyType, type: App\Entity\PropertyType, groups: ["card_info"] }
+            - { alias: CardInfoCategory, type: App\Entity\Category, groups: ["card_info"] }
+            - { alias: CardInfoCardPicture, type: App\Entity\CardPicture, groups: ["card_info"] }
+            - { alias: CardInfoType, type: App\Entity\Type, groups: ["card_info"] }
+            - { alias: CardInfoSubType, type: App\Entity\SubType, groups: ["card_info"] }
+            - { alias: CardInfoArchetype, type: App\Entity\Archetype, groups: ["card_info"] }
+            - { alias: CardInfoCardSet, type: App\Entity\CardSet, groups: ["card_info"] }
+            - { alias: CardInfoCardSetSet, type: App\Entity\Set, groups: ["card_info"] }
+            - { alias: CardInfoCardSetRarity, type: App\Entity\Rarity, groups: ["card_info"] }
+            - { alias: CardInfoSubProperty, type: App\Entity\SubProperty, groups: ["card_info"] }
+            - { alias: CardInfoSubPropertyType, type: App\Entity\SubPropertyType, groups: ["card_info"] }
+            - { alias: CardInfoSubCategory, type: App\Entity\SubCategory, groups: ["card_info"] }
     areas: # to filter documented areas
         default:
             disable_default_routes: true

@@ -40,6 +40,7 @@ security:
         - { path: ^/sub-property-type/all, roles: [ ROLE_USER ] }
         - { path: ^/sub-type/all, roles: [ ROLE_USER ] }
         - { path: ^/type/all, roles: [ ROLE_USER ] }
+        - { path: ^/card/info/.+, roles: [ ROLE_USER ] }
 
 when@test:
     security:
