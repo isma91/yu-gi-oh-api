@@ -22,17 +22,17 @@ class SubCategory
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["search_card", "category_list"])]
+    #[Groups(["search_card", "category_list", "card_info"])]
     private ?int $id = null;
 
     #[OA\Property(description: "Name of the SubCategory", type: "string", maxLength: 255, nullable: false)]
     #[ORM\Column(length: 255)]
-    #[Groups(["search_card", "category_list"])]
+    #[Groups(["search_card", "category_list", "card_info"])]
     private ?string $name = null;
 
     #[OA\Property(description: "Slugify name of the SubCategory", type: "string", maxLength: 255, nullable: false)]
     #[ORM\Column(length: 255)]
-    #[Groups(["search_card", "category_list"])]
+    #[Groups(["search_card", "category_list", "card_info"])]
     private ?string $slugName = null;
 
     public function getId(): ?int

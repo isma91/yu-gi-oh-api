@@ -7,23 +7,49 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use OpenApi\Attributes as OA;
+use Symfony\Component\Serializer\Annotation\Groups;
 
+#[OA\Schema(
+    description: "Card Rarity/Code name of A Set for a Card, can have one or multiple CardSet."
+)]
 #[ORM\Entity(repositoryClass: CardSetRepository::class)]
 class CardSet
 {
     use TimestampableEntity;
+
+    #[OA\Property(description: "Internal unique identifier of the CardSet", type: "integer", nullable: false)]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(["card_info"])]
     private ?int $id = null;
 
+    #[OA\Property(
+        description: "Set of the CardSet",
+        type: "array",
+        items: new OA\Items(
+            oneOf: [new OA\Schema(ref: "#/components/schemas/CardInfoCardSetSet")]
+        ),
+    )]
     #[ORM\ManyToMany(targetEntity: Set::class, inversedBy: 'cardSets')]
+    #[Groups(["card_info"])]
     private Collection $sets;
 
+    #[OA\Property(description: "Code of the Card name for the Set", type: "string", maxLength: 255, nullable: true)]
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(["card_info"])]
     private ?string $code = null;
 
+    #[OA\Property(
+        description: "Rarity of the CardSet",
+        type: "array",
+        items: new OA\Items(
+            oneOf: [new OA\Schema(ref: "#/components/schemas/CardInfoCardSetRarity")]
+        )
+    )]
     #[ORM\ManyToMany(targetEntity: Rarity::class, inversedBy: 'cardSets')]
+    #[Groups(["card_info"])]
     private Collection $rarities;
 
     #[ORM\ManyToOne(inversedBy: 'cardSets')]

@@ -8,20 +8,32 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
+use OpenApi\Attributes as OA;
 
+#[OA\Schema(
+    description: "Rarity of the Card."
+)]
 #[ORM\Entity(repositoryClass: RarityRepository::class)]
 class Rarity
 {
     use TimestampableEntity;
+
+    #[OA\Property(description: "Internal unique identifier of the Rarity", type: "integer", nullable: false)]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(["card_info"])]
     private ?int $id = null;
 
+    #[OA\Property(description: "Name of the Rarity", type: "string", nullable: false)]
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(["card_info"])]
     private ?string $name = null;
 
+    #[OA\Property(description: "Slugify name of the Rarity", type: "string", nullable: false)]
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(["card_info"])]
     private ?string $slugName = null;
 
     #[ORM\ManyToMany(targetEntity: CardSet::class, mappedBy: 'rarities')]

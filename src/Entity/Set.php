@@ -9,24 +9,43 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
+use OpenApi\Attributes as OA;
 
+#[OA\Schema(
+    description: "Set is a release of multiple Card at once."
+)]
 #[ORM\Entity(repositoryClass: SetRepository::class)]
 #[ORM\Table(name: '`set`')]
 class Set
 {
     use TimestampableEntity;
+
+    #[OA\Property(description: "Internal unique identifier of the Set", type: "integer", nullable: false)]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(["card_info"])]
     private ?int $id = null;
 
+    #[OA\Property(
+        description: "Code name of the Set, can be a duplicate",
+        type: "string",
+        maxLength: 255,
+        nullable: false
+    )]
     #[ORM\Column(length: 255)]
+    #[Groups(["card_info"])]
     private ?string $code = null;
 
+    #[OA\Property(description: "Name of the Set, always unique", type: "string", nullable: false)]
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(["card_info"])]
     private ?string $name = null;
 
+    #[OA\Property(description: "Slugify name of the Set", type: "string", nullable: false)]
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(["card_info"])]
     private ?string $slugName = null;
 
     #[ORM\Column(nullable: true)]
@@ -35,7 +54,9 @@ class Set
     #[ORM\ManyToMany(targetEntity: CardSet::class, mappedBy: 'sets')]
     private Collection $cardSets;
 
+    #[OA\Property(description: "Release date of the Set", type: "string", format: "date-time", nullable: true)]
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[Groups(["card_info"])]
     private ?DateTimeInterface $releaseDate = null;
 
     public function __construct()
