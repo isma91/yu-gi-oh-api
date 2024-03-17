@@ -13,13 +13,46 @@ nelmio_api_doc:
                     properties:
                         username:
                             description: "Username/Pseudo of the User, unique field"
-                            type: "string"
+                            type: string
                             maxLength: 180
                             nullable: false
                         jwt:
-                            type: "string"
+                            type: string
                         role:
-                            type: "string"
+                            type: string
+                DeckCardFieldTypeContent:
+                    description: "Card info array"
+                    type: object
+                    properties:
+                        id:
+                            type: integer
+                            description: "Id of the Card to add"
+                            nullable: false
+                        nbCopie:
+                            type: integer
+                            description: "Number of Copie to add"
+                            nullable: false
+                DeckCardContent:
+                    type: object
+                    properties:
+                        main-deck:
+                            type: array
+                            description: "Main deck content card.
+                            You can add as many as you want but 40 card is the minimum and 60 the maximum recommended"
+                            items:
+                                $ref: "#/components/schemas/DeckCardFieldTypeContent"
+                        extra-deck:
+                            type: array
+                            description: "Extra deck content card.
+                            You can add as many as you want but 15 card is the maximum recommended"
+                            items:
+                                $ref: "#/components/schemas/DeckCardFieldTypeContent"
+                        side-deck:
+                            type: array
+                            description: "Side deck content card.
+                            You can add as many as you want but 15 card is the maximum recommended"
+                            items:
+                                $ref: "#/components/schemas/DeckCardFieldTypeContent"
             securitySchemes:
                 Bearer:
                     type: http
@@ -62,6 +95,7 @@ nelmio_api_doc:
             - { alias: CardInfoSubProperty, type: App\Entity\SubProperty, groups: ["card_info"] }
             - { alias: CardInfoSubPropertyType, type: App\Entity\SubPropertyType, groups: ["card_info"] }
             - { alias: CardInfoSubCategory, type: App\Entity\SubCategory, groups: ["card_info"] }
+            - { alias: DeckUserList, type: App\Entity\Deck, groups: ["deck_user_list"] }
     areas: # to filter documented areas
         default:
             disable_default_routes: true
