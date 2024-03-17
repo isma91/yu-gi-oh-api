@@ -283,7 +283,6 @@ class Search
                 $newCardArray[] = $cardSerialize;
             }
             $cardAllResultCount = $cardORMSearchService->countFromSearchFilter($filter);
-            //$cardAllResultCount = 10;
             $response["card"] = $newCardArray;
             $response["cardAllResultCount"] = $cardAllResultCount;
         } catch (Exception $e) {
