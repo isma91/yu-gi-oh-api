@@ -18,6 +18,14 @@ class Card
     }
 
     /**
+     * @return CardORMService
+     */
+    public function getORMService(): CardORMService
+    {
+        return $this->cardORMService;
+    }
+
+    /**
      * @param string $jwt
      * @param string $cardUuid
      * @return array[
