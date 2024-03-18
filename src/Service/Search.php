@@ -3,28 +3,22 @@
 namespace App\Service;
 
 use App\Service\Archetype as ArchetypeService;
+use App\Service\Card as CardService;
 use App\Service\CardAttribute as CardAttributeService;
 use App\Service\Category as CategoryService;
 use App\Service\PropertyType as PropertyTypeService;
 use App\Service\SubPropertyType as SubPropertyTypeService;
 use App\Service\SubType as SubTypeService;
-use App\Service\Tool\Abstract\AbstractORM;
-use App\Service\Tool\Card\ORM as CardORMService;
 use App\Service\Type as TypeService;
+use App\Service\Deck as DeckService;
 use Exception;
 
 class Search
 {
     private CustomGeneric $customGenericService;
-    private CardORMService $cardORMService;
-
-    public function __construct(
-        CustomGeneric $customGenericService,
-        CardORMService $cardORMService
-    )
+    public function __construct(CustomGeneric $customGenericService)
     {
         $this->customGenericService = $customGenericService;
-        $this->cardORMService = $cardORMService;
     }
 
     /**
@@ -208,6 +202,7 @@ class Search
     /**
      * @param string $jwt
      * @param array $parameter
+     * @param Card $cardService
      * @param Archetype $archetypeService
      * @param CardAttribute $cardAttributeService
      * @param Category $categoryService
@@ -225,6 +220,7 @@ class Search
     public function card(
         string $jwt,
         array $parameter,
+        CardService $cardService,
         ArchetypeService $archetypeService,
         CardAttributeService $cardAttributeService,
         CategoryService $categoryService,
@@ -249,7 +245,7 @@ class Search
                 $response["error"] = "No user found.";
                 return $response;
             }
-            $cardORMSearchService = $this->cardORMService->getORMSearch();
+            $cardORMSearchService = $cardService->getORMService()->getORMSearch();
             if ($offset > 0) {
                 $cardORMSearchService->offset = $offset;
             }
@@ -285,6 +281,57 @@ class Search
         } catch (Exception $e) {
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while search Card.";
+        }
+        return $response;
+    }
+
+    /**
+     * @param string $jwt
+     * @param array $parameter
+     * @param Deck $deckService
+     * @return array[
+     * "error" => string,
+     * "errorDebug" => string,
+     * "deck" => array[mixed],
+     * "deckAllResultCount" => int
+     */
+    public function deckCurrentUser(string $jwt, array $parameter, DeckService $deckService): array
+    {
+        $response = [
+            ...$this->customGenericService->getEmptyReturnResponse(),
+            "deck" => [],
+            "deckAllResultCount" => 0
+        ];
+        try {
+            $user = $this->customGenericService->customGenericCheckJwt($jwt);
+            if ($user === NULL) {
+                $response["error"] = "No user found.";
+                return $response;
+            }
+            [
+                "offset" => $offset,
+                "limit" => $limit,
+                "name" => $name,
+            ] = $parameter;
+            $filter  = [
+                "user" => $user
+            ];
+            $deckORMSearch = $deckService->getORMService()->getORMSearch();
+            if (empty($offset) === FALSE) {
+                $deckORMSearch->offset = $offset;
+            }
+            if (empty($limit) === FALSE) {
+                $deckORMSearch->limit = $limit;
+            }
+            if (empty($name) === FALSE) {
+                $filter["slugName"] = $this->customGenericService->slugify($name);
+            }
+            $deck = $deckORMSearch->findFromSearchFilter($filter);
+            $response["deck"] = $this->customGenericService->getInfoSerialize($deck, ["deck_user_list"]);
+            $response["deckAllResultCount"] = $deckORMSearch->countFromSearchFilter($filter);
+        } catch (Exception $e) {
+            $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
+            $response["error"] = "Error while listing your Decks.";
         }
         return $response;
     }
