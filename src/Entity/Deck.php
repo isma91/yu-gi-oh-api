@@ -42,6 +42,7 @@ class Deck
 
     #[ORM\ManyToOne(inversedBy: 'decks')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(["deck_user_list"])]
     private ?User $user = null;
 
     #[ORM\ManyToMany(targetEntity: Card::class, mappedBy: 'decks')]

@@ -26,7 +26,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
-    #[Groups(["user_login", "user_list"])]
+    #[Groups(["user_login", "user_list", "deck_user_list"])]
     private ?string $username = null;
 
     #[ORM\Column(type: Types::JSON)]
