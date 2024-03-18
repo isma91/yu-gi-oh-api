@@ -42,7 +42,7 @@ security:
         - { path: ^/type/all, roles: [ ROLE_USER ] }
         - { path: ^/card/info/.+, roles: [ ROLE_USER ] }
         - { path: ^/deck/create, roles: [ ROLE_USER ] }
-        - { path: ^/deck/list, roles: [ ROLE_USER ] }
+        - { path: ^/search/deck-current-user, roles: [ ROLE_USER ] }
 
 when@test:
     security:
