@@ -18,9 +18,6 @@ class Search
     private CustomGeneric $customGenericService;
     private CardORMService $cardORMService;
 
-    private int $offset = 0;
-    private int $limit = 30;
-
     public function __construct(
         CustomGeneric $customGenericService,
         CardORMService $cardORMService
