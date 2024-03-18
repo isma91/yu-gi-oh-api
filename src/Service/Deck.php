@@ -168,22 +168,47 @@ class Deck
 
     /**
      * @param string $jwt
+     * @param array $parameter
      * @return array[
      * "error" => string,
      * "errorDebug" => string,
-     * "deck" => array[mixed]
+     * "deck" => array[mixed],
+     * "deckAllResultCount" => int
      */
-    public function listFromUser(string $jwt): array
+    public function listFromUser(string $jwt, array $parameter): array
     {
-        $response = [...$this->customGenericService->getEmptyReturnResponse(), "deck" => []];
+        $response = [
+            ...$this->customGenericService->getEmptyReturnResponse(),
+            "deck" => [],
+            "deckAllResultCount" => 0
+        ];
         try {
             $user = $this->customGenericService->customGenericCheckJwt($jwt);
             if ($user === NULL) {
                 $response["error"] = "No user found.";
                 return $response;
             }
-            $deck = $this->deckORMService->findByUser($user);
+            [
+                "offset" => $offset,
+                "limit" => $limit,
+                "name" => $name,
+            ] = $parameter;
+            $filter  = [
+                "user" => $user
+            ];
+            $deckORMSearch = $this->deckORMService->getORMSearch();
+            if (empty($offset) === FALSE) {
+                $deckORMSearch->offset = $offset;
+            }
+            if (empty($limit) === FALSE) {
+                $deckORMSearch->limit = $limit;
+            }
+            if (empty($name) === FALSE) {
+                $filter["slugName"] = $this->customGenericService->slugify($name);
+            }
+            $deck = $deckORMSearch->findFromSearchFilter($filter);
             $response["deck"] = $this->customGenericService->getInfoSerialize($deck, ["deck_user_list"]);
+            $response["deckAllResultCount"] = $deckORMSearch->countFromSearchFilter($filter);
         } catch (Exception $e) {
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while listing your Decks.";

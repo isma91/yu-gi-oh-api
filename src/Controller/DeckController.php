@@ -98,6 +98,35 @@ class DeckController extends CustomAbstractController
         return $this->sendSuccess("Deck successfully created", NULL, Response::HTTP_CREATED);
     }
 
+    #[OA\RequestBody(
+        request: "SearchDeckUserRequest",
+        description: "Filter to find specific Deck from current User.",
+        required: false,
+        content: new OA\MediaType(
+            mediaType: "multipart/form-data",
+            schema: new OA\Schema(
+                properties: [
+                    new OA\Property(
+                        property: "name",
+                        description: "Part of name or description of the Deck",
+                        type: "string"
+                    ),
+                    new OA\Property(
+                        property: "offset",
+                        description: "Page number if you want to access to the next {limit} number Deck",
+                        type: "integer"
+                    ),
+                    new OA\Property(
+                        property: "limit",
+                        description: "Number of Deck result we send back, if the total is more than {limit}",
+                        type: "integer",
+                        maximum: 100,
+                        minimum: 1,
+                    ),
+                ]
+            )
+        )
+    )]
     #[OA\Response(
         response: SymfonyResponse::HTTP_OK,
         description: "List of all current User's Deck",
@@ -108,6 +137,11 @@ class DeckController extends CustomAbstractController
                     property: "deck",
                     type: "array",
                     items: new OA\Items(ref: "#/components/schemas/DeckUserList")),
+                new OA\Property(
+                    property: "deckAllResultCount",
+                    description: "Result number of all Deck from filter, for pagination purpose",
+                    type: "integer",
+                ),
             ]
         )
     )]
@@ -123,6 +157,11 @@ class DeckController extends CustomAbstractController
                     type: "array",
                     items: new OA\Items(ref: "#/components/schemas/DeckUserList")
                 ),
+                new OA\Property(
+                    property: "deckAllResultCount",
+                    description: "Result number of all Deck from filter, for pagination purpose",
+                    type: "integer",
+                ),
             ]
         )
     )]
@@ -130,13 +169,26 @@ class DeckController extends CustomAbstractController
     #[Route('/list', name: '_list_from_user', methods: ["GET"])]
     public function listFromUser(Request $request, DeckService $deckService): JsonResponse
     {
-        $jwt = $this->getJwt($request);
+        $waitedParameter = [
+            "name_OPT" => "string",
+            "offset_OPT" => "int",
+            "limit_OPT" => "int",
+        ];
+        [
+            "error" => $error,
+            "parameter" => $parameter,
+            "jwt" => $jwt
+        ] = $this->checkRequestParameter($request, $waitedParameter);
+        if ($error !== "") {
+            return $this->sendError($error);
+        }
         [
             "error" => $error,
             "errorDebug" => $errorDebug,
             "deck" => $deck,
-        ] = $deckService->listFromUser($jwt);
-        $data = ["deck" => $deck];
+            "deckAllResultCount" => $deckAllResultCount
+        ] = $deckService->listFromUser($jwt, $parameter);
+        $data = ["deck" => $deck, "deckAllResultCount" => $deckAllResultCount];
         if ($error !== "") {
             return $this->sendError($error, $errorDebug, $data);
         }
