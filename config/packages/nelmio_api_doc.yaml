@@ -96,6 +96,10 @@ nelmio_api_doc:
             - { alias: CardInfoSubPropertyType, type: App\Entity\SubPropertyType, groups: ["card_info"] }
             - { alias: CardInfoSubCategory, type: App\Entity\SubCategory, groups: ["card_info"] }
             - { alias: DeckUserList, type: App\Entity\Deck, groups: ["deck_user_list"] }
+            - { alias: DeckInfo, type: App\Entity\Deck, groups: ["deck_info"] }
+            - { alias: DeckInfoCardMainDeck, type: App\Entity\CardMainDeck, groups: ["deck_info", "card_info"] }
+            - { alias: DeckInfoCardExtraDeck, type: App\Entity\CardExtraDeck, groups: ["deck_info", "card_info"] }
+            - { alias: DeckInfoCardSideDeck, type: App\Entity\CardSideDeck, groups: ["deck_info", "card_info"] }
     areas: # to filter documented areas
         default:
             disable_default_routes: true

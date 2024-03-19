@@ -14,6 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use App\Service\Deck as DeckService;
 use App\Service\Card as CardService;
 use OpenApi\Attributes as OA;
+use Symfony\Component\Routing\Requirement\Requirement;
 
 #[OA\Tag(name: "Deck")]
 #[Route("/deck", name: "api_deck")]
@@ -96,5 +97,67 @@ class DeckController extends CustomAbstractController
             return $this->sendError($error, $errorDebug);
         }
         return $this->sendSuccess("Deck successfully created", NULL, Response::HTTP_CREATED);
+    }
+
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_OK,
+        description: "Deck Info",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "success", type: "string"),
+                new OA\Property(
+                    property: "deck",
+                    ref: "#/components/schemas/DeckInfo",
+                ),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_BAD_REQUEST,
+        description: "Error when getting Deck",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "error", type: "string"),
+                new OA\Property(
+                    property: "deck",
+                    ref: "#/components/schemas/DeckInfo",
+                ),
+            ]
+        )
+    )]
+    #[OA\Parameter(
+        name: "id",
+        description: "Unique identifier of the Deck, must be your Deck or a public one.",
+        in: "path",
+        required: true,
+        schema: new OA\Schema(type: "integer")
+    )]
+    #[Security(name: "Bearer")]
+    #[Route(
+        '/info/{id}',
+        name: '_get_info',
+        requirements: [
+            'id' => Requirement::DIGITS,
+        ],
+        methods: ["GET"],
+    )]
+    public function getInfo(
+        int $id,
+        Request $request,
+        DeckService $deckService,
+        CardService $cardService
+    ): JsonResponse
+    {
+        $jwt = $this->getJwt($request);
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug,
+            "deck" => $deck
+        ] = $deckService->getInfo($jwt, $id);
+        $data = ["deck" => $deck];
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug, $data);
+        }
+        return $this->sendSuccess("Deck info", $data);
     }
 }
