@@ -173,4 +173,44 @@ class Deck
         }
         return $response;
     }
+
+    /**
+     * @param string $jwt
+     * @param int $id
+     * @return array[
+     * "error" => string,
+     * "errorDebug" => string,
+     */
+    public function getInfo(string $jwt, int $id): array
+    {
+        $response = [...$this->customGenericService->getEmptyReturnResponse(), "deck" => []];
+        try {
+            $user = $this->customGenericService->customGenericCheckJwt($jwt);
+            if ($user === NULL) {
+                $response["error"] = "No user found.";
+                return $response;
+            }
+            $deck = $this->deckORMService->findById($id);
+            if ($deck === NULL) {
+                $response["error"] = "Deck not found.";
+                return $response;
+            }
+            $deckUser = $deck->getUser();
+            if ($deckUser === NULL) {
+                //@todo: add to logger
+                $response["error"] = "Deck not available.";
+                return $response;
+            }
+            $isAdmin = $this->customGenericService->checkIfUserIsAdmin($user);
+            if ($isAdmin === FALSE && $deck->isIsPublic() === FALSE && $deckUser->getId() === $user->getId()) {
+                $response["error"] = "Deck not available.";
+                return $response;
+            }
+            $response["deck"] = $this->customGenericService->getInfoSerialize([$deck], ["deck_info", "card_info"])[0];
+        } catch (Exception $e) {
+            $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
+            $response["error"] = "Error while getting Deck.";
+        }
+        return $response;
+    }
 }
