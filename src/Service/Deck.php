@@ -180,32 +180,172 @@ class Deck
      * @return array[
      * "error" => string,
      * "errorDebug" => string,
+     * "user" => null|UserEntity,
+     * "deck" => null|DeckEntity,
+     * ]
+     */
+    public function checkUserAndDeck(string $jwt, int $id): array
+    {
+        $response = [
+            ...$this->customGenericService->getEmptyReturnResponse(),
+            "user" => NULL,
+            "deck" => NULL
+        ];
+        $user = $this->customGenericService->customGenericCheckJwt($jwt);
+        if ($user === NULL) {
+            $response["error"] = "No user found.";
+            return $response;
+        }
+        $response["user"] = $user;
+        $deck = $this->deckORMService->findById($id);
+        if ($deck === NULL) {
+            $response["error"] = "Deck not found.";
+            return $response;
+        }
+        $deckUser = $deck->getUser();
+        if ($deckUser === NULL) {
+            //@todo: add to logger
+            $response["error"] = "Deck not available.";
+            return $response;
+        }
+        $response["deck"] = $deck;
+        return $response;
+    }
+
+    /**
+     * @param string $jwt
+     * @param int $id
+     * @return array[
+     * "error" => string,
+     * "errorDebug" => string,
+     * "deck" => array[mixed]
      */
     public function getInfo(string $jwt, int $id): array
     {
         $response = [...$this->customGenericService->getEmptyReturnResponse(), "deck" => []];
         try {
-            $user = $this->customGenericService->customGenericCheckJwt($jwt);
-            if ($user === NULL) {
-                $response["error"] = "No user found.";
-                return $response;
-            }
-            $deck = $this->deckORMService->findById($id);
-            if ($deck === NULL) {
-                $response["error"] = "Deck not found.";
+            [
+                "error" => $errorCheckUserDeck,
+                "errorDebug" => $errorDebugCheckUserDeck,
+                "user" => $user,
+                "deck" => $deck,
+            ] = $this->checkUserAndDeck($jwt, $id);
+            if (empty($errorCheckUserDeck) === FALSE) {
+                $response["error"] = $errorCheckUserDeck;
+                $response["errorDebug"] = $errorDebugCheckUserDeck;
                 return $response;
             }
             $deckUser = $deck->getUser();
-            if ($deckUser === NULL) {
-                //@todo: add to logger
-                $response["error"] = "Deck not available.";
-                return $response;
-            }
             $isAdmin = $this->customGenericService->checkIfUserIsAdmin($user);
-            if ($isAdmin === FALSE && $deck->isIsPublic() === FALSE && $deckUser->getId() === $user->getId()) {
+            if ($isAdmin === FALSE && $deck->isIsPublic() === FALSE && $deckUser->getId() !== $user->getId()) {
                 $response["error"] = "Deck not available.";
                 return $response;
             }
+            $response["deck"] = $this->customGenericService->getInfoSerialize([$deck], ["deck_info", "card_info"])[0];
+        } catch (Exception $e) {
+            $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
+            $response["error"] = "Error while getting Deck.";
+        }
+        return $response;
+    }
+
+
+    /**
+     * @param string $jwt
+     * @param int $id
+     * @return array[
+     * "error" => string,
+     * "errorDebug" => string,
+     */
+    public function deleteFromId(string $jwt, int $id): array
+    {
+        $response = [...$this->customGenericService->getEmptyReturnResponse()];
+        try {
+            [
+                "error" => $errorCheckUserDeck,
+                "errorDebug" => $errorDebugCheckUserDeck,
+                "user" => $user,
+                "deck" => $deck,
+            ] = $this->checkUserAndDeck($jwt, $id);
+            if (empty($errorCheckUserDeck) === FALSE) {
+                $response["error"] = $errorCheckUserDeck;
+                $response["errorDebug"] = $errorDebugCheckUserDeck;
+                return $response;
+            }
+            $deckUser = $deck->getUser();
+            $isAdmin = $this->customGenericService->checkIfUserIsAdmin($user);
+            if ($isAdmin === FALSE && $deckUser->getId() !== $user->getId()) {
+                $response["error"] = "Deck not available.";
+                return $response;
+            }
+            $deckCardUniqueArray = $deck->getCardsUnique();
+            $deckCardMainDeckArray = $deck->getCardMainDecks();
+            $deckCardExtraDeckArray = $deck->getCardExtraDecks();
+            $deckCardSideDeckArray = $deck->getCardSideDecks();
+            foreach ($deckCardUniqueArray as $card) {
+                $card->removeDeck($deck);
+                $this->deckORMService->persist($card);
+            }
+            foreach ($deckCardMainDeckArray as $cardMainDeck) {
+                $deck->removeCardMainDeck($cardMainDeck);
+                $this->deckORMService->remove($cardMainDeck);
+                $this->deckORMService->persist($deck);
+            }
+            foreach ($deckCardExtraDeckArray as $cardExtraDeck) {
+                $deck->removeCardExtraDeck($cardExtraDeck);
+                $this->deckORMService->remove($cardExtraDeck);
+                $this->deckORMService->persist($deck);
+            }
+            foreach ($deckCardSideDeckArray as $cardSideDeck) {
+                $deck->removeCardSideDeck($cardSideDeck);
+                $this->deckORMService->remove($cardSideDeck);
+                $this->deckORMService->persist($deck);
+            }
+            $user->removeDeck($deck);
+            $this->deckORMService->persist($user);
+            $this->deckORMService->remove($deck);
+            $this->deckORMService->flush();
+        } catch (Exception $e) {
+            $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
+            $response["error"] = "Error while deleting Deck.";
+        }
+        return $response;
+    }
+
+    /**
+     * @param string $jwt
+     * @param int $id
+     * @param int $public
+     * @return array[
+     * "error" => string,
+     * "errorDebug" => string,
+     * "deck" => array[mixed]
+     */
+    public function updatePublic(string $jwt, int $id, int $public): array
+    {
+        $response = [...$this->customGenericService->getEmptyReturnResponse(), "deck" => []];
+        try {
+            [
+                "error" => $errorCheckUserDeck,
+                "errorDebug" => $errorDebugCheckUserDeck,
+                "user" => $user,
+                "deck" => $deck,
+            ] = $this->checkUserAndDeck($jwt, $id);
+            if (empty($errorCheckUserDeck) === FALSE) {
+                $response["error"] = $errorCheckUserDeck;
+                $response["errorDebug"] = $errorDebugCheckUserDeck;
+                return $response;
+            }
+            $deckUser = $deck->getUser();
+            $isAdmin = $this->customGenericService->checkIfUserIsAdmin($user);
+            if ($isAdmin === FALSE && $deck->isIsPublic() === FALSE && $deckUser->getId() !== $user->getId()) {
+                $response["error"] = "Deck not available.";
+                return $response;
+            }
+            $publicValue = $public === 1;
+            $deck->setIsPublic($publicValue);
+            $this->deckORMService->persist($deck);
+            $this->deckORMService->flush();
             $response["deck"] = $this->customGenericService->getInfoSerialize([$deck], ["deck_info", "card_info"])[0];
         } catch (Exception $e) {
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());

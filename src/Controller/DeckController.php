@@ -160,4 +160,124 @@ class DeckController extends CustomAbstractController
         }
         return $this->sendSuccess("Deck info", $data);
     }
+
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_OK,
+        description: "Deck deleted",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "success", type: "string"),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_BAD_REQUEST,
+        description: "Error when deleting Deck",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "error", type: "string"),
+            ]
+        )
+    )]
+    #[OA\Parameter(
+        name: "id",
+        description: "Unique identifier of the Deck, must be your Deck or a public one.",
+        in: "path",
+        required: true,
+        schema: new OA\Schema(type: "integer")
+    )]
+    #[Security(name: "Bearer")]
+    #[Route(
+        '/delete/{id}',
+        name: '_delete_from_id',
+        requirements: [
+            'id' => Requirement::DIGITS,
+        ],
+        methods: ["DELETE"],
+    )]
+    public function deleteFromId(
+        int $id,
+        Request $request,
+        DeckService $deckService
+    ): JsonResponse
+    {
+        $jwt = $this->getJwt($request);
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug,
+        ] = $deckService->deleteFromId($jwt, $id);
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug);
+        }
+    }
+
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_OK,
+        description: "Deck info updated",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "success", type: "string"),
+                new OA\Property(
+                    property: "deck",
+                    ref: "#/components/schemas/DeckInfo",
+                ),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_BAD_REQUEST,
+        description: "Error when deleting Deck",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "error", type: "string"),
+                new OA\Property(
+                    property: "deck",
+                    ref: "#/components/schemas/DeckInfo",
+                ),
+            ]
+        )
+    )]
+    #[OA\Parameter(
+        name: "id",
+        description: "Unique identifier of the Deck, must be your Deck or a public one.",
+        in: "path",
+        required: true,
+        schema: new OA\Schema(type: "integer")
+    )]
+    #[OA\Parameter(
+        name: "public",
+        description: "Set public to 0 for private or 1 to be public",
+        in: "path",
+        required: true,
+        schema: new OA\Schema(type: "integer")
+    )]
+    #[Security(name: "Bearer")]
+    #[Route(
+        '/update-public/{id}/{public}',
+        name: '_update_public_from_id',
+        requirements: [
+            'id' => Requirement::DIGITS,
+            'public' => "[0-1]",
+        ],
+        methods: ["PUT"],
+    )]
+    public function updatePublicFromId(
+        int $id,
+        int $public,
+        Request $request,
+        DeckService $deckService
+    ): JsonResponse
+    {
+        $jwt = $this->getJwt($request);
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug,
+            "deck" => $deckInfo
+        ] = $deckService->updatePublic($jwt, $id, $public);
+        $data = ["deck" => $deckInfo];
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug, $deckInfo);
+        }
+        return $this->sendSuccess("Deck successfully updated.", $data);
+    }
 }
