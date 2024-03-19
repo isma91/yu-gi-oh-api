@@ -22,39 +22,72 @@ class Deck
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["deck_user_list"])]
+    #[Groups(["deck_user_list", "deck_info"])]
     private ?int $id = null;
 
     #[OA\Property(description: "Name of the Deck", type: "string", nullable: false)]
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(["deck_user_list"])]
+    #[Groups(["deck_user_list", "deck_info"])]
     private ?string $name = null;
 
     #[OA\Property(description: "Slugify name of the Deck", type: "string", nullable: false)]
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(["deck_user_list"])]
+    #[Groups(["deck_user_list", "deck_info"])]
     private ?string $slugName = null;
 
     #[OA\Property(description: "If we authorize other user to see the Deck", type: "boolean", nullable: false)]
     #[ORM\Column]
-    #[Groups(["deck_user_list"])]
+    #[Groups(["deck_user_list", "deck_info"])]
     private ?bool $isPublic = null;
 
     #[ORM\ManyToOne(inversedBy: 'decks')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(["deck_user_list"])]
+    #[Groups(["deck_user_list", "deck_info"])]
     private ?User $user = null;
 
     #[ORM\ManyToMany(targetEntity: Card::class, mappedBy: 'decks')]
     private Collection $cardsUnique;
 
+    #[OA\Property(
+        description: "All Card from Main Deck",
+        type: "array",
+        items: new OA\Items(
+            oneOf: [
+                new OA\Schema(ref: "#/components/schemas/DeckInfoCardMainDeck"),
+            ]
+        ),
+        nullable: true,
+    )]
     #[ORM\OneToMany(mappedBy: 'deck', targetEntity: CardMainDeck::class)]
+    #[Groups(["deck_info"])]
     private Collection $cardMainDecks;
 
+    #[OA\Property(
+        description: "All Card from Extra Deck",
+        type: "array",
+        items: new OA\Items(
+            oneOf: [
+                new OA\Schema(ref: "#/components/schemas/DeckInfoCardExtraDeck"),
+            ]
+        ),
+        nullable: true,
+    )]
     #[ORM\OneToMany(mappedBy: 'deck', targetEntity: CardExtraDeck::class)]
+    #[Groups(["deck_info"])]
     private Collection $cardExtraDecks;
 
+    #[OA\Property(
+        description: "All Card from Side Deck",
+        type: "array",
+        items: new OA\Items(
+            oneOf: [
+                new OA\Schema(ref: "#/components/schemas/DeckInfoCardSideDeck"),
+            ]
+        ),
+        nullable: true,
+    )]
     #[ORM\OneToMany(mappedBy: 'deck', targetEntity: CardSideDeck::class)]
+    #[Groups(["deck_info"])]
     private Collection $cardSideDecks;
 
     #[ORM\ManyToOne]
@@ -292,7 +325,7 @@ class Deck
         type: "string",
         nullable: true
     )]
-    #[Groups(["deck_user_list"])]
+    #[Groups(["deck_user_list", "deck_info"])]
     public function getArtworkUrl(): ?string
     {
         return $this->artwork?->getArtworkUrl();

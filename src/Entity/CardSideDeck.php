@@ -7,7 +7,12 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
+use OpenApi\Attributes as OA;
 
+#[OA\Schema(
+    description: "A Card to the Side Deck."
+)]
 #[ORM\Entity(repositoryClass: CardSideDeckRepository::class)]
 class CardSideDeck
 {
@@ -15,12 +20,25 @@ class CardSideDeck
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(["deck_info"])]
     private ?int $id = null;
 
     #[ORM\Column]
+    #[Groups(["deck_info"])]
     private ?int $nbCopie = null;
 
+    #[OA\Property(
+        description: "Card from Side Deck",
+        type: "array",
+        items: new OA\Items(
+            oneOf: [
+                new OA\Schema(ref: "#/components/schemas/CardInfo"),
+            ]
+        ),
+        nullable: true,
+    )]
     #[ORM\ManyToMany(targetEntity: Card::class, inversedBy: 'cardSideDecks')]
+    #[Groups(["card_info"])]
     private Collection $cards;
 
     #[ORM\ManyToOne(inversedBy: 'cardSideDecks')]
