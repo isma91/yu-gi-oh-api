@@ -126,6 +126,11 @@ class Auth
         return $this->userORMService->findByUserIdentifiant($username);
     }
 
+    public function checkIsAdmin(UserEntity $user): bool
+    {
+        return in_array($this->param->get("ROLE_ADMIN_PLAIN_TEXT"), $user->getRoles(),  TRUE);
+    }
+
     /**
      * @param array $roles
      * @return string
