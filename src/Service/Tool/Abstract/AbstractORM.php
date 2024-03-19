@@ -52,6 +52,11 @@ abstract class AbstractORM
         $this->em->persist($entity);
     }
 
+    public function remove(object $entity): void
+    {
+        $this->em->remove($entity);
+    }
+
     public function flush(): void
     {
         $this->em->flush();
