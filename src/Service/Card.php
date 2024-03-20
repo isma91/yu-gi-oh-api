@@ -18,6 +18,14 @@ class Card
     }
 
     /**
+     * @return CardORMService
+     */
+    public function getORMService(): CardORMService
+    {
+        return $this->cardORMService;
+    }
+
+    /**
      * @param string $jwt
      * @param string $cardUuid
      * @return array[
@@ -45,7 +53,6 @@ class Card
             }
             $response["card"] = $this->customGenericService->getInfoSerialize([$card], ["card_info"])[0];
         } catch (Exception $e) {
-            dd($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while getting Card info.";
         }

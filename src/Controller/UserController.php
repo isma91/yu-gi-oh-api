@@ -23,8 +23,8 @@ class UserController extends CustomAbstractController
                 new OA\Property(property: "success", type: "string"),
                 new OA\Property(
                     property: "userInfo",
-                    type: "array",
-                    items: new OA\Items(ref: "#/components/schemas/UserLogin")),
+                    ref: "#/components/schemas/UserLogin",
+                ),
             ]
         )
     )]
