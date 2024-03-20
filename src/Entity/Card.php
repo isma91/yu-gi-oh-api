@@ -251,12 +251,28 @@ class Card
     #[Groups(["search_card", "card_info"])]
     private ?bool $isPendulum = null;
 
+    #[ORM\ManyToMany(targetEntity: CardMainDeck::class, mappedBy: 'cards')]
+    private Collection $cardMainDecks;
+
+    #[ORM\ManyToMany(targetEntity: Deck::class, inversedBy: 'cardsUnique')]
+    private Collection $decks;
+
+    #[ORM\ManyToMany(targetEntity: CardExtraDeck::class, mappedBy: 'cards')]
+    private Collection $cardExtraDecks;
+
+    #[ORM\ManyToMany(targetEntity: CardSideDeck::class, mappedBy: 'cards')]
+    private Collection $cardSideDecks;
+
     public function __construct()
     {
         $this->pictures = new ArrayCollection();
         $this->subTypes = new ArrayCollection();
         $this->cardSets = new ArrayCollection();
         $this->subProperties = new ArrayCollection();
+        $this->cardMainDecks = new ArrayCollection();
+        $this->decks = new ArrayCollection();
+        $this->cardExtraDecks = new ArrayCollection();
+        $this->cardSideDecks = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -587,6 +603,111 @@ class Card
     public function setIsPendulum(?bool $isPendulum): static
     {
         $this->isPendulum = $isPendulum;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CardMainDeck>
+     */
+    public function getCardMainDecks(): Collection
+    {
+        return $this->cardMainDecks;
+    }
+
+    public function addCardMainDeck(CardMainDeck $cardMainDeck): static
+    {
+        if (!$this->cardMainDecks->contains($cardMainDeck)) {
+            $this->cardMainDecks->add($cardMainDeck);
+            $cardMainDeck->addCard($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCardMainDeck(CardMainDeck $cardMainDeck): static
+    {
+        if ($this->cardMainDecks->removeElement($cardMainDeck)) {
+            $cardMainDeck->removeCard($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Deck>
+     */
+    public function getDecks(): Collection
+    {
+        return $this->decks;
+    }
+
+    public function addDeck(Deck $deck): static
+    {
+        if (!$this->decks->contains($deck)) {
+            $this->decks->add($deck);
+        }
+
+        return $this;
+    }
+
+    public function removeDeck(Deck $deck): static
+    {
+        $this->decks->removeElement($deck);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CardExtraDeck>
+     */
+    public function getCardExtraDecks(): Collection
+    {
+        return $this->cardExtraDecks;
+    }
+
+    public function addCardExtraDeck(CardExtraDeck $cardExtraDeck): static
+    {
+        if (!$this->cardExtraDecks->contains($cardExtraDeck)) {
+            $this->cardExtraDecks->add($cardExtraDeck);
+            $cardExtraDeck->addCard($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCardExtraDeck(CardExtraDeck $cardExtraDeck): static
+    {
+        if ($this->cardExtraDecks->removeElement($cardExtraDeck)) {
+            $cardExtraDeck->removeCard($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CardSideDeck>
+     */
+    public function getCardSideDecks(): Collection
+    {
+        return $this->cardSideDecks;
+    }
+
+    public function addCardSideDeck(CardSideDeck $cardSideDeck): static
+    {
+        if (!$this->cardSideDecks->contains($cardSideDeck)) {
+            $this->cardSideDecks->add($cardSideDeck);
+            $cardSideDeck->addCard($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCardSideDeck(CardSideDeck $cardSideDeck): static
+    {
+        if ($this->cardSideDecks->removeElement($cardSideDeck)) {
+            $cardSideDeck->removeCard($this);
+        }
 
         return $this;
     }

@@ -14,6 +14,14 @@ parameters:
     ROLE_USER: '%env(ROLE_USER)%'
     ROLE_USER_PLAIN_TEXT: '%env(ROLE_USER_PLAIN_TEXT)%'
     BACK_URL: '%env(BACK_URL)%'
+    MAIN_DECK_NAME: '%env(MAIN_DECK_NAME)%'
+    EXTRA_DECK_NAME: '%env(EXTRA_DECK_NAME)%'
+    SIDE_DECK_NAME: '%env(SIDE_DECK_NAME)%'
+    NB_MAX_SAME_CARD_DECK: '%env(NB_MAX_SAME_CARD_DECK)%'
+    NB_MIN_CARD_MAIN_DECK: '%env(NB_MIN_CARD_MAIN_DECK)%'
+    NB_MAX_CARD_MAIN_DECK: '%env(NB_MAX_CARD_MAIN_DECK)%'
+    NB_MAX_CARD_EXTRA_DECK: '%env(NB_MAX_CARD_EXTRA_DECK)%'
+    NB_MAX_CARD_SIDE_DECK: '%env(NB_MAX_CARD_SIDE_DECK)%'
 
 services:
     # default configuration for services in *this* file

@@ -170,4 +170,8 @@ class CustomGeneric
         }
         return $this->userAuthService->checkJWT($jwt);
     }
+    public function checkIfUserIsAdmin(UserEntity $user): bool
+    {
+        return $this->userAuthService->checkIsAdmin($user);
+    }
 }

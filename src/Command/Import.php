@@ -532,6 +532,13 @@ class Import extends Command
                         $keyNumberToUse = ($isEffect === TRUE) ? $effectKeyNumber : $normalKeyNumber;
                         array_splice($cardInfoTypeArray, $keyNumberToUse, 1);
                     }
+                    //sometime either "normal" or "effect" is not so, we check the frame type with "normal"
+                    //or "ritual" because at this case all ritual are basic one
+                    if ($normalKeyNumber === FALSE && $effectKeyNumber === FALSE) {
+                        $frameTypeNormal = str_contains($cardInfoFrameType, "normal");
+                        $frameTypeRitual = str_contains($cardInfoFrameType, "ritual");
+                        $isEffect = !($frameTypeNormal === TRUE || $frameTypeRitual === TRUE);
+                    }
                     if (empty($cardInfoTypeArray) === FALSE) {
                         $this->outputAddingEntityToCard($output, "SubType");
                         foreach ($cardInfoTypeArray as $cardInfoSubTypeSlugName) {

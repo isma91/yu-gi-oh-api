@@ -4,7 +4,7 @@ nelmio_api_doc:
         info:
             title: Yu-Gi-Oh-API
             description: API part for the isma91/yu-gi-oh project
-            version: 0.4.1
+            version: 0.5.0
         components:
             schemas:
                 UserLogin:
@@ -13,13 +13,61 @@ nelmio_api_doc:
                     properties:
                         username:
                             description: "Username/Pseudo of the User, unique field"
-                            type: "string"
+                            type: string
                             maxLength: 180
                             nullable: false
                         jwt:
-                            type: "string"
+                            type: string
                         role:
-                            type: "string"
+                            type: string
+                DeckCardFieldTypeContent:
+                    description: "Card info array"
+                    type: object
+                    properties:
+                        id:
+                            type: integer
+                            description: "Id of the Card to add"
+                            nullable: false
+                        nbCopie:
+                            type: integer
+                            description: "Number of Copie to add"
+                            nullable: false
+                DeckCreateRequest:
+                    type: object
+                    properties:
+                        name:
+                            type: string
+                            description: "Name of the Deck"
+                            nullable: false
+                        isPublic:
+                            type: boolean
+                            description: "If the Deck is going to be seen from other."
+                            nullable: true
+                        artwork:
+                            type: integer
+                            description: "Id of the card to use as Artwork"
+                            nullable: true
+                        deck-card:
+                            type: object
+                            properties:
+                                main-deck:
+                                    type: array
+                                    description: "Main deck content card.
+                                    You can add as many as you want but 40 card is the minimum and 60 the maximum recommended"
+                                    items:
+                                        $ref: "#/components/schemas/DeckCardFieldTypeContent"
+                                extra-deck:
+                                    type: array
+                                    description: "Extra deck content card.
+                                    You can add as many as you want but 15 card is the maximum recommended"
+                                    items:
+                                        $ref: "#/components/schemas/DeckCardFieldTypeContent"
+                                side-deck:
+                                    type: array
+                                    description: "Side deck content card.
+                                    You can add as many as you want but 15 card is the maximum recommended"
+                                    items:
+                                        $ref: "#/components/schemas/DeckCardFieldTypeContent"
             securitySchemes:
                 Bearer:
                     type: http
@@ -62,6 +110,11 @@ nelmio_api_doc:
             - { alias: CardInfoSubProperty, type: App\Entity\SubProperty, groups: ["card_info"] }
             - { alias: CardInfoSubPropertyType, type: App\Entity\SubPropertyType, groups: ["card_info"] }
             - { alias: CardInfoSubCategory, type: App\Entity\SubCategory, groups: ["card_info"] }
+            - { alias: DeckUserList, type: App\Entity\Deck, groups: ["deck_user_list"] }
+            - { alias: DeckInfo, type: App\Entity\Deck, groups: ["deck_info"] }
+            - { alias: DeckInfoCardMainDeck, type: App\Entity\CardMainDeck, groups: ["deck_info", "card_info"] }
+            - { alias: DeckInfoCardExtraDeck, type: App\Entity\CardExtraDeck, groups: ["deck_info", "card_info"] }
+            - { alias: DeckInfoCardSideDeck, type: App\Entity\CardSideDeck, groups: ["deck_info", "card_info"] }
     areas: # to filter documented areas
         default:
             disable_default_routes: true

@@ -41,6 +41,12 @@ security:
         - { path: ^/sub-type/all, roles: [ ROLE_USER ] }
         - { path: ^/type/all, roles: [ ROLE_USER ] }
         - { path: ^/card/info/.+, roles: [ ROLE_USER ] }
+        - { path: ^/deck/create, roles: [ ROLE_USER ] }
+        - { path: ^/search/deck-current-user, roles: [ ROLE_USER ] }
+        - { path: ^/search/info/[0-9]+$, roles: [ ROLE_USER ] }
+        - { path: ^/search/delete/[0-9]+$, roles: [ ROLE_USER ] }
+        - { path: ^/deck/update-public/[0-9]+/[0-1]$, roles: [ ROLE_USER ] }
+        - { path: ^/deck/update/[0-9]+$, roles: [ ROLE_USER ] }
 
 when@test:
     security:
