@@ -46,6 +46,7 @@ security:
         - { path: ^/search/info/[0-9]+$, roles: [ ROLE_USER ] }
         - { path: ^/search/delete/[0-9]+$, roles: [ ROLE_USER ] }
         - { path: ^/deck/update-public/[0-9]+/[0-1]$, roles: [ ROLE_USER ] }
+        - { path: ^/deck/update/[0-9]+$, roles: [ ROLE_USER ] }
 
 when@test:
     security:
