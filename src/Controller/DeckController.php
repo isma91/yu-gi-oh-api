@@ -22,7 +22,7 @@ class DeckController extends CustomAbstractController
 {
     #[OA\Response(
         response: SymfonyResponse::HTTP_CREATED,
-        description: "",
+        description: "Deck created successfully",
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: "success", type: "string"),
@@ -44,31 +44,7 @@ class DeckController extends CustomAbstractController
         required: true,
         content: new OA\MediaType(
             mediaType: "multipart/form-data",
-            schema: new OA\Schema(
-                properties: [
-                    new OA\Property(
-                        property: "name",
-                        description: "Name of the Deck.",
-                        type: "string"
-                    ),
-                    new OA\Property(
-                        property: "isPublic",
-                        description: "If the Deck is going to be seen from other.",
-                        type: "boolean"
-                    ),
-                    new OA\Property(
-                        property: "artwork",
-                        description: "Id of the card Artwork to use",
-                        type: "integer",
-                        nullable: true
-                    ),
-                    new OA\Property(
-                        property: "deck-card",
-                        schema: "#/components/schemas/DeckCardContent",
-                        description: "See DeckCardContent Schema below",
-                    ),
-                ]
-            ),
+            schema: new OA\Schema(ref: "#/components/schemas/DeckCreateRequest"),
         )
     )]
     #[Security(name: "Bearer")]
@@ -209,6 +185,7 @@ class DeckController extends CustomAbstractController
         if ($error !== "") {
             return $this->sendError($error, $errorDebug);
         }
+        return $this->sendSuccess("Deck deleted successfully");
     }
 
     #[OA\Response(
@@ -279,5 +256,79 @@ class DeckController extends CustomAbstractController
             return $this->sendError($error, $errorDebug, $deckInfo);
         }
         return $this->sendSuccess("Deck successfully updated.", $data);
+    }
+
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_OK,
+        description: "Deck updated successfully",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "success", type: "string"),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_BAD_REQUEST,
+        description: "Error when updating Deck",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "error", type: "string"),
+            ]
+        )
+    )]
+    #[OA\Parameter(
+        name: "id",
+        description: "Unique identifier of the Deck, must be your Deck",
+        in: "path",
+        required: true,
+        schema: new OA\Schema(type: "integer")
+    )]
+    #[OA\RequestBody(
+        request: "DeckUpdateRequest",
+        description: "Deck info to update",
+        required: true,
+        content: new OA\MediaType(
+            mediaType: "multipart/form-data",
+            schema: new OA\Schema(ref: "#/components/schemas/DeckCreateRequest"),
+        )
+    )]
+    #[Security(name: "Bearer")]
+    #[Route(
+        '/edit/{id}',
+        name: '_edit',
+        requirements: [
+            'id' => Requirement::DIGITS,
+            ],
+        methods: ["POST"]
+    )]
+    public function edit(
+        int $id,
+        Request $request,
+        DeckService $deckService,
+        CardService $cardService
+    ): JsonResponse
+    {
+        $waitedParameter = [
+            "name" => "string",
+            "isPublic_OPT" => "boolean",
+            "artwork_OPT" => "int",
+            "deck-card" => "array",
+        ];
+        [
+            "error" => $error,
+            "parameter" => $parameter,
+            "jwt" => $jwt
+        ] = $this->checkRequestParameter($request, $waitedParameter);
+        if ($error !== "") {
+            return $this->sendError($error);
+        }
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug,
+        ] = $deckService->update($jwt, $id, $parameter, $cardService);
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug);
+        }
+        return $this->sendSuccess("Deck successfully updated");
     }
 }
