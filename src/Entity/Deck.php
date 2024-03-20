@@ -22,27 +22,27 @@ class Deck
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["deck_user_list", "deck_info"])]
+    #[Groups(["deck_user_list", "deck_info", "card_info"])]
     private ?int $id = null;
 
     #[OA\Property(description: "Name of the Deck", type: "string", nullable: false)]
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(["deck_user_list", "deck_info"])]
+    #[Groups(["deck_user_list", "deck_info", "card_info"])]
     private ?string $name = null;
 
     #[OA\Property(description: "Slugify name of the Deck", type: "string", nullable: false)]
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(["deck_user_list", "deck_info"])]
+    #[Groups(["deck_user_list", "deck_info", "card_info"])]
     private ?string $slugName = null;
 
     #[OA\Property(description: "If we authorize other user to see the Deck", type: "boolean", nullable: false)]
     #[ORM\Column]
-    #[Groups(["deck_user_list", "deck_info"])]
+    #[Groups(["deck_user_list", "deck_info", "card_info"])]
     private ?bool $isPublic = null;
 
     #[ORM\ManyToOne(inversedBy: 'decks')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(["deck_user_list", "deck_info"])]
+    #[Groups(["deck_user_list", "deck_info", "card_info"])]
     private ?User $user = null;
 
     #[ORM\ManyToMany(targetEntity: Card::class, mappedBy: 'decks')]
@@ -325,7 +325,7 @@ class Deck
         type: "string",
         nullable: true
     )]
-    #[Groups(["deck_user_list", "deck_info"])]
+    #[Groups(["deck_user_list", "deck_info", "card_info"])]
     public function getArtworkUrl(): ?string
     {
         return $this->artwork?->getArtworkUrl();

@@ -51,7 +51,25 @@ class Card
                 $response["error"] = "Card not found.";
                 return $response;
             }
-            $response["card"] = $this->customGenericService->getInfoSerialize([$card], ["card_info"])[0];
+            $isAdmin = $this->customGenericService->checkIfUserIsAdmin($user);
+            $cardSerialize = $this->customGenericService->getInfoSerialize([$card], ["card_info"])[0];
+            $decksSerialize = $this->customGenericService->getInfoSerialize($card->getDecks()->toArray(), ["card_info"]);
+            $deckList = [];
+            foreach ($decksSerialize as $deckInfo) {
+                [
+                    "isPublic" => $isPublic,
+                    "user" => $deckUser
+                ] = $deckInfo;
+                if (empty($deckUser) === TRUE) {
+                    continue;
+                }
+                if ($isAdmin === FALSE && $isPublic === FALSE && $deckUser->getUsername() !== $user->getUsername()) {
+                    continue;
+                }
+                $deckList[] = $deckInfo;
+            }
+            $cardSerialize["decks"] = $deckList;
+            $response["card"] = $cardSerialize;
         } catch (Exception $e) {
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while getting Card info.";
