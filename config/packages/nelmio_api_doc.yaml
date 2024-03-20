@@ -32,27 +32,42 @@ nelmio_api_doc:
                             type: integer
                             description: "Number of Copie to add"
                             nullable: false
-                DeckCardContent:
+                DeckCreateRequest:
                     type: object
                     properties:
-                        main-deck:
-                            type: array
-                            description: "Main deck content card.
-                            You can add as many as you want but 40 card is the minimum and 60 the maximum recommended"
-                            items:
-                                $ref: "#/components/schemas/DeckCardFieldTypeContent"
-                        extra-deck:
-                            type: array
-                            description: "Extra deck content card.
-                            You can add as many as you want but 15 card is the maximum recommended"
-                            items:
-                                $ref: "#/components/schemas/DeckCardFieldTypeContent"
-                        side-deck:
-                            type: array
-                            description: "Side deck content card.
-                            You can add as many as you want but 15 card is the maximum recommended"
-                            items:
-                                $ref: "#/components/schemas/DeckCardFieldTypeContent"
+                        name:
+                            type: string
+                            description: "Name of the Deck"
+                            nullable: false
+                        isPublic:
+                            type: boolean
+                            description: "If the Deck is going to be seen from other."
+                            nullable: true
+                        artwork:
+                            type: integer
+                            description: "Id of the card to use as Artwork"
+                            nullable: true
+                        deck-card:
+                            type: object
+                            properties:
+                                main-deck:
+                                    type: array
+                                    description: "Main deck content card.
+                                    You can add as many as you want but 40 card is the minimum and 60 the maximum recommended"
+                                    items:
+                                        $ref: "#/components/schemas/DeckCardFieldTypeContent"
+                                extra-deck:
+                                    type: array
+                                    description: "Extra deck content card.
+                                    You can add as many as you want but 15 card is the maximum recommended"
+                                    items:
+                                        $ref: "#/components/schemas/DeckCardFieldTypeContent"
+                                side-deck:
+                                    type: array
+                                    description: "Side deck content card.
+                                    You can add as many as you want but 15 card is the maximum recommended"
+                                    items:
+                                        $ref: "#/components/schemas/DeckCardFieldTypeContent"
             securitySchemes:
                 Bearer:
                     type: http
