@@ -4,7 +4,7 @@ nelmio_api_doc:
         info:
             title: Yu-Gi-Oh-API
             description: API part for the isma91/yu-gi-oh project
-            version: 0.4.1
+            version: 0.5.0
         components:
             schemas:
                 UserLogin:
