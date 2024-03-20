@@ -332,6 +332,18 @@ class Deck
 
     }
 
+    #[OA\Property(
+        property: "artworkCardId",
+        description: "Card Id of the CardPicture",
+        type: "integer",
+        nullable: true
+    )]
+    #[Groups(["deck_info"])]
+    public function getArtworkCardId(): ?int
+    {
+        return $this->artwork?->getCard()?->getId();
+    }
+
     public function getArtwork(): ?CardPicture
     {
         return $this->artwork;
