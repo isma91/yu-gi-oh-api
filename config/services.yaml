@@ -6,6 +6,7 @@
 parameters:
     APP_ENV: '%env(APP_ENV)%'
     UPLOAD_DIR: '%kernel.project_dir%/var/upload'
+    LOG_DIR: '%kernel.project_dir%/var/log'
     CARD_UPLOAD_DIR: '%UPLOAD_DIR%/card'
     JWT_ALGO: '%env(JWT_ALGO)%'
     JWT_SECRET: '%env(JWT_SECRET)%'
