@@ -51,6 +51,8 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\File as SymfonyFile;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Uid\Uuid;
+use App\Service\Logger as LoggerService;
+use App\Exception\CronException;
 
 #[AsCommand(name: "app:import")]
 class Import extends Command
@@ -81,6 +83,7 @@ class Import extends Command
     private CardAttributeRepository $cardAttributeRepository;
     private Filesystem $filesystem;
     private string $cardUploadPath;
+    private LoggerService $loggerService;
 
     /**
      * @param EntityManagerInterface $em
@@ -101,6 +104,7 @@ class Import extends Command
      * @param CardAttributeRepository $cardAttributeRepository
      * @param Filesystem $filesystem
      * @param ParameterBagInterface $param
+     * @param LoggerService $loggerService
      */
     public function __construct(
         EntityManagerInterface $em,
@@ -120,7 +124,8 @@ class Import extends Command
         SubPropertyRepository $subPropertyRepository,
         CardAttributeRepository $cardAttributeRepository,
         Filesystem $filesystem,
-        ParameterBagInterface $param
+        ParameterBagInterface $param,
+        LoggerService $loggerService
     )
     {
         $this->em = $em;
@@ -146,6 +151,8 @@ class Import extends Command
             "http_errors" => TRUE,
             "base_uri" => $this->baseUri
         ]);
+        $this->loggerService = $loggerService;
+        $this->loggerService->setLevel(LoggerService::ERROR)->setIsCron(TRUE);
         parent::__construct();
     }
 
@@ -566,7 +573,15 @@ class Import extends Command
                             } else {
                                 $subCategoryMonster = $subCategoryMonsterArray[$cardInfoSubTypeSlugName];
                                 if ($subCategoryMonster === NULL) {
-                                    //@todo add to logger
+                                    $this->loggerService->setException(
+                                        new CronException(
+                                            sprintf(
+                                                "No SubCategory Monster found for %s, idYGO => %s subCategory => %s",
+                                                $cardInfoName, $cardInfoId, $cardInfoSubTypeSlugName
+                                            ),
+                                            $this::$defaultName
+                                        )
+                                    )->addErrorExceptionOrTrace();
                                     [
                                         "newArray" => $subTypeNewArray,
                                         "array" => $subTypeArray
@@ -595,7 +610,15 @@ class Import extends Command
                                         $subTypeArray,
                                         $subTypeNewArray
                                     );
-                                    //@todo: add to logger
+                                    $this->loggerService->setException(
+                                        new CronException(
+                                            sprintf(
+                                                "No pendulum scale  found for %s, idYGO => %s",
+                                                $cardInfoName, $cardInfoId
+                                            ),
+                                            $this::$defaultName
+                                        )
+                                    )->addErrorExceptionOrTrace();
                                     continue;
                                 }
                                 $subPropertyTypeEntity = $subPropertyTypeArray["pendulum-scale"];
@@ -613,7 +636,15 @@ class Import extends Command
                                         $subTypeArray,
                                         $subTypeNewArray
                                     );
-                                    //@todo: add to logger
+                                    $this->loggerService->setException(
+                                        new CronException(
+                                            sprintf(
+                                                "No SubProperty found for %s, idYGO => %s subProperty => %s",
+                                                $cardInfoName, $cardInfoId, $cardInfoPendulumScale
+                                            ),
+                                            $this::$defaultName
+                                        )
+                                    )->addErrorExceptionOrTrace();
                                     continue;
                                 }
                                 $subPropertyEntity->addCard($cardEntity);
@@ -639,7 +670,15 @@ class Import extends Command
                                             $subTypeArray,
                                             $subTypeNewArray
                                         );
-                                        //@TODO: add to logger
+                                        $this->loggerService->setException(
+                                            new CronException(
+                                                sprintf(
+                                                    "No SubProperty found for %s, idYGO => %s subProperty => %s",
+                                                    $cardInfoName, $cardInfoId, $cardInfoLinkArrow
+                                                ),
+                                                $this::$defaultName
+                                            )
+                                        )->addErrorExceptionOrTrace();
                                         continue;
                                     }
                                     $subPropertyEntity->addCard($cardEntity);
@@ -665,7 +704,15 @@ class Import extends Command
                         $subTypeArray,
                         $subTypeNewArray
                     );
-                    //@TODO: Put in logger
+                    $this->loggerService->setException(
+                        new CronException(
+                            sprintf(
+                                "No Category found for %s, idYGO => %s category => %s",
+                                $cardInfoName, $cardInfoId, $cardCategorySlugName
+                            ),
+                            $this::$defaultName
+                        )
+                    )->addErrorExceptionOrTrace();
                     continue;
                 }
                 //Category who are not Token nor Monster are only Spell/Trap card
@@ -719,7 +766,15 @@ class Import extends Command
                             $subTypeArray,
                             $subTypeNewArray
                         );
-                        //@todo: add to logger
+                        $this->loggerService->setException(
+                            new CronException(
+                                sprintf(
+                                    "No Attribute found for %s, idYGO => %s",
+                                    $cardInfoName, $cardInfoId
+                                ),
+                                $this::$defaultName
+                            )
+                        )->addErrorExceptionOrTrace();
                         continue;
                     }
                     $cardInfoAttributeSlugName = $this->slugify($cardInfoAttribute);
@@ -753,7 +808,15 @@ class Import extends Command
                                 $subTypeArray,
                                 $subTypeNewArray
                             );
-                            //@todo add to logger
+                            $this->loggerService->setException(
+                                new CronException(
+                                    sprintf(
+                                        "No Link Rating found for Link %s, idYGO => %s",
+                                        $cardInfoName, $cardInfoId
+                                    ),
+                                    $this::$defaultName
+                                )
+                            )->addErrorExceptionOrTrace();
                             continue;
                         }
                         $cardInfoPropertyValue = $cardInfoLinkRating;
@@ -769,7 +832,15 @@ class Import extends Command
                                 $subTypeArray,
                                 $subTypeNewArray
                             );
-                            //@todo: add to logger
+                            $this->loggerService->setException(
+                                new CronException(
+                                    sprintf(
+                                        "No Level/rank found for %s, idYGO => %s",
+                                        $cardInfoName, $cardInfoId
+                                    ),
+                                    $this::$defaultName
+                                )
+                            )->addErrorExceptionOrTrace();
                             continue;
                         }
                         $cardInfoPropertyValue = $cardInfoLevel;
@@ -791,7 +862,15 @@ class Import extends Command
                             $subTypeArray,
                             $subTypeNewArray
                         );
-                        //@todo: add to logger
+                        $this->loggerService->setException(
+                            new CronException(
+                                sprintf(
+                                    "No Property found for %s, idYGO => %s property => %s",
+                                    $cardInfoName, $cardInfoId, $cardInfoPropertyValue
+                                ),
+                                $this::$defaultName
+                            )
+                        )->addErrorExceptionOrTrace();
                         continue;
                     }
                     $cardEntity->setProperty($propertyEntity);
@@ -916,7 +995,15 @@ class Import extends Command
                             $currentDateTimePicture = new DateTime();
                             foreach ($symfonyFilePictureArray as $pictureType => $file) {
                                 if ($file === NULL) {
-                                    //@todo: add to logger
+                                    $this->loggerService->setException(
+                                        new CronException(
+                                            sprintf(
+                                                "No File found for %s, idYGO => %s picture idYGO => %s",
+                                                $cardInfoName, $cardInfoId, $pictureIdYGO
+                                            ),
+                                            $this::$defaultName
+                                        )
+                                    )->addErrorExceptionOrTrace();
                                     continue;
                                 }
                                 $methodName = "set" . lcfirst($pictureType);
@@ -1011,10 +1098,12 @@ class Import extends Command
             $output->writeln('<info-bold>Import Done !!</info-bold>');
         }  catch (GuzzleException $e) {
             $url = $e->getRequest()->getUri()->__toString();
-            dd($url, $e->getMessage());
+            $this->loggerService->setException($e)
+                ->addErrorExceptionOrTrace();
             return Command::FAILURE;
         } catch (JsonException|Exception $e) {
-            dd($e);
+            $this->loggerService->setException($e)
+                ->addErrorExceptionOrTrace();
             return Command::FAILURE;
         }
         return Command::SUCCESS;
@@ -1056,7 +1145,6 @@ class Import extends Command
         if ($httpCode === 200) {
             return json_decode($request->getBody()->getContents(), TRUE, 512, JSON_THROW_ON_ERROR);
         }
-        //@TODO: use a custom logger
         return NULL;
     }
 

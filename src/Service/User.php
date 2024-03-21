@@ -73,6 +73,7 @@ class User
             $response["user"] = $this->_getUserInfoLogin($user);
             $this->customGenericService->enableSoftDeleteable();
         } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while login.";
         }
@@ -98,6 +99,7 @@ class User
             }
             $response["user"] = $this->_getUserInfoLogin($user);
         } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while login refresh.";
         }
@@ -119,6 +121,7 @@ class User
             }
             $this->userAuthService->logout($user);
         } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while logout.";
         }

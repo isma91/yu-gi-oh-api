@@ -70,7 +70,9 @@ class Card
             }
             $cardSerialize["decks"] = $deckList;
             $response["card"] = $cardSerialize;
+            $this->customGenericService->addInfoLogFromDebugBacktrace();
         } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while getting Card info.";
         }

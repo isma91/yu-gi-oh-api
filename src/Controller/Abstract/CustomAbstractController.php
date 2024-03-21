@@ -4,6 +4,7 @@ namespace App\Controller\Abstract;
 
 use App\Controller\Interface\CheckParameterInterface;
 use App\Controller\Interface\JsonResponseInterface;
+use App\Service\Logger as LoggerService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,11 +14,17 @@ abstract class CustomAbstractController extends AbstractController
 {
     protected JsonResponseInterface $jsonResponse;
     protected CheckParameterInterface $checkParameter;
+    protected LoggerService $loggerService;
 
-    public function __construct(JsonResponseInterface $jsonResponse, CheckParameterInterface $checkParameter)
+    public function __construct(
+        JsonResponseInterface $jsonResponse,
+        CheckParameterInterface $checkParameter,
+        LoggerService $loggerService
+    )
     {
         $this->jsonResponse = $jsonResponse;
         $this->checkParameter = $checkParameter;
+        $this->loggerService =$loggerService;
     }
 
     /**
@@ -48,6 +55,9 @@ abstract class CustomAbstractController extends AbstractController
         $response = ["error" => $error, "parameter" => $newParameter];
         if ($addJwt === TRUE) {
             $response["jwt"] = $this->getJwt($request);
+        }
+        if ($error !== "") {
+            $this->addInfoLogFromDebugBacktrace();
         }
         return $response;
     }
@@ -105,5 +115,15 @@ abstract class CustomAbstractController extends AbstractController
             return $this->sendError($error, $errorDebug, $data);
         }
         return $this->sendSuccess("$entityHumanName list", $data);
+    }
+
+    /**
+     * Add info to the log, used when there is an error in request waited param
+     * @return void
+     */
+    public function addInfoLogFromDebugBacktrace(): void
+    {
+        $this->loggerService->setLevel(LoggerService::INFO)
+            ->writeInfoFromDebugBacktrace();
     }
 }

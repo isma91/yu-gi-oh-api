@@ -9,10 +9,13 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\FilterCollection;
 use Exception;
 use JsonException;
+use RuntimeException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use App\Service\Logger as LoggerService;
+use Throwable;
 
 class CustomGeneric
 {
@@ -22,6 +25,8 @@ class CustomGeneric
     private SerializerInterface $serializer;
     private UserAuthService $userAuthService;
     private SluggerInterface $slugger;
+
+    private LoggerService $loggerService;
 
     private const SOFTDELETEABLE = "softdeleteable";
 
@@ -37,7 +42,8 @@ class CustomGeneric
         ParameterBagInterface $param,
         SerializerInterface $serializer,
         SluggerInterface $slugger,
-        UserAuthService $userAuthService
+        UserAuthService $userAuthService,
+        LoggerService $loggerService
     )
     {
         $this->em = $em;
@@ -46,6 +52,7 @@ class CustomGeneric
         $this->emFilters = $em->getFilters();
         $this->userAuthService = $userAuthService;
         $this->slugger = $slugger;
+        $this->loggerService = $loggerService;
     }
 
     /**
@@ -148,6 +155,7 @@ class CustomGeneric
             }
             $response[$returnFieldName] = $infoSerialize;
         } catch (JsonException|Exception $e) {
+            $this->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = sprintf(
                 "Error while getting %s%s%s.",
@@ -173,5 +181,49 @@ class CustomGeneric
     public function checkIfUserIsAdmin(UserEntity $user): bool
     {
         return $this->userAuthService->checkIsAdmin($user);
+    }
+
+    /**
+     * Add Exception and send it to LoggerService directly
+     * @param Throwable|null $exception
+     * @return void
+     */
+    public function addExceptionLog(?Throwable $exception = NULL): void
+    {
+        $this->loggerService->setLevel(LoggerService::ERROR)
+            ->setIsCron(FALSE)
+            ->setException($exception)
+            ->addErrorExceptionOrTrace();
+    }
+
+    /**
+     * Add log from info backtrace, used in pre-flush from important function ( create Deck etc... )
+     * @param string|null $level
+     * @return void
+     */
+    public function addInfoLogFromDebugBacktrace(?string $level = NULL): void
+    {
+        $levelToAdd = $level ?? LoggerService::INFO;
+        $this->loggerService->setIsCron(FALSE)
+            ->setLevel($levelToAdd)
+            ->writeInfoFromDebugBacktrace();
+    }
+
+    public function addErrorMessageLog(string $message, bool $addBacktrace = FALSE): void
+    {
+        $this->loggerService->setIsCron(FALSE)
+            ->setLevel(LoggerService::ERROR)
+            ->addLog($message, $addBacktrace);
+    }
+
+    /**
+     * Alias to create a RuntimeException
+     * @param string $message
+     * @return void
+     * @throws RuntimeException
+     */
+    public function throwRuntimeException(string $message): void
+    {
+        throw new RuntimeException($message);
     }
 }
