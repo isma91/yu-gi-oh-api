@@ -35,6 +35,16 @@ So, we're going to launch the import multiple times per slice of 5K cards each t
 
 In my case, 2 times is largely enough, next time the Import launches, we won't have too many new Entity problems.
 
+### Set Google JSON Auth file for the Backup
+
+You can use the Backup in the `src/Command` folder, but you need to have a Gmail account with a Google Drive access.
+
+You need to create a Service Account and enable the Google Drive API in your console google cloud platform, if you need help you can go [here](https://github.com/googleapis/google-api-php-client/blob/main/docs/oauth-server.md).
+
+After that, you need to create a folder named `Backup` at the root of your Drive `My Drive` and share with the Service Account email.
+
+Download the auth.json file and add it to `var/google` folder of the project
+
 ### Prepare Docker
 
 `docker-compose -f docker-compose.yml build` then `docker-compose -f docker-compose.yml up -d`
