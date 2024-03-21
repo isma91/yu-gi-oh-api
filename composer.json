@@ -15,6 +15,7 @@
         "doctrine/doctrine-migrations-bundle": "^3.3",
         "doctrine/orm": "^2.10",
         "firebase/php-jwt": "^6.10",
+        "google/apiclient": "^2.15",
         "guzzlehttp/guzzle": "^7.8",
         "nelmio/api-doc-bundle": "^4.23",
         "nelmio/cors-bundle": "^2.4",
@@ -91,6 +92,9 @@
         "symfony": {
             "allow-contrib": false,
             "require": "7.0.*"
-        }
+        },
+        "google/apiclient-services": [
+            "Drive"
+        ]
     }
 }
