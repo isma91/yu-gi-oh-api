@@ -1,5 +1,11 @@
 <?php
 namespace App\Command;
+/**
+ * DANGER ZONE
+ */
+ini_set("max_execution_time", 0);
+ini_set("max_input_time", 0);
+ini_set("memory_limit", -1);
 
 use App\Entity\Archetype;
 use App\Entity\Card;
@@ -846,7 +852,9 @@ class Import extends Command
                         continue;
                     }
                     $cardInfoAttributeSlugName = $this->slugify($cardInfoAttribute);
-                    $this->outputAddingEntityToCard($output, "Attribute");
+                    if ($noVerbose === FALSE) {
+                        $this->outputAddingEntityToCard($output, "Attribute");
+                    }
                     $cardAttributeEntity = $this->findAttributeFromAttributeArray($cardInfoAttributeSlugName, $attributeArray);
                     if ($cardAttributeEntity === NULL) {
                         $attributeNewKeyArray = array_keys($attributeNewArray);
