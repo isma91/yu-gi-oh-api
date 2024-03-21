@@ -18,7 +18,7 @@ final class Logger
     public const ERROR = "error";
     public const WARNING = "warning";
     public const INFO = "info";
-    public const INFO_EMAIL = "info_email";
+    public const EMAIL = "info_email";
     public const DEBUG = "debug";
     private ?Throwable $exception = NULL;
     private string $level = self::ERROR;
@@ -61,7 +61,7 @@ final class Logger
             self::WARNING,
             self::DEBUG,
             self::INFO,
-            self::INFO_EMAIL,
+            self::EMAIL,
         ];
         if (in_array($level, $levelArray, TRUE) === TRUE) {
             $this->level = $level;
