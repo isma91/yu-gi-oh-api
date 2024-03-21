@@ -245,6 +245,7 @@ final class Logger
     }
 
     /**
+     * Write Info log, used from controller to get all request send to the API
      * @return void
      */
     public function writeInfoFromDebugBacktrace() : void
