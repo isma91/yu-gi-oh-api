@@ -1,3 +1,3 @@
-#Every day @ 3:00
 #You can put /dev/null if you don't want to store log
-0 3 * * * <user> /usr/bin/php <project_dir>/bin/console app:import &> /path/to/log/dir/import.log
+0 3 * * * <user> /usr/bin/docker exec yu-gi-oh-api php ./bin/console app:import &> /dev/null
+0 5 * * * <user> /usr/bin/docker exec yu-gi-oh-api php ./bin/console app:backup &> /dev/null
