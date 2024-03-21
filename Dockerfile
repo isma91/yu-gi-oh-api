@@ -51,7 +51,9 @@ RUN apk add --no-cache --no-progress \
   php82-xmlreader \
   php82-xmlwriter \
   php82-pdo_mysql \
-  php82-iconv 
+  php82-iconv  \
+  zip \
+  mysql-client
 
 
 # config of php
