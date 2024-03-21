@@ -87,13 +87,13 @@ final class Logger
     public function createFileIfNotExist(): bool
     {
         try {
-            $logRootDir = $this->param->get("LOG_DIR");
+            $logDir = $this->param->get("LOG_DIR");
             $fileName = date("Y-m-d");
             if ($this->isCron === TRUE) {
                 $fileName .= "_cron";
             }
             $fileName .= sprintf("_%s.txt", $this->level);
-            $filePath = $logRootDir . DIRECTORY_SEPARATOR . $fileName;
+            $filePath = $logDir . DIRECTORY_SEPARATOR . $fileName;
             $this->filePath = $filePath;
             if ($this->filesystem->exists($filePath) === FALSE) {
                 $this->filesystem->dumpFile($filePath, "");
@@ -129,6 +129,7 @@ final class Logger
         if ($countBacktrace > 6) {
             array_splice($exceptionTrace, -3);
         }
+        //Reverse to have the top Exception first then we go deeper
         $exceptionTrace = array_reverse($exceptionTrace);
         $message .= $this->parseTraceArray($exceptionTrace);
         return $message;
@@ -149,8 +150,6 @@ final class Logger
             array_splice($backtrace, 0, $length);
             array_splice($backtrace, -3);
         }
-        //Reverse to have the top Exception first then we go deeper
-        $backtrace = array_reverse($backtrace);
         return $this->parseTraceArray($backtrace);
     }
 
@@ -237,11 +236,39 @@ final class Logger
     }
 
     /**
+     * Write the message at the beginning of the File
+     * It's like a append to the beginning of file without replace the existing content.
+     * Create a temp file with the new message to add,
+     * then we get the context of the current log file to append in the temp file.
+     * After that we can remove the current log file and move the temp file as the new current log file.
      * @return void
      */
     public function writeLog(): void
     {
-        $this->filesystem->appendToFile($this->filePath, $this->message);
+        $logFilePath = $this->filePath;
+        if ($logFilePath !== NULL) {
+            [
+                "dirname" => $logFileDir,
+                "filename" => $logFileFilename,
+                "extension" => $logFileExtension
+            ] = pathinfo($logFilePath);
+            $tempFilePath = sprintf(
+                "%s%s%s.%s",
+                $logFileDir,
+                DIRECTORY_SEPARATOR,
+                $logFileFilename . "_bis",
+                $logFileExtension
+            );
+            $streamContext = stream_context_create();
+            // get content of current logfile as context
+            // to avoid load the full file in memory
+            $logFileContext = fopen($logFilePath, 'rb', 1, $streamContext);
+            $this->filesystem->dumpFile($tempFilePath, $this->message);
+            $this->filesystem->appendToFile($tempFilePath, $logFileContext);
+            fclose($logFileContext);
+            $this->filesystem->remove($logFilePath);
+            $this->filesystem->rename($tempFilePath, $logFilePath);
+        }
     }
 
     /**
