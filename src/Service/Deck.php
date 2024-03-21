@@ -83,7 +83,9 @@ class Deck
             $this->deckORMService->persist($deck);
             $this->deckORMService->persist($user);
             $this->deckORMService->flush();
+            $this->customGenericService->addInfoLogFromDebugBacktrace();
         } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while creating Deck.";
         }
@@ -120,7 +122,11 @@ class Deck
         }
         $deckUser = $deck->getUser();
         if ($deckUser === NULL) {
-            //@todo: add to logger
+            $this->customGenericService->addErrorMessageLog(
+                sprintf(
+                    "No User found for Deck id => %d", $deck->getId()
+                )
+            );
             $response["error"] = "Deck not available.";
             return $response;
         }
@@ -159,6 +165,7 @@ class Deck
             }
             $response["deck"] = $this->customGenericService->getInfoSerialize([$deck], ["deck_info", "card_info"])[0];
         } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while getting Deck.";
         }
@@ -198,7 +205,9 @@ class Deck
             $this->deckORMService->persist($user);
             $this->deckORMService->remove($deck);
             $this->deckORMService->flush();
+            $this->customGenericService->addInfoLogFromDebugBacktrace();
         } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while deleting Deck.";
         }
@@ -240,7 +249,9 @@ class Deck
             $this->deckORMService->persist($deck);
             $this->deckORMService->flush();
             $response["deck"] = $this->customGenericService->getInfoSerialize([$deck], ["deck_info", "card_info"])[0];
+            $this->customGenericService->addInfoLogFromDebugBacktrace();
         } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while getting Deck.";
         }
@@ -301,7 +312,9 @@ class Deck
                 );
             $this->deckORMService->persist($deck);
             $this->deckORMService->flush();
+            $this->customGenericService->addInfoLogFromDebugBacktrace();
         } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while updating Deck.";
         }

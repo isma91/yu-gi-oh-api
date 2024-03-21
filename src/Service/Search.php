@@ -278,7 +278,9 @@ class Search
             $cardAllResultCount = $cardORMSearchService->countFromSearchFilter($filter);
             $response["card"] = $newCardArray;
             $response["cardAllResultCount"] = $cardAllResultCount;
+            $this->customGenericService->addInfoLogFromDebugBacktrace();
         } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while search Card.";
         }
@@ -329,7 +331,9 @@ class Search
             $deck = $deckORMSearch->findFromSearchFilter($filter);
             $response["deck"] = $this->customGenericService->getInfoSerialize($deck, ["deck_user_list"]);
             $response["deckAllResultCount"] = $deckORMSearch->countFromSearchFilter($filter);
+            $this->customGenericService->addInfoLogFromDebugBacktrace();
         } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while listing your Decks.";
         }
