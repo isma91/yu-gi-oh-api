@@ -6,9 +6,7 @@ use App\Entity\CardExtraDeck as CardExtraDeckEntity;
 use App\Entity\CardMainDeck as CardMainDeckEntity;
 use App\Entity\CardPicture;
 use App\Entity\CardSideDeck as CardSideDeckEntity;
-use App\Service\Card as CardEntity;
-use App\Service\Card as CardService;
-use App\Service\Tool\Abstract\AbstractORM;
+use App\Service\Logger as LoggerService;
 use App\Service\Tool\Deck\ORM as DeckORMService;
 use App\Service\Tool\Card\ORM as CardORMService;
 use App\Entity\Deck as DeckEntity;
@@ -16,6 +14,14 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class Entity
 {
+    private LoggerService $loggerService;
+
+    public function __construct(LoggerService $loggerService)
+    {
+        $this->loggerService = $loggerService;
+        $this->loggerService->setIsCron(FALSE);
+    }
+
     /**
      * Remove all card of DeckEntity
      * @param DeckEntity $deck
@@ -50,7 +56,7 @@ class Entity
 
     /**
      * @param int|null $deckArtwork
-     * @param AbstractORM $ORMService
+     * @param CardORMService $cardORMService
      * @return CardPicture|null
      */
     public function findCardPictureFromDeckArtworkValue(
@@ -74,7 +80,7 @@ class Entity
     /**
      * @param DeckEntity $deck
      * @param array $deckCardArray
-     * @param CardService $cardService
+     * @param CardORMService $cardORMService
      * @param ORM $deckORMService
      * @param ParameterBagInterface $param
      * @return DeckEntity
@@ -106,12 +112,20 @@ class Entity
                 $cardInfoId = (int)$cardInfoId;
                 $cardNbCopie = (int)$cardNbCopie;
                 if ($cardNbCopie > $nbMaxSameCard) {
-                    //@todo: add to logger
+                    $this->loggerService->setLevel(LoggerService::WARNING)
+                        ->addLog(
+                            sprintf("Trying to add more than %d the same card", $nbMaxSameCard),
+                            TRUE
+                        );
                     continue;
                 }
                 $cardEntity = $cardORMService->findById($cardInfoId);
                 if ($cardEntity === NULL) {
-                    //@todo: add to logger
+                    $this->loggerService->setLevel(LoggerService::WARNING)
+                        ->addLog(
+                            sprintf("Card id => %d not found", $cardInfoId),
+                            TRUE
+                        );
                     continue;
                 }
                 if ($fieldType === $mainDeckName) {
