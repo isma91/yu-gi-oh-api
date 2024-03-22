@@ -182,10 +182,10 @@ class Import extends Command
                 'If you want to not update the DatabaseYGO entity, mostly use the first time Import is launch.'
             )
             ->addOption(
-                'no-verbose',
-                NULL,
-                InputOption::VALUE_NONE,
-                'If you don\'t want the message display'
+                "idYGO",
+                "id",
+                InputOption::VALUE_REQUIRED,
+                'IF you want to import a specific card'
             );
     }
 
@@ -278,8 +278,12 @@ class Import extends Command
     {
         try {
             $noDatabaseYgoUpdate = $input->getOption("no-dbygo-update");
-            $noVerbose = $input->getOption("no-verbose");
+            $importSpecificCardIdYGO = $input->getOption("idYGO");
             $limitOptionValue = $input->getOption("limit");
+            $cardIdYGOToImport = NULL;
+            if ($importSpecificCardIdYGO !== NULL) {
+                $cardIdYGOToImport = (int)$importSpecificCardIdYGO;
+            }
             $limitCardToAdd = NULL;
             if ($limitOptionValue !== NULL) {
                 $limitCardToAdd = (int)$limitOptionValue;
@@ -287,182 +291,143 @@ class Import extends Command
                     $limitCardToAdd = NULL;
                 }
             }
-            if ($noVerbose === FALSE) {
-                $outputStyleInfoBold = new OutputFormatterStyle("green", NULL, ["bold"]);
-                $outputStyleBold = new OutputFormatterStyle(NULL, NULL, ["bold"]);
-                $output->getFormatter()->setStyle("info-bold", $outputStyleInfoBold);
-                $output->getFormatter()->setStyle("bold", $outputStyleBold);
-                $output->write('Get current DatabaseYGO info...');
-            }
+            $outputStyleInfoBold = new OutputFormatterStyle("green", NULL, ["bold"]);
+            $outputStyleBold = new OutputFormatterStyle(NULL, NULL, ["bold"]);
+            $output->getFormatter()->setStyle("info-bold", $outputStyleInfoBold);
+            $output->getFormatter()->setStyle("bold", $outputStyleBold);
+
+            $output->write('Get current DatabaseYGO info...');
             $databaseYGOEntity = $this->getCurrentDatabaseYGO();
-            if ($noVerbose === FALSE) {
-                $this->outputDone($output);
-            }
+            $this->outputDone($output);
 
             if ($databaseYGOEntity === NULL) {
-                if ($noVerbose === FALSE) {
-                    $output->writeln('<comment>No Database YGO find locally !!</comment>');
-                }
+                $output->writeln('<comment>No Database YGO find locally !!</comment>');
                 $databaseYGOEntity = $this->createDatabaseYGO();
             } else {
                 $databaseYGOEntityDate = $databaseYGOEntity->getLastUpdate();
-                if ($noVerbose === FALSE) {
-                    $output->writeln(
-                        sprintf(
-                            'Current YGO DB Version: <info-bold>%s</info-bold>',
-                            $databaseYGOEntity->getDatabaseVersion()
-                        )
-                    );
-                }
+                $output->writeln(
+                    sprintf(
+                        'Current YGO DB Version: <info-bold>%s</info-bold>',
+                        $databaseYGOEntity->getDatabaseVersion()
+                    )
+                );
                 $databaseYGOEntityDateString = $databaseYGOEntityDate?->format("Y-m-d H:i:s");
-                if ($noVerbose === FALSE) {
-                    $output->writeln(
-                        sprintf(
-                            'Current YGO DB update date: <info-bold>%s</info-bold>',
-                            $databaseYGOEntityDateString
-                        )
-                    );
-                }
+                $output->writeln(
+                    sprintf(
+                        'Current YGO DB update date: <info-bold>%s</info-bold>',
+                        $databaseYGOEntityDateString
+                    )
+                );
             }
 
-            if ($noVerbose === FALSE) {
-                $output->write('Get last DatabaseYGO info from URI...');
-            }
+            $output->write('Get last DatabaseYGO info from URI...');
             $lastDatabaseYGO = $this->getLastDatabaseYGO();
             if ($lastDatabaseYGO === NULL) {
-                if ($noVerbose === FALSE) {
-                    $output->writeln('Error !!');
-                    $output->writeln('<error>Can\'t get databaseYGO info !!</error>');
-                }
-                return Command::FAILURE;
+                $output->writeln('Error !!');
+                $output->writeln('<error>Can\'t get databaseYGO info !!</error>');
+                throw new CronException("Can't get databaseYGO info !!");
             }
-            if ($noVerbose === FALSE) {
-                $this->outputDone($output);
-            }
+            $this->outputDone($output);
 
             [
                 "database_version" => $dbVersion,
                 "last_update" => $dbDatetime
             ] = $lastDatabaseYGO;
-            if ($noVerbose === FALSE) {
-                $output->writeln(sprintf('Last DB Version: <info-bold>%s</info-bold>', $dbVersion));
-                $output->writeln(sprintf('Last DB update date: <info-bold>%s</info-bold>', $dbDatetime));
-            }
+            $output->writeln(sprintf('Last DB Version: <info-bold>%s</info-bold>', $dbVersion));
+            $output->writeln(sprintf('Last DB update date: <info-bold>%s</info-bold>', $dbDatetime));
 
             $needImport = $this->compareCurrentAndLastDatabaseYGO($databaseYGOEntity, $lastDatabaseYGO);
-            if ($needImport === FALSE) {
-                if ($noVerbose === FALSE) {
+            if ($cardIdYGOToImport === NULL) {
+                if ($needImport === FALSE) {
                     $output->writeln('<info-bold>No import needed !!</info-bold>');
+                    return Command::SUCCESS;
                 }
-                return Command::SUCCESS;
-            }
-            if ($noVerbose === FALSE) {
                 $output->writeln('<info-bold>Import begin...</info-bold>');
                 $output->write('Getting all Card info from URI...');
+            } else {
+                $output->writeln('<info-bold>Bypass Import Check because of import Card</info-bold>');
             }
 
-            $requestCardInfoArray = $this->getAllCardInfo();
-            if ($noVerbose === FALSE) {
-                $this->outputDone($output);
-                $this->outputGetAllLocally($output, "Set");
+            if ($cardIdYGOToImport === NULL) {
+                $requestCardInfoArray = $this->getAllCardInfo();
+            } else {
+                $requestCardInfoArray = $this->getCardInfoFromIdYGO($cardIdYGOToImport);
             }
+            $this->outputDone($output);
 
+
+            $this->outputGetAllLocally($output, "Set");
             $setArray = $this->getAllSet();
             $setSlugNameArray = array_keys($setArray);
-            if ($noVerbose === FALSE) {
-                $this->outputDone($output);
-                $this->outputCountEntity($output, count($setArray), "Set");
-                $output->write('Getting all Set info from URI...');
-            }
+            $this->outputDone($output);
+            $this->outputCountEntity($output, count($setArray), "Set");
 
+            $output->write('Getting all Set info from URI...');
             $setNewArray = $this->getAllNewSet($setSlugNameArray);
             $setNewKeyArray = array_keys($setNewArray);
-            if ($noVerbose === FALSE) {
-                $this->outputDone($output);
-                $this->outputCountEntity($output, count($setNewArray), "Set", TRUE);
-                $this->outputGetAllLocally($output, "Category");
-            }
+            $this->outputDone($output);
+            $this->outputCountEntity($output, count($setNewArray), "Set", TRUE);
 
+            $this->outputGetAllLocally($output, "Category");
             $categoryArray = $this->getAllCategory();
-            if ($noVerbose === FALSE) {
-                $this->outputDone($output);
-                $this->outputCountEntity($output, count($categoryArray), "Category");
-                $this->outputGetAllLocally($output, "SubCategory");
-            }
+            $this->outputDone($output);
+            $this->outputCountEntity($output, count($categoryArray), "Category");
 
+            $this->outputGetAllLocally($output, "SubCategory");
             $subCategoryArray = $this->getAllSubCategory();
             $subCategoryNewArray = [];
-            if ($noVerbose === FALSE) {
-                $this->outputDone($output);
-                $this->outputCountEntity($output, count($subCategoryArray), "SubCategory");
-                $this->outputGetAllLocally($output, "Archetype");
-            }
+            $this->outputDone($output);
+            $this->outputCountEntity($output, count($subCategoryArray), "SubCategory");
 
+            $this->outputGetAllLocally($output, "Archetype");
             $archetypeArray = $this->getAllArchetype();
             $archetypeNewArray = [];
-            if ($noVerbose === FALSE) {
-                $this->outputDone($output);
-                $this->outputCountEntity($output, count($archetypeArray), "Archetype");
-                $this->outputGetAllLocally($output, "Rarity");
-            }
+            $this->outputDone($output);
+            $this->outputCountEntity($output, count($archetypeArray), "Archetype");
+
+            $this->outputGetAllLocally($output, "Rarity");
             $rarityArray = $this->getAllRarity();
             $rarityNewArray = [];
-            if ($noVerbose === FALSE) {
-                $this->outputDone($output);
-                $this->outputCountEntity($output, count($rarityArray), "Rarity");
-                $this->outputGetAllLocally($output, "Type");
-            }
+            $this->outputDone($output);
+            $this->outputCountEntity($output, count($rarityArray), "Rarity");
 
+            $this->outputGetAllLocally($output, "Type");
             $typeArray = $this->getAllType();
             $typeNewArray = [];
-            if ($noVerbose === FALSE) {
-                $this->outputDone($output);
-                $this->outputCountEntity($output, count($typeArray), "Type");
-                $this->outputGetAllLocally($output, "SubType");
-            }
+            $this->outputDone($output);
+            $this->outputCountEntity($output, count($typeArray), "Type");
 
+            $this->outputGetAllLocally($output, "SubType");
             $subTypeArray = $this->getAllSubType();
             $subTypeNewArray = [];
-            if ($noVerbose === FALSE) {
-                $this->outputDone($output);
-                $this->outputCountEntity($output, count($subTypeArray), "SubType");
-                $this->outputGetAllLocally($output, "Attribute");
-            }
+            $this->outputDone($output);
+            $this->outputCountEntity($output, count($subTypeArray), "SubType");
 
+            $this->outputGetAllLocally($output, "Attribute");
             $attributeArray = $this->getAllAttribute();
             $attributeNewArray = [];
-            if ($noVerbose === FALSE) {
-                $this->outputDone($output);
-                $this->outputCountEntity($output, count($attributeArray), "Attribute");
-                $this->outputGetAllLocally($output, "PropertyType");
-            }
+            $this->outputDone($output);
+            $this->outputCountEntity($output, count($attributeArray), "Attribute");
 
+            $this->outputGetAllLocally($output, "PropertyType");
             $propertyTypeArray = $this->getAllPropertyType();
-            if ($noVerbose === FALSE) {
-                $this->outputDone($output);
-                $this->outputCountEntity($output, count($propertyTypeArray), "PropertyType");
-                $this->outputGetAllLocally($output, "Property");
-            }
+            $this->outputDone($output);
+            $this->outputCountEntity($output, count($propertyTypeArray), "PropertyType");
 
+            $this->outputGetAllLocally($output, "Property");
             $propertyArray = $this->getAllProperty();
-            if ($noVerbose === FALSE) {
-                $this->outputDone($output);
-                $this->outputCountEntity($output, count($propertyArray), "Property");
-                $this->outputGetAllLocally($output, "SubPropertyType");
-            }
+            $this->outputDone($output);
+            $this->outputCountEntity($output, count($propertyArray), "Property");
 
+            $this->outputGetAllLocally($output, "SubPropertyType");
             $subPropertyTypeArray = $this->getAllSubPropertyType();
-            if ($noVerbose === FALSE) {
-                $this->outputDone($output);
-                $this->outputCountEntity($output, count($subPropertyTypeArray), "SubPropertyType");
-                $this->outputGetAllLocally($output, "SubProperty");
-            }
+            $this->outputDone($output);
+            $this->outputCountEntity($output, count($subPropertyTypeArray), "SubPropertyType");
 
+            $this->outputGetAllLocally($output, "SubProperty");
             $subPropertyArray = $this->getAllSubProperty();
-            if ($noVerbose === FALSE) {
-                $this->outputDone($output);
-                $this->outputCountEntity($output, count($subPropertyArray), "SubProperty");
-            }
+            $this->outputDone($output);
+            $this->outputCountEntity($output, count($subPropertyArray), "SubProperty");
 
             $forbiddenArray = [
                 "type" => ["skill"],
@@ -508,15 +473,13 @@ class Import extends Command
                 $updateCardPicture = FALSE;
                 $cardEntity = $this->cardRepository->findOneBy(["idYGO" => $cardInfoId]);
                 if ($cardEntity === NULL) {
-                    if ($noVerbose === FALSE) {
-                        $output->writeln(
-                            sprintf(
-                                'Card  <info-bold>%s</info-bold> new (new card n°<info-bold>%d</info-bold>) !! Creating from scratch...',
-                                $cardInfoName,
-                                $countNewCard
-                            )
-                        );
-                    }
+                    $output->writeln(
+                        sprintf(
+                            'Card  <info-bold>%s</info-bold> new (new card n°<info-bold>%d</info-bold>) !! Creating from scratch...',
+                            $cardInfoName,
+                            $countNewCard
+                        )
+                    );
                     $newCard = TRUE;
                     $cardEntity = new Card();
                     $cardEntity->setUuid(Uuid::v7())
@@ -525,7 +488,7 @@ class Import extends Command
                         ->setSlugName($this->slugify($cardInfoName))
                         ->setDescription($cardInfoDesc)
                         ->setSlugDescription($this->slugify($cardInfoDesc));
-                } else if ($noVerbose === FALSE) {
+                } else {
                     $output->writeln(
                         sprintf(
                             'Card <info-bold>%s</info-bold> already existed !! Try to update it...',
@@ -611,9 +574,7 @@ class Import extends Command
                         $isEffect = !($frameTypeNormal === TRUE || $frameTypeRitual === TRUE);
                     }
                     if (empty($cardInfoTypeArray) === FALSE) {
-                        if ($noVerbose === FALSE) {
-                            $this->outputAddingEntityToCard($output, "SubType");
-                        }
+                        $this->outputAddingEntityToCard($output, "SubType");
                         foreach ($cardInfoTypeArray as $cardInfoSubTypeSlugName) {
                             $subTypeIsSubCategoryMonster = in_array($cardInfoSubTypeSlugName, $subCategoryMonsterKeyArray, TRUE);
                             if ($subTypeIsSubCategoryMonster === FALSE) {
@@ -626,13 +587,11 @@ class Import extends Command
                                     } else {
                                         $subTypeEntity = $this->createSubType($cardInfoSubType);
                                         $subTypeNewArray[$cardInfoSubTypeSlugName] = $subTypeEntity;
-                                        if ($noVerbose === FALSE) {
-                                            $this->outputNewEntityCreated(
-                                                $output,
-                                                "SubType",
-                                                $cardInfoSubType
-                                            );
-                                        }
+                                        $this->outputNewEntityCreated(
+                                            $output,
+                                            "SubType",
+                                            $cardInfoSubType
+                                        );
                                     }
                                 }
                                 $cardEntity->addSubType($subTypeEntity);
@@ -785,9 +744,7 @@ class Import extends Command
                 }
                 //Category who are not Token nor Monster are only Spell/Trap card
                 if ($isToken === FALSE && $isMonster === FALSE) {
-                    if ($noVerbose === FALSE) {
-                        $this->outputAddingEntityToCard($output, "SubCategory");
-                    }
+                    $this->outputAddingEntityToCard($output, "SubCategory");
                     $subCategoryEntity = $this->findSubCategory($cardInfoRaceSlugName, $subCategoryArray, $categoryEntity);
                     if ($subCategoryEntity === NULL) {
                         $subCategoryNewKeyArray = array_keys($subCategoryNewArray);
@@ -796,13 +753,11 @@ class Import extends Command
                         } else {
                             $subCategoryEntity = $this->createSubCategory($cardInfoRace);
                             $subCategoryNewArray[$cardInfoRaceSlugName] = $subCategoryEntity;
-                            if ($noVerbose === FALSE) {
-                                $this->outputNewEntityCreated(
-                                    $output,
-                                    "SubCategory",
-                                    $cardInfoRace
-                                );
-                            }
+                            $this->outputNewEntityCreated(
+                                $output,
+                                "SubCategory",
+                                $cardInfoRace
+                            );
                         }
                     }
                     $categoryEntity->addSubCategory($subCategoryEntity);
@@ -810,9 +765,7 @@ class Import extends Command
                     $this->em->persist($subCategoryEntity);
                 } else {
                     $cardEntity = $this->setAtkDefPoint($cardEntity, $cardInfoArray);
-                    if ($noVerbose === FALSE) {
-                        $this->outputAddingEntityToCard($output, "Type");
-                    }
+                    $this->outputAddingEntityToCard($output, "Type");
                     $monsterTypeEntity = $this->findTypeFromTypeArray($cardInfoRaceSlugName, $typeArray);
                     if ($monsterTypeEntity === NULL) {
                         $typeNewKeyArray = array_keys($typeNewArray);
@@ -852,9 +805,7 @@ class Import extends Command
                         continue;
                     }
                     $cardInfoAttributeSlugName = $this->slugify($cardInfoAttribute);
-                    if ($noVerbose === FALSE) {
-                        $this->outputAddingEntityToCard($output, "Attribute");
-                    }
+                    $this->outputAddingEntityToCard($output, "Attribute");
                     $cardAttributeEntity = $this->findAttributeFromAttributeArray($cardInfoAttributeSlugName, $attributeArray);
                     if ($cardAttributeEntity === NULL) {
                         $attributeNewKeyArray = array_keys($attributeNewArray);
@@ -863,13 +814,11 @@ class Import extends Command
                         } else {
                             $cardAttributeEntity = $this->createAttribute($cardInfoAttribute);
                             $attributeNewArray[$cardInfoAttributeSlugName] = $cardAttributeEntity;
-                            if ($noVerbose === FALSE) {
-                                $this->outputNewEntityCreated(
-                                    $output,
-                                    "Attribute",
-                                    $cardInfoAttribute
-                                );
-                            }
+                            $this->outputNewEntityCreated(
+                                $output,
+                                "Attribute",
+                                $cardInfoAttribute
+                            );
                         }
                     }
                     $cardEntity->setAttribute($cardAttributeEntity);
@@ -925,9 +874,7 @@ class Import extends Command
                         $propertyTypeSlugName = ($isXYZ === TRUE) ? "rank" : "level";
                         $propertyTypeEntity = $propertyTypeArray[$propertyTypeSlugName];
                     }
-                    if ($noVerbose === FALSE) {
-                        $this->outputAddingEntityToCard($output, "Property");
-                    }
+                    $this->outputAddingEntityToCard($output, "Property");
                     $propertyEntity = $this->findProperty(
                         $cardInfoPropertyValue,
                         $propertyArray,
@@ -958,9 +905,7 @@ class Import extends Command
                 }
                 $cardEntity->setCategory($categoryEntity);
                 if ($cardInfoArchetype !== NULL && $cardEntity->getArchetype() === NULL) {
-                    if ($noVerbose === FALSE) {
-                        $this->outputAddingEntityToCard($output, "Archetype");
-                    }
+                    $this->outputAddingEntityToCard($output, "Archetype");
                     $cardInfoArchetypeSlugName = $this->slugify($cardInfoArchetype);
                     $archetypeEntity = $this->findArchetypeFromArchetypeArray($cardInfoArchetypeSlugName, $archetypeArray);
                     if ($archetypeEntity === NULL) {
@@ -970,13 +915,11 @@ class Import extends Command
                         } else {
                             $archetypeEntity = $this->createArchetype($cardInfoArchetype);
                             $archetypeNewArray[$cardInfoArchetypeSlugName] = $archetypeEntity;
-                            if ($noVerbose === FALSE) {
-                                $this->outputNewEntityCreated(
-                                    $output,
-                                    'Archetype',
-                                    $cardInfoArchetype
-                                );
-                            }
+                            $this->outputNewEntityCreated(
+                                $output,
+                                'Archetype',
+                                $cardInfoArchetype
+                            );
                         }
                     }
                     $cardEntity->setArchetype($archetypeEntity);
@@ -984,9 +927,7 @@ class Import extends Command
                 }
 
                 if (count($cardInfoCardSetArray) > $cardEntity->getCardSets()->count()) {
-                    if ($noVerbose === FALSE) {
-                        $this->outputAddingEntityToCard($output, "CardSet");
-                    }
+                    $this->outputAddingEntityToCard($output, "CardSet");
                     foreach ($cardInfoCardSetArray as $cardSetInfoArray) {
                         [
                             "set_code" => $cardSetInfoCode,
@@ -1023,31 +964,27 @@ class Import extends Command
                                 } else {
                                     $rarityEntity = $this->createRarity($cardSetInfoRarity);
                                     $rarityNewArray[$cardSetInfoRaritySlugName] = $rarityEntity;
-                                    if ($noVerbose === FALSE) {
-                                        $this->outputNewEntityCreated(
-                                            $output,
-                                            'Rarity',
-                                            $cardSetInfoRarity
-                                        );
-                                    }
+                                    $this->outputNewEntityCreated(
+                                        $output,
+                                        'Rarity',
+                                        $cardSetInfoRarity
+                                    );
                                 }
                             }
                             $cardSetEntity = $this->createCardSet($setEntity, $rarityEntity, $cardSetCode);
-                            if ($noVerbose === FALSE) {
-                                $output->write('New <bold>CardSet</bold> created: ');
-                                $output->write(
-                                    sprintf(
-                                        '<bold>Set</bold>: <info-bold>%s</info-bold> ',
-                                        $setEntity->getName(),
-                                    )
-                                );
-                                $output->writeln(
-                                    sprintf(
-                                        '<bold>Rarity</bold>: <info-bold>%s</info-bold>',
-                                        $rarityEntity->getName(),
-                                    )
-                                );
-                            }
+                            $output->write('New <bold>CardSet</bold> created: ');
+                            $output->write(
+                                sprintf(
+                                    '<bold>Set</bold>: <info-bold>%s</info-bold> ',
+                                    $setEntity->getName(),
+                                )
+                            );
+                            $output->writeln(
+                                sprintf(
+                                    '<bold>Rarity</bold>: <info-bold>%s</info-bold>',
+                                    $rarityEntity->getName(),
+                                )
+                            );
                             $setEntity->addCardSet($cardSetEntity);
                             $rarityEntity->addCardSet($cardSetEntity);
                             $cardSetEntity->addSet($setEntity)
@@ -1063,9 +1000,7 @@ class Import extends Command
                 }
 
                 if (count($cardInfoCardImageArray) > $cardEntity->getPictures()->count()) {
-                    if ($noVerbose === FALSE) {
-                        $this->outputAddingEntityToCard($output, "CardPicture");
-                    }
+                    $this->outputAddingEntityToCard($output, "CardPicture");
                     foreach ($cardInfoCardImageArray as $cardInfoCardImageInfoArray) {
                         [
                             "id" => $pictureIdYGO,
@@ -1125,15 +1060,11 @@ class Import extends Command
                 $this->em->persist($cardEntity);
             }
             if ($noDatabaseYgoUpdate === FALSE) {
-                if ($noVerbose === FALSE) {
-                    $output->write('Updating <bold>DatabaseYGO</bold>...');
-                }
+                $output->write('Updating <bold>DatabaseYGO</bold>...');
                 $databaseYGOEntity->setDatabaseVersion((float)$dbVersion)
                     ->setLastUpdate(new DateTime($dbDatetime));
                 $this->em->persist($databaseYGOEntity);
-                if ($noVerbose === FALSE) {
-                    $this->outputDone($output);
-                }
+                $this->outputDone($output);
             }
             $entityArray = [
                 $archetypeArray,
@@ -1160,50 +1091,42 @@ class Import extends Command
                 "SubType" =>  $subTypeNewArray,
                 "Type" =>  $typeNewArray,
             ];
-            if ($noVerbose === FALSE) {
-                $output->writeln('Persisting already existed <bold>Entities</bold>...');
-            }
+
+            $output->writeln('Persisting already existed <bold>Entities</bold>...');
             foreach ($entityArray as $array) {
                 foreach ($array as $entity) {
                     $this->em->persist($entity);
                 }
             }
-            if ($noVerbose === FALSE) {
-                $output->writeln("Persisting new <bold>Entities</bold>...");
-            }
+
+            $output->writeln("Persisting new <bold>Entities</bold>...");
             foreach ($newEntityArray as $entityName => $array) {
-                if ($noVerbose === FALSE) {
-                    $output->writeln(
-                        sprintf(
-                            'New <bold>%s</bold> created: <info-bold>%d</info-bold>',
-                            $entityName,
-                            count($array)
-                        )
-                    );
-                }
+                $output->writeln(
+                    sprintf(
+                        'New <bold>%s</bold> created: <info-bold>%d</info-bold>',
+                        $entityName,
+                        count($array)
+                    )
+                );
                 foreach ($array as $entity) {
                     $this->em->persist($entity);
                 }
             }
-            if ($noVerbose === FALSE) {
-                $output->writeln(
-                    sprintf(
-                        'New <bold>%s</bold> created: <info-bold>%d</info-bold>',
-                        'Card',
-                        $countNewCard
-                    )
-                );
-            }
+
+            $output->writeln(
+                sprintf(
+                    'New <bold>%s</bold> created: <info-bold>%d</info-bold>',
+                    'Card',
+                    $countNewCard
+                )
+            );
             foreach ($cardEntityArray as $cardEntity) {
                 $this->em->persist($cardEntity);
             }
-            if ($noVerbose === FALSE) {
-                $output->writeln('Flushing... It may take some time...');
-            }
+
+            $output->writeln('Flushing... It may take some time...');
             $this->em->flush();
-            if ($noVerbose === FALSE) {
-                $output->writeln('<info-bold>Import Done !!</info-bold>');
-            }
+            $output->writeln('<info-bold>Import Done !!</info-bold>');
         }  catch (GuzzleException $e) {
             $url = $e->getRequest()->getUri()->__toString();
             $this->loggerService->setException($e)
@@ -1301,6 +1224,26 @@ class Import extends Command
     protected function getAllCardInfo(): ?array
     {
         $response = $this->getRequestFromUri($this->arrayUri["card"]);
+        if ($response !== NULL) {
+            return $response["data"];
+        }
+        return NULL;
+    }
+
+    /**
+     * @param int $idYGO
+     * @return array|null
+     * @throws GuzzleException
+     * @throws JsonException
+     */
+    protected function getCardInfoFromIdYGO(int $idYGO): ?array
+    {
+        $url = sprintf(
+            "%s?id=%d",
+            $this->arrayUri["card"],
+            $idYGO
+        );
+        $response = $this->getRequestFromUri($url);
         if ($response !== NULL) {
             return $response["data"];
         }
