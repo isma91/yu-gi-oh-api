@@ -25,7 +25,7 @@ class Set
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["card_info"])]
+    #[Groups(["card_info", "set_search"])]
     private ?int $id = null;
 
     #[OA\Property(
@@ -35,20 +35,21 @@ class Set
         nullable: false
     )]
     #[ORM\Column(length: 255)]
-    #[Groups(["card_info"])]
+    #[Groups(["card_info", "set_search"])]
     private ?string $code = null;
 
     #[OA\Property(description: "Name of the Set, always unique", type: "string", nullable: false)]
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(["card_info"])]
+    #[Groups(["card_info", "set_search"])]
     private ?string $name = null;
 
     #[OA\Property(description: "Slugify name of the Set", type: "string", nullable: false)]
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(["card_info"])]
+    #[Groups(["card_info", "set_search"])]
     private ?string $slugName = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(["set_search"])]
     private ?int $nbCard = null;
 
     #[ORM\ManyToMany(targetEntity: CardSet::class, mappedBy: 'sets')]
@@ -56,7 +57,7 @@ class Set
 
     #[OA\Property(description: "Release date of the Set", type: "string", format: "date-time", nullable: true)]
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
-    #[Groups(["card_info"])]
+    #[Groups(["card_info", "set_search"])]
     private ?DateTimeInterface $releaseDate = null;
 
     public function __construct()
