@@ -39,7 +39,7 @@ class PropertyWithType extends Fixture implements FixtureGroupInterface
             $propertyTypeEntityArray[] = $propertyType;
         }
         foreach ($propertyTypeEntityArray as $propertyTypeEntity) {
-            for ($i = 0; $i < $nbLimit; $i++) {
+            for ($i = 0; $i <= $nbLimit; $i++) {
                 $propertyEntity = new Property();
                 $propertyEntity->setName($i)
                     ->setSlugName($i)
