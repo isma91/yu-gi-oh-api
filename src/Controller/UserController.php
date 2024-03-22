@@ -174,7 +174,7 @@ class UserController extends CustomAbstractController
                         type: "string"
                     ),
                     new OA\Property(
-                        property: "currentPassword",
+                        property: "confirmPassword",
                         description: "The same new password, to avoid bad password edit",
                         type: "string"
                     ),
