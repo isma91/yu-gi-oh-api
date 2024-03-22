@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Controller\Abstract\CustomAbstractController;
 use App\Service\Card as CardService;
 use App\Service\Deck as DeckService;
+use App\Service\Set as SetService;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -152,7 +153,7 @@ class SearchController extends CustomAbstractController
     )]
     #[Security(name: "Bearer")]
     #[Route('/card', name: '_card', methods: ['POST'])]
-    public function search(
+    public function card(
         Request $request,
         SearchService $searchService,
         CardService $cardService,
@@ -313,5 +314,128 @@ class SearchController extends CustomAbstractController
             return $this->sendError($error, $errorDebug, $data);
         }
         return $this->sendSuccess("Deck list", $data);
+    }
+
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_OK,
+        description: "List of all Set from filter",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "success", type: "string"),
+                new OA\Property(
+                    property: "setAllResultCount",
+                    description: "Result number of all set from filter, for pagination purpose",
+                    type: "integer"
+                ),
+                new OA\Property(
+                    property: "set",
+                    type: "array",
+                    items: new OA\Items(ref: "#/components/schemas/SetSearchList")),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_BAD_REQUEST,
+        description: "Error when getting all Card from filter",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "error", type: "string"),
+                new OA\Property(
+                    property: "setAllResultCount",
+                    description: "Result number of all Set from filter, for pagination purpose",
+                    type: "integer"
+                ),
+                new OA\Property(
+                    property: "set",
+                    description: "Sometimes an empty array",
+                    type: "array",
+                    items: new OA\Items(ref: "#/components/schemas/SetSearchList")
+                ),
+            ]
+        )
+    )]
+    #[OA\RequestBody(
+        request: "SearchSetRequest",
+        description: "Filter to find specific Set.",
+        required: false,
+        content: new OA\MediaType(
+            mediaType: "multipart/form-data",
+            schema: new OA\Schema(
+                properties: [
+                    new OA\Property(
+                        property: "name",
+                        description: "Part of name of the Set",
+                        type: "string"
+                    ),
+                    new OA\Property(
+                        property: "offset",
+                        description: "Page number if you want to access to the next {limit} number Set",
+                        type: "integer"
+                    ),
+                    new OA\Property(
+                        property: "limit",
+                        description: "Number of Set result we send back, if the total is more than {limit}",
+                        type: "integer",
+                        maximum: 100,
+                        minimum: 1,
+                    ),
+                    new OA\Property(
+                        property: "code",
+                        description: "Set code",
+                        type: "string",
+                    ),
+                    new OA\Property(
+                        property: "yearBegin",
+                        description: "Put a limit of Set who's release date is after or start at the year set",
+                        type: "integer",
+                        maximum: 2100,
+                        minimum: 1900
+                    ),
+                    new OA\Property(
+                        property: "yearEnd",
+                        description: "Put a limit of Set who's release date is not after the year set",
+                        type: "integer",
+                        maximum: 2100,
+                        minimum: 1900
+                    ),
+                ]
+            )
+        )
+    )]
+    #[Security(name: "Bearer")]
+    #[Route('/set', name: '_set', methods: ["POST"])]
+    public function set(
+        Request $request,
+        SearchService $searchService,
+        SetService $setService
+    ): JsonResponse
+    {
+        $waitedParameter = [
+            "name_OPT" => "string",
+            "code_OPT" => "string",
+            "yearBegin_OPT" => "int",
+            "yearEnd_OPT" => "int",
+            "limit_OPT" => "int",
+            "offset_OPT" => "int",
+        ];
+        [
+            "error" => $error,
+            "parameter" => $parameter,
+            "jwt" => $jwt
+        ] = $this->checkRequestParameter($request, $waitedParameter);
+        if ($error !== "") {
+            return $this->sendError($error);
+        }
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug,
+            "set" => $set,
+            "setAllResultCount" => $setAllResultCount
+        ] = $searchService->set($jwt, $parameter, $setService);
+        $data = ["set" => $set, "setAllResultCount" => $setAllResultCount];
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug, $data);
+        }
+        return $this->sendSuccess("Set list", $data);
     }
 }

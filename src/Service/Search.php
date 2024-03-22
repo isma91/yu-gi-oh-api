@@ -11,6 +11,7 @@ use App\Service\SubPropertyType as SubPropertyTypeService;
 use App\Service\SubType as SubTypeService;
 use App\Service\Type as TypeService;
 use App\Service\Deck as DeckService;
+use App\Service\Set as SetService;
 use Exception;
 
 class Search
@@ -331,6 +332,87 @@ class Search
             $deck = $deckORMSearch->findFromSearchFilter($filter);
             $response["deck"] = $this->customGenericService->getInfoSerialize($deck, ["deck_user_list"]);
             $response["deckAllResultCount"] = $deckORMSearch->countFromSearchFilter($filter);
+            $this->customGenericService->addInfoLogFromDebugBacktrace();
+        } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
+            $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
+            $response["error"] = "Error while listing your Decks.";
+        }
+        return $response;
+    }
+
+    /**
+     * @param string $jwt
+     * @param array $parameter
+     * @param Set $setService
+     * @return array[
+     * "error" => string,
+     * "errorDebug" => string,
+     * "set" => array[mixed],
+     * "setAllResultCount" => int
+     */
+    public function set(string $jwt, array $parameter, SetService $setService): array
+    {
+        $response = [
+            ...$this->customGenericService->getEmptyReturnResponse(),
+            "set" => [],
+            "setAllResultCount" => 0
+        ];
+        try {
+            $user = $this->customGenericService->customGenericCheckJwt($jwt);
+            $minYear = 1900;
+            $maxYear = 2100;
+            if ($user === NULL) {
+                $response["error"] = "No user found.";
+                return $response;
+            }
+            [
+                "offset" => $offset,
+                "limit" => $limit,
+                "name" => $name,
+                "code" => $code,
+                "yearBegin" => $yearBegin,
+                "yearEnd" => $yearEnd,
+            ] = $parameter;
+            $filter  = [];
+            $setORMSearch = $setService->getORMService()->getORMSearch();
+            if (empty($offset) === FALSE) {
+                $setORMSearch->offset = $offset;
+            }
+            if (empty($limit) === FALSE) {
+                $setORMSearch->limit = $limit;
+            }
+            if (empty($name) === FALSE) {
+                $filter["slugName"] = $this->customGenericService->slugify($name);
+            }
+            if (empty($code) === FALSE) {
+                $filter["code"] = strtoupper($code);
+            }
+            if (empty($yearBegin) === FALSE && $yearBegin >= $minYear && $yearBegin <= $maxYear) {
+                $filter["dateBegin"] = $yearBegin;
+            }
+            if (empty($yearEnd) === FALSE && $yearEnd >= $minYear && $yearEnd <= $maxYear) {
+                $filter["dateEnd"] = $yearEnd;
+            }
+            if (isset($filter["dateBegin"], $filter["dateEnd"]) === TRUE) {
+                $filterYearBegin = $filter["dateBegin"];
+                $filterYearEnd = $filter["dateEnd"];
+                if ($filterYearBegin > $filterYearEnd) {
+                    $filter["dateBegin"] = $filterYearEnd;
+                    $filter["dateEnd"] = $filterYearBegin;
+                }
+                $dateTimeBegin = new \DateTime();
+                $dateTimeBegin->setDate($yearBegin, 01, 01)
+                    ->setTime(00, 00, 00);
+                $dateTimeEnd = new \DateTime();
+                $dateTimeEnd->setDate($yearEnd, 12, 31)
+                    ->setTime(23, 59, 59);
+                $filter["dateBegin"] = $dateTimeBegin;
+                $filter["dateEnd"] = $dateTimeEnd;
+            }
+            $setResult = $setORMSearch->findFromSearchFilter($filter);
+            $response["set"] = $this->customGenericService->getInfoSerialize($setResult, ["set_search"]);
+            $response["setAllResultCount"] = $setORMSearch->countFromSearchFilter($filter);
             $this->customGenericService->addInfoLogFromDebugBacktrace();
         } catch (Exception $e) {
             $this->customGenericService->addExceptionLog($e);
