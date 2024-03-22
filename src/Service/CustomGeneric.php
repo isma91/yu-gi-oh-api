@@ -26,7 +26,7 @@ class CustomGeneric
     private UserAuthService $userAuthService;
     private SluggerInterface $slugger;
 
-    private LoggerService $loggerService;
+    public LoggerService $loggerService;
 
     private const SOFTDELETEABLE = "softdeleteable";
 
@@ -36,6 +36,7 @@ class CustomGeneric
      * @param SerializerInterface $serializer
      * @param SluggerInterface $slugger
      * @param UserAuthService $userAuthService
+     * @param Logger $loggerService
      */
     public function __construct(
         EntityManagerInterface $em,

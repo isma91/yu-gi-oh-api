@@ -175,11 +175,11 @@ class Auth
     /**
      * @param UserEntity $user
      * @param string $plainPassword
-     * @return string
+     * @return UserEntity
      */
-    public function editPassword(UserEntity $user, #[\SensitiveParameter] string $plainPassword): string
+    public function editPassword(UserEntity $user, #[\SensitiveParameter] string $plainPassword): UserEntity
     {
-        return $this->_createPassword($user, $plainPassword);
+        return $user->setPassword($this->_createPassword($user, $plainPassword));
     }
 
     /**
