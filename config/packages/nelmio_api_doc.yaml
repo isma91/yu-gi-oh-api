@@ -115,6 +115,7 @@ nelmio_api_doc:
             - { alias: DeckInfoCardMainDeck, type: App\Entity\CardMainDeck, groups: ["deck_info", "card_info"] }
             - { alias: DeckInfoCardExtraDeck, type: App\Entity\CardExtraDeck, groups: ["deck_info", "card_info"] }
             - { alias: DeckInfoCardSideDeck, type: App\Entity\CardSideDeck, groups: ["deck_info", "card_info"] }
+            - { alias: SetSearchList, type: App\Entity\Set, groups: ["set_search"] }
     areas: # to filter documented areas
         default:
             disable_default_routes: true
