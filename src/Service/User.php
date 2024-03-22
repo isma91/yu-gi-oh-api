@@ -127,4 +127,95 @@ class User
         }
         return $response;
     }
+
+    /**
+     * @param string $jwt
+     * @param array $parameter
+     * @return array[
+     * "error" => string,
+     * "errorDebug" => string,
+     */
+    public function editPassword(string $jwt, array $parameter):array
+    {
+        $response = [...$this->customGenericService->getEmptyReturnResponse()];
+        try {
+            $user = $this->userAuthService->checkJwt($jwt);
+            if ($user === NULL) {
+                $response["error"] = "No user found.";
+                return $response;
+            }
+            [
+                "currentPassword" => $currentPassword,
+                "password" => $newPassword,
+                "confirmPassword" => $confirmPassword,
+            ] = $parameter;
+            if ($newPassword !== $confirmPassword) {
+                $response["error"] = "You must confirm your new password, they are not the same !!";
+                return $response;
+            }
+            $isPasswordValid = $this->userAuthService->checkUserPasswordValid($user, $currentPassword);
+            if ($isPasswordValid === FALSE) {
+                $response["error"] = "Bad password";
+                return $response;
+            }
+            $user = $this->userAuthService->editPassword($user, $newPassword);
+            $this->userORMService->persist($user);
+            $this->userORMService->flush();
+            $this->customGenericService->loggerService
+                ->setLevel(Logger::INFO)
+                ->setIsCron(FALSE)
+                ->addLog(sprintf("User %s change password", $user->getUsername()));
+        } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
+            $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
+            $response["error"] = "Error while updating your password.";
+        }
+        return $response;
+    }
+
+    /**
+     * @param string $jwt
+     * @param string $newUsername
+     * @return array[
+     * "error" => string,
+     * "errorDebug" => string,
+     */
+    public function editUsername(string $jwt, string $newUsername):array
+    {
+        $response = [...$this->customGenericService->getEmptyReturnResponse()];
+        try {
+            if (strlen($newUsername) < 3) {
+                $response["error"] = "Your new Username must be at least 3 character long !!";
+                return $response;
+            }
+            $user = $this->userAuthService->checkJwt($jwt);
+            if ($user === NULL) {
+                $response["error"] = "No user found.";
+                return $response;
+            }
+            $oldUsername = $user->getUsername();
+            $userWithNewUsername = $this->userORMService->findByUserIdentifiant($newUsername);
+            if ($userWithNewUsername !== NULL) {
+                $response["error"] = "Username already Taken !!";
+                return $response;
+            }
+            $user->setUsername($newUsername);
+            $this->userORMService->persist($user);
+            $this->userORMService->flush();
+            $this->customGenericService->loggerService
+                ->setLevel(Logger::INFO)
+                ->setIsCron(FALSE)
+                ->addLog(
+                    sprintf(
+                        "User change username, old => %s, new => %s",
+                        $oldUsername, $newUsername
+                    )
+                );
+        } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
+            $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
+            $response["error"] = "Error while updating your username.";
+        }
+        return $response;
+    }
 }
