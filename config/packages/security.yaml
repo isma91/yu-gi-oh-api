@@ -43,6 +43,8 @@ security:
         - { path: ^/type/all, roles: [ ROLE_USER ] }
         - { path: ^/card/info/.+, roles: [ ROLE_USER ] }
         - { path: ^/deck/create, roles: [ ROLE_USER ] }
+        - { path: ^/search/card, roles: [ ROLE_USER ] }
+        - { path: ^/search/set, roles: [ ROLE_USER ] }
         - { path: ^/search/deck-current-user, roles: [ ROLE_USER ] }
         - { path: ^/search/info/[0-9]+$, roles: [ ROLE_USER ] }
         - { path: ^/search/delete/[0-9]+$, roles: [ ROLE_USER ] }
