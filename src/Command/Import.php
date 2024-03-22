@@ -1059,7 +1059,7 @@ class Import extends Command
                 $cardEntityArray[] = $cardEntity;
                 $this->em->persist($cardEntity);
             }
-            if ($noDatabaseYgoUpdate === FALSE) {
+            if ($noDatabaseYgoUpdate === FALSE && $cardIdYGOToImport === NULL) {
                 $output->write('Updating <bold>DatabaseYGO</bold>...');
                 $databaseYGOEntity->setDatabaseVersion((float)$dbVersion)
                     ->setLastUpdate(new DateTime($dbDatetime));
