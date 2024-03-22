@@ -183,7 +183,7 @@ class Import extends Command
             )
             ->addOption(
                 "idYGO",
-                "id",
+                NULL,
                 InputOption::VALUE_REQUIRED,
                 'IF you want to import a specific card'
             );
