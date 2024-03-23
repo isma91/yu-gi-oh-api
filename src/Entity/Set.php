@@ -25,7 +25,7 @@ class Set
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["card_info", "set_search"])]
+    #[Groups(["card_info", "set_search", "set_info"])]
     private ?int $id = null;
 
     #[OA\Property(
