@@ -246,32 +246,36 @@ final class Logger
      */
     public function writeLog(): void
     {
-        $logFilePath = $this->filePath;
-        if ($logFilePath !== NULL) {
-            $logFileSize = filesize($logFilePath) / 1000000;
-            if ($logFileSize < $this->limitLogFileInMo) {
-                [
-                    "dirname" => $logFileDir,
-                    "filename" => $logFileFilename,
-                    "extension" => $logFileExtension
-                ] = pathinfo($logFilePath);
-                $tempFilePath = sprintf(
-                    "%s%s%s.%s",
-                    $logFileDir,
-                    DIRECTORY_SEPARATOR,
-                    $logFileFilename . "_bis",
-                    $logFileExtension
-                );
-                $streamContext = stream_context_create();
-                // get content of current logfile as context
-                // to avoid load the full file in memory
-                $logFileContext = fopen($logFilePath, 'rb', 1, $streamContext);
-                $this->filesystem->dumpFile($tempFilePath, $this->message);
-                $this->filesystem->appendToFile($tempFilePath, $logFileContext);
-                fclose($logFileContext);
-                $this->filesystem->remove($logFilePath);
-                $this->filesystem->rename($tempFilePath, $logFilePath);
+        try {
+            $logFilePath = $this->filePath;
+            if ($logFilePath !== NULL) {
+                $logFileSize = filesize($logFilePath) / 1000000;
+                if ($logFileSize < $this->limitLogFileInMo) {
+                    [
+                        "dirname" => $logFileDir,
+                        "filename" => $logFileFilename,
+                        "extension" => $logFileExtension
+                    ] = pathinfo($logFilePath);
+                    $tempFilePath = sprintf(
+                        "%s%s%s.%s",
+                        $logFileDir,
+                        DIRECTORY_SEPARATOR,
+                        $logFileFilename . "_bis",
+                        $logFileExtension
+                    );
+                    $streamContext = stream_context_create();
+                    // get content of current logfile as context
+                    // to avoid load the full file in memory
+                    $logFileContext = fopen($logFilePath, 'rb', 1, $streamContext);
+                    $this->filesystem->dumpFile($tempFilePath, $this->message);
+                    $this->filesystem->appendToFile($tempFilePath, $logFileContext);
+                    fclose($logFileContext);
+                    $this->filesystem->remove($logFilePath);
+                    $this->filesystem->rename($tempFilePath, $logFilePath);
+                }
             }
+        } catch (IOException|Exception $IOException) {
+            //do nothing to avoid infinite loop
         }
     }
 

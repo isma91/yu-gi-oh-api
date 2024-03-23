@@ -22,7 +22,7 @@ class CardSet
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["card_info"])]
+    #[Groups(["card_info", "set_info"])]
     private ?int $id = null;
 
     #[OA\Property(
@@ -38,21 +38,29 @@ class CardSet
 
     #[OA\Property(description: "Code of the Card name for the Set", type: "string", maxLength: 255, nullable: true)]
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(["card_info"])]
+    #[Groups(["card_info", "set_info"])]
     private ?string $code = null;
 
     #[OA\Property(
         description: "Rarity of the CardSet",
         type: "array",
         items: new OA\Items(
-            oneOf: [new OA\Schema(ref: "#/components/schemas/CardInfoCardSetRarity")]
+            oneOf: [
+                new OA\Schema(ref: "#/components/schemas/CardInfoCardSetRarity"),
+                new OA\Schema(ref: "#/components/schemas/SetInfoCardSetRarity"),
+            ]
         )
     )]
     #[ORM\ManyToMany(targetEntity: Rarity::class, inversedBy: 'cardSets')]
-    #[Groups(["card_info"])]
+    #[Groups(["card_info", "set_info"])]
     private Collection $rarities;
 
+    #[OA\Property(
+        ref: "#/components/schemas/CardInfo",
+        description: "Information of the Card"
+    )]
     #[ORM\ManyToOne(inversedBy: 'cardSets')]
+    #[Groups(["set_info"])]
     private ?Card $card = null;
 
     public function __construct()
