@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Card;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
@@ -109,6 +110,34 @@ class CardRepository extends ServiceEntityRepository
         $qb = $this->returnQueryBuilderSearchFilter($qb, $filter);
         return $qb->getQuery()
             ->getSingleScalarResult();
+    }
+
+    /**
+     * @return array
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function findMaxId(): array
+    {
+        return $this->createQueryBuilder("card")
+            ->select("MAX(card.id) as idMax")
+            ->getQuery()
+            ->getSingleResult(AbstractQuery::HYDRATE_ARRAY);
+    }
+
+    /**
+     * @return Card|null
+     * @throws \Exception
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function findRandom(): ?Card
+    {
+        [
+            "idMax" => $maxId
+        ] = $this->findMaxId();
+        $offset = random_int(1, $maxId);
+        return $this->find($offset);
     }
 
     //    /**

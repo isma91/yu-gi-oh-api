@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Controller\Abstract\CustomAbstractController;
+use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -50,6 +51,7 @@ class CardController extends CustomAbstractController
         required: true,
         schema: new OA\Schema(type: "string", format: Requirement::UUID_V7)
     )]
+    #[Security(name: "Bearer")]
     #[Route(
         '/info/{uuid}',
         name: '_get_info_from_uuid',
@@ -75,5 +77,48 @@ class CardController extends CustomAbstractController
             return $this->sendError($error, $errorDebug, $data);
         }
         return $this->sendSuccess("Card info.", $data);
+    }
+
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_OK,
+        description: "Get Random Card info",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "success", type: "string"),
+                new OA\Property(
+                    property: "card",
+                    ref: "#/components/schemas/CardRandomInfo",
+                )
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_BAD_REQUEST,
+        description: "Error when getting random Card info",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "error", type: "string"),
+                new OA\Property(
+                    property: "card",
+                    ref: "#/components/schemas/CardRandomInfo",
+                    description: "Card info, can be NULL",
+                    nullable: true
+                )
+            ]
+        )
+    )]
+    #[Route('/random', name: '_get_random', methods: ["GET"])]
+    public function getRandom(CardService $cardService): JsonResponse
+    {
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug,
+            "card" => $cardInfo,
+        ] = $cardService->getRandomCardInfo();
+        $data = ["card" => $cardInfo];
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug, $data);
+        }
+        return $this->sendSuccess("Random Card Go! Go! Go!", $data);
     }
 }
