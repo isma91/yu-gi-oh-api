@@ -35,4 +35,12 @@ class ORM extends AbstractORM
     {
         return $this->repository->findOneBy(["uuid" => $uuid]);
     }
+
+    /**
+     * @return Card|null
+     */
+    public function findRandom(): ?Card
+    {
+        return $this->repository->findRandom();
+    }
 }
