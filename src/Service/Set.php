@@ -52,6 +52,13 @@ class Set
             $cardSets = $set->getCardSets();
             foreach ($cardSets as $key => $cardSet) {
                 $cardSerialize = $this->customGenericService->getInfoSerialize([$cardSet->getCard()], ["card_info"])[0];
+                $cardSerializePicture = [];
+                $cardSerializePictures = $cardSerialize["pictures"];
+                if (empty($cardSerializePictures) === FALSE) {
+                    $cardSerializePicture = $cardSerializePictures[0];
+                }
+                unset($cardSerialize["pictures"]);
+                $cardSerialize["picture"] = $cardSerializePicture;
                 $setSerialize["cardSets"][$key]["card"] = $cardSerialize;
             }
             $response["set"] = $setSerialize;
