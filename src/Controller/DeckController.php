@@ -120,8 +120,7 @@ class DeckController extends CustomAbstractController
     public function getInfo(
         int $id,
         Request $request,
-        DeckService $deckService,
-        CardService $cardService
+        DeckService $deckService
     ): JsonResponse
     {
         $jwt = $this->getJwt($request);

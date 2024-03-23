@@ -27,7 +27,7 @@ Finally, run `php bin/console doctrine:fixtures:load --append` to have some basi
 
 We're going to use the `app:import` command to get all Set and Card with theirs information but,
 we need some cards to avoid server explosion when we're going to import all Card and Set the first time 
-(13k Card & 100 Set for me).
+(13k Card & 1k Set for me).
 
 So, we're going to launch the import multiple times per slice of 5K cards each to avoid server overload:
 
@@ -43,7 +43,7 @@ You need to create a Service Account and enable the Google Drive API in your con
 
 After that, you need to create a folder named `Backup` at the root of your Drive `My Drive` and share with the Service Account email.
 
-Download the auth.json file and add it to `var/google` folder of the project
+Download the auth.json file and add it to `var/google` folder of the project.
 
 ### Prepare Docker
 
@@ -55,4 +55,4 @@ Use the `cron.txt` file to help you with the implementation of various tasks suc
 
 ## Documentation
 
-### you documentation is available at the `/swagger` route
+The documentation is available at the `/swagger` route
