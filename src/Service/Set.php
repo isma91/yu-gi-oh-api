@@ -62,7 +62,7 @@ class Set
                 $setSerialize["cardSets"][$key]["card"] = $cardSerialize;
             }
             $response["set"] = $setSerialize;
-            //$this->customGenericService->addInfoLogFromDebugBacktrace();
+            $this->customGenericService->addInfoLogFromDebugBacktrace();
         } catch (Exception $e) {
             $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
