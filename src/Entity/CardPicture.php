@@ -77,7 +77,7 @@ class CardPicture
     }
 
     #[OA\Property(description: "get url for the classic picture", type: "string", nullable: true)]
-    #[Groups(["card_info"])]
+    #[Groups(["card_info", "card_random_info"])]
     public function getPictureUrl(): ?string
     {
         return $this->_getUrl($this->picture);

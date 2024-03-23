@@ -78,4 +78,37 @@ class Card
         }
         return $response;
     }
+
+    /**
+     * @return array[
+     *   "error" => string,
+     *   "errorDebug" => string,
+     *   "card" => array[mixed]|null,
+     * ]
+     */
+    public function getRandomCardInfo(): array
+    {
+        $response = [
+            ...$this->customGenericService->getEmptyReturnResponse(),
+            "card" => NULL,
+        ];
+        try {
+            $card = NULL;
+            $count = 0;
+            $countMax = 50;
+            //try to find a Card or after $countMax attempt
+            while ($card === NULL && $count <= $countMax) {
+                $card = $this->cardORMService->findRandom();
+                $count++;
+            }
+            if ($card !== NULL) {
+                $response["card"] = $this->customGenericService->getInfoSerialize([$card], ["card_random_info"])[0];
+            }
+        } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
+            $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
+            $response["error"] = "Damn !! Random Card error...";
+        }
+        return $response;
+    }
 }

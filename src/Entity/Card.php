@@ -24,22 +24,22 @@ class Card
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["search_card", "card_info"])]
+    #[Groups(["search_card", "card_info", "card_random_info"])]
     private ?int $id = null;
 
     #[OA\Property(description: "Name of the Card", type: "string", maxLength: 255, nullable: false)]
     #[ORM\Column(length: 255)]
-    #[Groups(["search_card", "card_info"])]
+    #[Groups(["search_card", "card_info", "card_random_info"])]
     private ?string $name = null;
 
     #[OA\Property(description: "Slugify name of the Card", type: "string", maxLength: 255, nullable: false)]
     #[ORM\Column(length: 255)]
-    #[Groups(["search_card", "card_info"])]
+    #[Groups(["search_card", "card_info", "card_random_info"])]
     private ?string $slugName = null;
 
     #[OA\Property(description: "Uuid of the Card, true uniqueness field", type: "string", nullable: false)]
     #[ORM\Column(type: 'uuid')]
-    #[Groups(["search_card", "card_info"])]
+    #[Groups(["search_card", "card_info", "card_random_info"])]
     private ?Uuid $uuid = null;
 
     #[OA\Property(
@@ -92,7 +92,7 @@ class Card
         ),
     )]
     #[ORM\OneToMany(mappedBy: 'card', targetEntity: CardPicture::class)]
-    #[Groups(["search_card", "card_info"])]
+    #[Groups(["search_card", "card_info", "card_random_info"])]
     private Collection $pictures;
 
     #[OA\Property(
