@@ -276,7 +276,7 @@ class UserController extends CustomAbstractController
     )]
     #[Security(name: "Bearer")]
     #[Route(
-        "/basic",
+        "/basic-info",
         name: "_get_basic_info",
         requirements: ["username" => Requirement::CATCH_ALL],
         methods: ["GET"]
