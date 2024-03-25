@@ -218,4 +218,29 @@ class User
         }
         return $response;
     }
+
+    /**
+     * @param string $jwt
+     * @return array[
+     * "error" => string,
+     * "errorDebug" => string,
+     * "user" => array[mixed]
+     */
+    public function getBasicInfo(string $jwt):array
+    {
+        $response = [...$this->customGenericService->getEmptyReturnResponse(), "user" => []];
+        try {
+            $user = $this->userAuthService->checkJwt($jwt);
+            if ($user === NULL) {
+                $response["error"] = "No user found.";
+                return $response;
+            }
+            $response["user"] = $this->customGenericService->getInfoSerialize([$user], ["user_basic_info"])[0];
+        } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
+            $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
+            $response["error"] = "Error while getting info.";
+        }
+        return $response;
+    }
 }
