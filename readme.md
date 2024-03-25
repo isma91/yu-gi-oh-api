@@ -45,6 +45,21 @@ After that, you need to create a folder named `Backup` at the root of your Drive
 
 Download the auth.json file and add it to `var/google` folder of the project.
 
+### Send log to Telegram
+
+Be aware that only error log in production will be sent to avoid too much spam.
+
+You need first to set in your `.env` the var `SEND_LOG_TO_TELEGRAM` to `"TRUE"`.
+
+You can send some logs to a Telegram chat room. You need first to create a bot and speak with him to initiate a chat room with you and the bot, more info [here](https://core.telegram.org/bots/tutorial#getting-ready).
+
+After you create your bot, you need to send a message to your newly created bot from telegram.
+
+After the message send you can go to `https://api.telegram.org/bot<YOUR_BOT_Token>/getUpdates` to get a JSON response.
+
+You need to get the chat id who's in `result[0]["message"]["chat"]["id"]`.
+You can now update your `env` file with the bot token, name and chat id.
+
 ### Prepare Docker
 
 `docker-compose -f docker-compose.yml build` then `docker-compose -f docker-compose.yml up -d`
