@@ -120,6 +120,8 @@ nelmio_api_doc:
             - { alias: SetInfoCardSet, type: App\Entity\CardSet, groups: ["set_info"] }
             - { alias: SetInfoCardSetRarity, type: App\Entity\Rarity, groups: ["set_info"] }
             - { alias: CardRandomInfo, type: App\Entity\Card, groups: ["card_random_info"] }
+            - { alias: UserBasicInfo, type: App\Entity\User, groups: ["user_basic_info"] }
+            - { alias: UserBasicDeckInfo, type: App\Entity\Deck, groups: ["user_basic_info"] }
     areas: # to filter documented areas
         default:
             disable_default_routes: true
