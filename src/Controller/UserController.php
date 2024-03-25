@@ -253,4 +253,46 @@ class UserController extends CustomAbstractController
         }
         return $this->sendSuccess("Your username is updated successfully.");
     }
+
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_OK,
+        description: "Username get basic info",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "success", type: "string"),
+                new OA\Property(property: "user", ref: "#/components/schemas/UserBasicInfo"),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_BAD_REQUEST,
+        description: "Error when getting your info.",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "error", type: "string"),
+                new OA\Property(property: "user", ref: "#/components/schemas/UserBasicInfo"),
+            ]
+        )
+    )]
+    #[Security(name: "Bearer")]
+    #[Route(
+        "/basic",
+        name: "_get_basic_info",
+        requirements: ["username" => Requirement::CATCH_ALL],
+        methods: ["GET"]
+    )]
+    public function getBasicInfo(Request $request, UserService $userService):JsonResponse
+    {
+        $jwt = $this->getJwt($request);
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug,
+            "user" => $user
+        ] = $userService->getBasicInfo($jwt);
+        $data = ["user" => $user];
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug, $data);
+        }
+        return $this->sendSuccess("User basic info.", $data);
+    }
 }
