@@ -7,6 +7,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 use App\Service\VarDump as VarDumpService;
+use App\Service\Telegram as TelegramService;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
@@ -29,16 +30,25 @@ final class Logger
     private ParameterBagInterface $param;
     private Filesystem $filesystem;
     private VarDumpService $varDumpService;
+    private ?TelegramService $telegramService = NULL;
+    private bool $isSendToTelegram = FALSE;
 
     public function __construct(
         ParameterBagInterface $param,
         Filesystem $filesystem,
-        VarDumpService $varDumpService
+        VarDumpService $varDumpService,
+        TelegramService $telegramService
     )
     {
         $this->param = $param;
         $this->filesystem = $filesystem;
         $this->varDumpService = $varDumpService;
+        $isSendToTelegram = $param->get('SEND_LOG_TO_TELEGRAM');
+        if ($isSendToTelegram !== NULL) {
+            $isSendToTelegram = strtoupper($isSendToTelegram);
+            $this->isSendToTelegram = $isSendToTelegram === "TRUE";
+            $this->telegramService = $telegramService;
+        }
     }
 
     /**
@@ -238,10 +248,11 @@ final class Logger
 
     /**
      * Write the message at the beginning of the File
-     * It's like a append to the beginning of file without replace the existing content.
+     * It's like an append to the beginning of file without replace the existing content.
      * Create a temp file with the new message to add,
      * then we get the context of the current log file to append in the temp file.
      * After that we can remove the current log file and move the temp file as the new current log file.
+     * At the same time we send to Telegram the Log message if we enable in the .env
      * @return void
      */
     public function writeLog(): void
@@ -251,6 +262,9 @@ final class Logger
             if ($logFilePath !== NULL) {
                 $logFileSize = filesize($logFilePath) / 1000000;
                 if ($logFileSize < $this->limitLogFileInMo) {
+                    if ($this->isSendToTelegram === TRUE) {
+                        $this->sendLogToTelegram();
+                    }
                     [
                         "dirname" => $logFileDir,
                         "filename" => $logFileFilename,
@@ -276,6 +290,21 @@ final class Logger
             }
         } catch (IOException|Exception $IOException) {
             //do nothing to avoid infinite loop
+        }
+    }
+
+    /**
+     * We send only not empty error log in production
+     * @return void
+     */
+    protected function sendLogToTelegram(): void
+    {
+        if (
+            $this->level === self::ERROR &&
+            empty($this->message) === FALSE &&
+            $this->param->get("APP_ENV") === "prod"
+        ) {
+            $this->telegramService->sendMessage($this->message);
         }
     }
 
