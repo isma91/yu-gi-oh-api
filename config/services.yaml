@@ -24,6 +24,10 @@ parameters:
     NB_MAX_CARD_MAIN_DECK: '%env(NB_MAX_CARD_MAIN_DECK)%'
     NB_MAX_CARD_EXTRA_DECK: '%env(NB_MAX_CARD_EXTRA_DECK)%'
     NB_MAX_CARD_SIDE_DECK: '%env(NB_MAX_CARD_SIDE_DECK)%'
+    SEND_LOG_TO_TELEGRAM: '%env(SEND_LOG_TO_TELEGRAM)%'
+    TELEGRAM_BOT_NAME: '%env(TELEGRAM_BOT_NAME)%'
+    TELEGRAM_BOT_TOKEN: '%env(TELEGRAM_BOT_TOKEN)%'
+    TELEGRAM_CHAT_ID: '%env(TELEGRAM_CHAT_ID)%'
 
 services:
     # default configuration for services in *this* file
