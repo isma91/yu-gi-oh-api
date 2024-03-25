@@ -22,22 +22,22 @@ class Deck
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["deck_user_list", "deck_info", "card_info"])]
+    #[Groups(["deck_user_list", "deck_info", "card_info", "user_basic_info"])]
     private ?int $id = null;
 
     #[OA\Property(description: "Name of the Deck", type: "string", nullable: false)]
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(["deck_user_list", "deck_info", "card_info"])]
+    #[Groups(["deck_user_list", "deck_info", "card_info", "user_basic_info"])]
     private ?string $name = null;
 
     #[OA\Property(description: "Slugify name of the Deck", type: "string", nullable: false)]
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(["deck_user_list", "deck_info", "card_info"])]
+    #[Groups(["deck_user_list", "deck_info", "card_info", "user_basic_info"])]
     private ?string $slugName = null;
 
     #[OA\Property(description: "If we authorize other user to see the Deck", type: "boolean", nullable: false)]
     #[ORM\Column]
-    #[Groups(["deck_user_list", "deck_info", "card_info"])]
+    #[Groups(["deck_user_list", "deck_info", "card_info", "user_basic_info"])]
     private ?bool $isPublic = null;
 
     #[ORM\ManyToOne(inversedBy: 'decks')]
@@ -193,16 +193,32 @@ class Deck
         return $this;
     }
 
+    /**
+     * @param CardMainDeck[]|CardExtraDeck[]|CardSideDeck[] $array
+     * @return int
+     */
+    private function _getTrueCardDeckNumber(array $array): int
+    {
+        $count = 0;
+        foreach ($array as $entity) {
+            $nbCopie = $entity->getNbCopie();
+            if ($nbCopie !== NULL) {
+                $count += $nbCopie;
+            }
+        }
+        return $count;
+    }
+
     #[OA\Property(
         property: "cardMainDeckNumber",
         description: "Total card number in the main-deck",
         type: "integer",
         nullable: false
     )]
-    #[Groups(["deck_user_list"])]
+    #[Groups(["deck_user_list", "user_basic_info"])]
     public function getCardMainDeckNumber(): int
     {
-        return $this->cardMainDecks->count();
+        return $this->_getTrueCardDeckNumber($this->cardMainDecks->toArray());
     }
 
     /**
@@ -241,10 +257,10 @@ class Deck
         type: "integer",
         nullable: false
     )]
-    #[Groups(["deck_user_list"])]
+    #[Groups(["deck_user_list", "user_basic_info"])]
     public function getCardExtraDeckNumber(): int
     {
-        return $this->cardExtraDecks->count();
+        return $this->_getTrueCardDeckNumber($this->cardExtraDecks->toArray());
     }
 
     /**
@@ -283,10 +299,10 @@ class Deck
         type: "integer",
         nullable: false
     )]
-    #[Groups(["deck_user_list"])]
+    #[Groups(["deck_user_list", "user_basic_info"])]
     public function getCardSideDeckNumber(): int
     {
-        return $this->cardSideDecks->count();
+        return $this->_getTrueCardDeckNumber($this->cardSideDecks->toArray());
     }
 
     /**
@@ -325,7 +341,7 @@ class Deck
         type: "string",
         nullable: true
     )]
-    #[Groups(["deck_user_list", "deck_info", "card_info"])]
+    #[Groups(["deck_user_list", "deck_info", "card_info", "user_basic_info"])]
     public function getArtworkUrl(): ?string
     {
         return $this->artwork?->getArtworkUrl();

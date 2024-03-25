@@ -13,7 +13,11 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
+use OpenApi\Attributes as OA;
 
+#[OA\Schema(
+    description: "The User entity."
+)]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
@@ -26,7 +30,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
-    #[Groups(["user_login", "user_list", "deck_user_list", "deck_info", "card_info"])]
+    #[Groups(["user_login", "user_list", "deck_user_list", "deck_info", "card_info", "user_basic_info"])]
     private ?string $username = null;
 
     #[ORM\Column(type: Types::JSON)]
@@ -38,7 +42,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $token = null;
 
+    #[OA\Property(
+        description: "All Deck of the User",
+        type: "array",
+        items: new OA\Items(
+            oneOf: [
+                new OA\Schema(ref: "#/components/schemas/UserBasicDeckInfo"),
+            ]
+        ),
+    )]
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Deck::class)]
+    #[Groups(["user_basic_info"])]
     private Collection $decks;
 
     public function __construct()
