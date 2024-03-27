@@ -9,10 +9,6 @@ We use the [YGOPRODeck API](https://ygoprodeck.com/) to get all Card and Set inf
 ### Create .env file
 You can take example with the `.env.example` file to create your own.
 
-### Install dependencies
-
-Just run `composer install` in the root of the project.
-
 ### Create the database with tables
 
 Run `php bin/console doctrine:database:create` to have your empty database.
@@ -71,9 +67,13 @@ We already named the container `yu-gi-oh-api`, but you can rename it in the `doc
 Run `docker-compose -f docker-compose.yml build` 
 then `docker-compose -f docker-compose.yml up -d` to have your container ready-to-use.
 
+### Install dependencies if not use of Docker
+
+Just run `composer install` in the root of the project.
+
 ## Crontab
 
-Use the `cron.txt` file to help you with the implementation of various tasks such as Import in your cron daemon.
+Use the `cron.txt` file to help you with the implementation of various tasks such as Import or Backup in your cron daemon.
 
 ## Documentation
 
