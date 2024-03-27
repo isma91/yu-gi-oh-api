@@ -11,6 +11,3 @@ services:
     volumes:
       # local folder : path in the container
       - .:/var/www/html
-      # to have the same time config as the host for log purpose
-      - /etc/timezone:/etc/timezone:ro
-      - /usr/localtime:/usr/localtime:ro
