@@ -62,7 +62,14 @@ You can now update your `env` file with the bot token, name and chat id.
 
 ### Prepare Docker
 
-`docker-compose -f docker-compose.yml build` then `docker-compose -f docker-compose.yml up -d`
+We prepare a Dockerfile to avoid installing all the dependencies needed to run the project, 
+we take the `Europe/Paris` timezone so if you want to change you can set it in the `Dockerfile`.
+
+We already named the container `yu-gi-oh-api`, but you can rename it in the `docker-compose.yaml`.
+
+
+Run `docker-compose -f docker-compose.yml build` 
+then `docker-compose -f docker-compose.yml up -d` to have your container ready-to-use.
 
 ## Crontab
 
