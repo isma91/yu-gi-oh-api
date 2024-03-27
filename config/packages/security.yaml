@@ -52,6 +52,7 @@ security:
         - { path: ^/deck/update-public/[0-9]+/[0-1]$, roles: [ ROLE_USER ] }
         - { path: ^/deck/update/[0-9]+$, roles: [ ROLE_USER ] }
         - { path: ^/set/info/[0-9]+$, roles: [ ROLE_USER ] }
+        - { path: ^/country/all$, roles: [ ROLE_USER ] }
 
 when@test:
     security:
