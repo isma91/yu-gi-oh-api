@@ -272,7 +272,6 @@ class Search
                 if (empty($cardSerializePictures) === FALSE) {
                     $cardSerializePicture = $cardSerializePictures[0];
                 }
-                unset($cardSerialize["pictures"]);
                 $cardSerialize["picture"] = $cardSerializePicture;
                 $newCardArray[] = $cardSerialize;
             }
