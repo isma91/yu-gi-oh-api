@@ -12,6 +12,7 @@ use App\Service\SubType as SubTypeService;
 use App\Service\Type as TypeService;
 use App\Service\Deck as DeckService;
 use App\Service\Set as SetService;
+use App\Service\CardCollection as CardCollectionService;
 use Exception;
 
 class Search
@@ -417,6 +418,63 @@ class Search
             $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while listing your Decks.";
+        }
+        return $response;
+    }
+
+    /**
+     * @param string $jwt
+     * @param array $parameter
+     * @param CardCollection $cardCollectionService
+     * @return array[
+     * "error" => string,
+     * "errorDebug" => string,
+     * "collection" => array[mixed],
+     * "collectionAllResultCount" => int
+     */
+    public function cardCollectionCurrentUser(
+        string $jwt,
+        array $parameter,
+        CardCollectionService $cardCollectionService
+    ): array
+    {
+        $response = [
+            ...$this->customGenericService->getEmptyReturnResponse(),
+            "collection" => [],
+            "collectionAllResultCount" => 0
+        ];
+        try {
+            $user = $this->customGenericService->customGenericCheckJwt($jwt);
+            if ($user === NULL) {
+                $response["error"] = "No user found.";
+                return $response;
+            }
+            [
+                "offset" => $offset,
+                "limit" => $limit,
+                "name" => $name,
+            ] = $parameter;
+            $filter  = [
+                "user" => $user
+            ];
+            $cardCollectionORMSearch = $cardCollectionService->getORMService()->getORMSearch();
+            if (empty($offset) === FALSE) {
+                $cardCollectionORMSearch->offset = $offset;
+            }
+            if (empty($limit) === FALSE) {
+                $cardCollectionORMSearch->limit = $limit;
+            }
+            if (empty($name) === FALSE) {
+                $filter["slugName"] = $this->customGenericService->slugify($name);
+            }
+            $deck = $cardCollectionORMSearch->findFromSearchFilter($filter);
+            $response["collection"] = $this->customGenericService->getInfoSerialize($deck, ["collection_user_list"]);
+            $response["collectionAllResultCount"] = $cardCollectionORMSearch->countFromSearchFilter($filter);
+            $this->customGenericService->addInfoLogFromDebugBacktrace();
+        } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
+            $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
+            $response["error"] = "Error while listing your Collections.";
         }
         return $response;
     }
