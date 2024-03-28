@@ -2,7 +2,6 @@
 
 namespace App\Service\Tool\Archetype;
 
-
 use App\Repository\ArchetypeRepository;
 use App\Service\Tool\Abstract\AbstractORM;
 use App\Service\Tool\ORMSlugName;
