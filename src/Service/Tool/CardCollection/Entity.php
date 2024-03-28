@@ -133,6 +133,21 @@ class Entity
                     $cardPictureToUse = $cardPicture;
                 }
             }
+            if ($cardPictureToUse === NULL) {
+                if ($cardPictures->count() === 0) {
+                    $this->loggerService
+                        ->setLevel(LoggerService::WARNING)
+                        ->addLog(
+                            sprintf(
+                                "Not CardPicture selected or found with id => %s also no CardPicture found for card id => %d",
+                                $cardCollectionInfo["picture"],
+                                $cardEntity->getId()
+                            )
+                        );
+                    continue;
+                }
+                $cardPictureToUse = $cardPictures[0];
+            }
             $cardCardCollection->setPicture($cardPictureToUse);
             $cardCollectionEntity->addCardCardCollection($cardCardCollection);
             $cardEntity->addCardCardCollection($cardCardCollection);
