@@ -177,12 +177,15 @@ class Card
         description: "CardSet of the Card",
         type: "array",
         items: new OA\Items(
-            oneOf: [new OA\Schema(ref: "#/components/schemas/CardInfoCardSet")]
+            oneOf: [
+                new OA\Schema(ref: "#/components/schemas/CardInfoCardSet"),
+                new OA\Schema(ref: "#/components/schemas/SearchCardCardSet")
+            ]
         ),
         nullable: true,
     )]
     #[ORM\OneToMany(mappedBy: 'card', targetEntity: CardSet::class)]
-    #[Groups(["card_info"])]
+    #[Groups(["card_info", "search_card"])]
     private Collection $cardSets;
 
     #[OA\Property(
@@ -263,6 +266,9 @@ class Card
     #[ORM\ManyToMany(targetEntity: CardSideDeck::class, mappedBy: 'cards')]
     private Collection $cardSideDecks;
 
+    #[ORM\OneToMany(mappedBy: 'card', targetEntity: CardCardCollection::class)]
+    private Collection $cardCardCollections;
+
     public function __construct()
     {
         $this->pictures = new ArrayCollection();
@@ -273,6 +279,7 @@ class Card
         $this->decks = new ArrayCollection();
         $this->cardExtraDecks = new ArrayCollection();
         $this->cardSideDecks = new ArrayCollection();
+        $this->cardCardCollections = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -707,6 +714,36 @@ class Card
     {
         if ($this->cardSideDecks->removeElement($cardSideDeck)) {
             $cardSideDeck->removeCard($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CardCardCollection>
+     */
+    public function getCardCardCollections(): Collection
+    {
+        return $this->cardCardCollections;
+    }
+
+    public function addCardCardCollection(CardCardCollection $cardCardCollection): static
+    {
+        if (!$this->cardCardCollections->contains($cardCardCollection)) {
+            $this->cardCardCollections->add($cardCardCollection);
+            $cardCardCollection->setCard($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCardCardCollection(CardCardCollection $cardCardCollection): static
+    {
+        if ($this->cardCardCollections->removeElement($cardCardCollection)) {
+            // set the owning side to null (unless already changed)
+            if ($cardCardCollection->getCard() === $this) {
+                $cardCardCollection->setCard(null);
+            }
         }
 
         return $this;

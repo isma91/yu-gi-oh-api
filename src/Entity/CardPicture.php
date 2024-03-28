@@ -115,7 +115,7 @@ class CardPicture
     }
 
     #[OA\Property(description: "get url for the artwork", type: "string", nullable: true)]
-    #[Groups(["card_info"])]
+    #[Groups(["card_info", "search_card"])]
     public function getArtworkUrl(): ?string
     {
         return $this->_getUrl($this->artwork);
