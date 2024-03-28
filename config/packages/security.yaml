@@ -53,6 +53,8 @@ security:
         - { path: ^/deck/update/[0-9]+$, roles: [ ROLE_USER ] }
         - { path: ^/set/info/[0-9]+$, roles: [ ROLE_USER ] }
         - { path: ^/country/all$, roles: [ ROLE_USER ] }
+        - { path: ^/card-collection/create$, roles: [ ROLE_USER ] }
+        - { path: ^/card-collection/info/[0-9]+$, roles: [ ROLE_USER ] }
 
 when@test:
     security:
