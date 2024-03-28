@@ -22,22 +22,22 @@ class CardCollection
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["collection_info", "user_basic_info"])]
+    #[Groups(["collection_info", "user_basic_info", "collection_user_list"])]
     private ?int $id = null;
 
     #[OA\Property(description: "Name of the Collection", type: "string", nullable: false)]
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(["collection_info", "user_basic_info"])]
+    #[Groups(["collection_info", "user_basic_info", "collection_user_list"])]
     private ?string $name = null;
 
     #[OA\Property(description: "Slugify name of the Deck", type: "string", nullable: false)]
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(["collection_info", "user_basic_info"])]
+    #[Groups(["collection_info", "user_basic_info", "collection_user_list"])]
     private ?string $slugName = null;
 
     #[OA\Property(description: "If we authorize other user to see the Collection", type: "boolean", nullable: false)]
     #[ORM\Column]
-    #[Groups(["collection_info", "user_basic_info"])]
+    #[Groups(["collection_info", "user_basic_info", "collection_user_list"])]
     private ?bool $isPublic = null;
 
     #[ORM\ManyToOne]
@@ -48,6 +48,7 @@ class CardCollection
 
     #[ORM\ManyToOne(inversedBy: 'cardCollections')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(["collection_user_list"])]
     private ?User $user = null;
 
     public function __construct()
@@ -102,7 +103,7 @@ class CardCollection
         type: "string",
         nullable: true
     )]
-    #[Groups(["collection_info", "user_basic_info"])]
+    #[Groups(["collection_info", "user_basic_info", "collection_user_list"])]
     public function getArtworkUrl(): ?string
     {
         return $this->artwork?->getArtworkUrl();
