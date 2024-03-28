@@ -4,6 +4,9 @@ namespace App\Repository;
 
 use App\Entity\CardCollection;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -19,6 +22,55 @@ class CardCollectionRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, CardCollection::class);
+    }
+
+    /**
+     * @param QueryBuilder $qb
+     * @param array $filter
+     * @return QueryBuilder
+     */
+    public function returnQueryBuilderSearchFilter(QueryBuilder $qb, array $filter): QueryBuilder
+    {
+        if (isset($filter["slugName"]) === TRUE) {
+            $qb->andWhere("cardCollection.slugName LIKE :cardSlugName")
+                ->setParameter("cardSlugName", '%' . $filter["slugName"] . '%');
+        }
+        if (isset($filter["user"]) === TRUE) {
+            $qb->andWhere("cardCollection.user = :deckUser")
+                ->setParameter("deckUser", $filter["user"]);
+        }
+        return $qb;
+    }
+
+    /**
+     * @param array $filter
+     * @param int $offset
+     * @param int $limit
+     * @return CardCollection[]
+     */
+    public function findFromSearchFilter(array $filter, int $offset, int $limit): array
+    {
+        $qb = $this->createQueryBuilder("cardCollection");
+        $qb = $this->returnQueryBuilderSearchFilter($qb, $filter);
+        return $qb->setMaxResults($limit)
+            ->setFirstResult($offset * $limit)
+            ->orderBy("cardCollection.slugName", "ASC")
+            ->getQuery()->getResult();
+    }
+
+    /**
+     * @param array $filter
+     * @return int
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countFromSearchFilter(array $filter): int
+    {
+        $qb = $this->createQueryBuilder("cardCollection")
+            ->select("COUNT(cardCollection.id)");
+        $qb = $this->returnQueryBuilderSearchFilter($qb, $filter);
+        return $qb->getQuery()
+            ->getSingleScalarResult();
     }
 
     //    /**
