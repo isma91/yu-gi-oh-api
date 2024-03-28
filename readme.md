@@ -43,7 +43,7 @@ Download the auth.json file and add it to `var/google` folder of the project.
 
 ### Send log to Telegram
 
-Be aware that only error log in production will be sent to avoid too much spam.
+Be aware that only error & warning log in production will be sent to avoid too much spam.
 
 You need first to set in your `.env` the var `SEND_LOG_TO_TELEGRAM` to `"TRUE"`.
 
@@ -70,6 +70,20 @@ then `docker-compose -f docker-compose.yml up -d` to have your container ready-t
 ### Install dependencies if not use of Docker
 
 Just run `composer install` in the root of the project.
+
+## Logger
+
+You can see all logs in `var/log` directory of the project.
+
+The Logger create text file with the nomenclature `YYYY-MM-DD_IS_CRON_LOG_LEVEL.txt`
+(ex: `2024-03-21_cron_error.txt`, `2024-03-22_info.txt`).
+
+We separate log from CRON from the project to be quickly findable.
+
+Please be aware that if you activate the `Backup` cron, we delete old all logs file who's not created on the day the cron is launched. 
+
+Errors related to aa non-existent route or an existing route but with a bad request method are not
+taken into account and we only display a JSONResponse with the documentation route.
 
 ## Crontab
 
