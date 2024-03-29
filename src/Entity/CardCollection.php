@@ -43,12 +43,20 @@ class CardCollection
     #[ORM\ManyToOne]
     private ?CardPicture $artwork = null;
 
+    #[OA\Property(
+        property: "cardCardCollections",
+        description: "Card of the Collection",
+        type: "array",
+        items: new OA\Items(ref: "#/components/schemas/CardCollectionInfoCardCardCollection"),
+        nullable: false
+    )]
     #[ORM\OneToMany(mappedBy: 'cardCollection', targetEntity: CardCardCollection::class)]
+    #[Groups(["collection_info"])]
     private Collection $cardCardCollections;
 
     #[ORM\ManyToOne(inversedBy: 'cardCollections')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(["collection_user_list"])]
+    #[Groups(["collection_user_list", "collection_info"])]
     private ?User $user = null;
 
     public function __construct()
@@ -128,7 +136,7 @@ class CardCollection
         type: "integer",
         nullable: false
     )]
-    #[Groups(["collection_info", "user_basic_info"])]
+    #[Groups(["collection_info", "user_basic_info", "collection_user_list"])]
     public function getCardCardCollectionNumber(): int
     {
         return $this->cardCardCollections->count();
