@@ -25,7 +25,7 @@ class Set
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["card_info", "set_search", "set_info", "search_card"])]
+    #[Groups(["card_info", "set_search", "set_info", "search_card", "collection_info"])]
     private ?int $id = null;
 
     #[OA\Property(
@@ -35,17 +35,17 @@ class Set
         nullable: false
     )]
     #[ORM\Column(length: 255)]
-    #[Groups(["card_info", "set_search", "set_info", "search_card"])]
+    #[Groups(["card_info", "set_search", "set_info", "search_card", "collection_info"])]
     private ?string $code = null;
 
     #[OA\Property(description: "Name of the Set, always unique", type: "string", nullable: false)]
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(["card_info", "set_search", "set_info", "search_card"])]
+    #[Groups(["card_info", "set_search", "set_info", "search_card", "collection_info"])]
     private ?string $name = null;
 
     #[OA\Property(description: "Slugify name of the Set", type: "string", nullable: false)]
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(["card_info", "set_search", "set_info", "search_card"])]
+    #[Groups(["card_info", "set_search", "set_info", "search_card", "collection_info"])]
     private ?string $slugName = null;
 
     #[ORM\Column(nullable: true)]

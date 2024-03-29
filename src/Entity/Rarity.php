@@ -23,17 +23,17 @@ class Rarity
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["card_info", "set_info", "search_card"])]
+    #[Groups(["card_info", "set_info", "search_card", "collection_info"])]
     private ?int $id = null;
 
     #[OA\Property(description: "Name of the Rarity", type: "string", nullable: false)]
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(["card_info", "set_info", "search_card"])]
+    #[Groups(["card_info", "set_info", "search_card", "collection_info"])]
     private ?string $name = null;
 
     #[OA\Property(description: "Slugify name of the Rarity", type: "string", nullable: false)]
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(["card_info", "set_info", "search_card"])]
+    #[Groups(["card_info", "set_info", "search_card", "collection_info"])]
     private ?string $slugName = null;
 
     #[ORM\ManyToMany(targetEntity: CardSet::class, mappedBy: 'rarities')]

@@ -175,6 +175,11 @@ nelmio_api_doc:
             - { alias: UserBasicCardCollectionInfo, type: App\Entity\CardCollection, groups: ["user_basic_info"] }
             - { alias: CountryList, type: App\Entity\Country, groups: ["country_list"] }
             - { alias: CardCollectionUserList, type: App\Entity\CardCollection, groups: ["collection_user_list"] }
+            - { alias: CardCollectionInfo, type: App\Entity\CardCollection, groups: ["collection_info"] }
+            - { alias: CardCollectionInfoCardCardCollection, type: App\Entity\CardCardCollection, groups: ["collection_info"] }
+            - { alias: CardCollectionInfoCardCardCollectionSet, type: App\Entity\Set, groups: ["collection_info"] }
+            - { alias: CardCollectionInfoCardCardCollectionRarity, type: App\Entity\Rarity, groups: ["collection_info"] }
+            - { alias: CardCollectionInfoCardCardCollectionCardPicture, type: App\Entity\CardPicture, groups: ["collection_info"] }
     areas: # to filter documented areas
         default:
             disable_default_routes: true

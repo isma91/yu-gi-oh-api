@@ -22,7 +22,7 @@ class CardPicture
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["search_card", "card_info"])]
+    #[Groups(["search_card", "card_info", "collection_info"])]
     private ?int $id = null;
 
     #[OA\Property(description: "file name of the classic picture", type: "string", nullable: true)]
@@ -96,7 +96,7 @@ class CardPicture
     }
 
     #[OA\Property(description: "get url for the small picture", type: "string", nullable: true)]
-    #[Groups(["search_card", "card_info"])]
+    #[Groups(["search_card", "card_info", "collection_info"])]
     public function getPictureSmallUrl(): ?string
     {
         return $this->_getUrl($this->pictureSmall);

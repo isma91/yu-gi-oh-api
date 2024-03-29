@@ -37,7 +37,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         "deck_info",
         "card_info",
         "user_basic_info",
-        "collection_user_list"
+        "collection_user_list",
+        "collection_info"
     ])]
     private ?string $username = null;
 
