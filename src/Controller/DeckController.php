@@ -156,7 +156,7 @@ class DeckController extends CustomAbstractController
     )]
     #[OA\Parameter(
         name: "id",
-        description: "Unique identifier of the Deck, must be your Deck or a public one.",
+        description: "Unique identifier of the Deck, must be your Deck.",
         in: "path",
         required: true,
         schema: new OA\Schema(type: "integer")
@@ -202,7 +202,7 @@ class DeckController extends CustomAbstractController
     )]
     #[OA\Response(
         response: SymfonyResponse::HTTP_BAD_REQUEST,
-        description: "Error when deleting Deck",
+        description: "Error when updating Deck",
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: "error", type: "string"),
