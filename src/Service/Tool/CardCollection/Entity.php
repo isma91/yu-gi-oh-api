@@ -157,4 +157,36 @@ class Entity
         $cardCollectionORMService->persist($cardCollectionEntity);
         return $cardCollectionEntity;
     }
+
+    /**
+     * @param CardCollectionEntity $cardCollection
+     * @param CardCollectionORMService $cardCollectionORMService
+     * @return CardCollectionEntity
+     */
+    public function removeCardCardCollection(
+        CardCollectionEntity $cardCollection,
+        CardCollectionORMService $cardCollectionORMService
+    ): CardCollectionEntity
+    {
+        $cardCardCollections = $cardCollection->getCardCardCollections();
+        foreach ($cardCardCollections as $cardCardCollection) {
+            $card = $cardCardCollection->getCard();
+            if ($card === NULL) {
+                $this->loggerService->setLevel(LoggerService::WARNING)
+                    ->setIsCron(FALSE)
+                    ->addLog(
+                        sprintf(
+                            "No Card found in CardCardCollection id => %d",
+                            $cardCardCollection->getId()
+                        )
+                    );
+            } else {
+                $card->removeCardCardCollection($cardCardCollection);
+            }
+            $cardCollectionORMService->persist($card);
+            $cardCollection->removeCardCardCollection($cardCardCollection);
+            $cardCollectionORMService->remove($cardCardCollection);
+        }
+        return $cardCollection;
+    }
 }
