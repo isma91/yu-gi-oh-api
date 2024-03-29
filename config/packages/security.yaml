@@ -56,6 +56,8 @@ security:
         - { path: ^/country/all$, roles: [ ROLE_USER ] }
         - { path: ^/card-collection/create$, roles: [ ROLE_USER ] }
         - { path: ^/card-collection/info/[0-9]+$, roles: [ ROLE_USER ] }
+        - { path: ^/card-collection/update-public/[0-9]+/[0-1]$, roles: [ ROLE_USER ] }
+        - { path: ^/card-collection/delete/[0-9]+$, roles: [ ROLE_USER ] }
 
 when@test:
     security:
