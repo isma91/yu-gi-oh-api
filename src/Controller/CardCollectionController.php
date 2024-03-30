@@ -263,4 +263,88 @@ class CardCollectionController extends CustomAbstractController
         }
         return $this->sendSuccess("Collection updated successfully.", $data);
     }
+
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_CREATED,
+        description: "Card Collection updated successfully.",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "success", type: "string"),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_BAD_REQUEST,
+        description: "Error when updated Card Collection",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "error", type: "string"),
+            ]
+        )
+    )]
+    #[OA\Parameter(
+        name: "id",
+        description: "Unique identifier of the Collection, must be your Deck.",
+        in: "path",
+        required: true,
+        schema: new OA\Schema(type: "integer")
+    )]
+    #[OA\RequestBody(
+        request: "CardCollectionUpdateRequest",
+        description: "Card Collection info to update",
+        required: true,
+        content: new OA\MediaType(
+            mediaType: "multipart/form-data",
+            schema: new OA\Schema(ref: "#/components/schemas/CardCollectionCreateRequest"),
+        )
+    )]
+    #[Security(name: "Bearer")]
+    #[Route(
+        '/edit/{id}',
+        name: '_edit_from_id',
+        requirements: [
+            'id' => Requirement::DIGITS,
+        ],
+        methods: ["POST"],
+    )]
+    public function edit(
+        int $id,
+        Request $request,
+        CardCollectionService $cardCollectionService,
+        CardService $cardService,
+        CountryService $countryService
+    ): JsonResponse
+    {
+        $waitedParameter = [
+            "name" => "string",
+            "isPublic_OPT" => "boolean",
+            "artwork_OPT" => "int",
+            "card-collection" => "array",
+        ];
+        [
+            "error" => $error,
+            "parameter" => $parameter,
+            "jwt" => $jwt
+        ] = $this->checkRequestParameter(
+            $request,
+            $waitedParameter
+        );
+        if ($error !== "") {
+            return $this->sendError($error);
+        }
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug,
+        ] = $cardCollectionService->update(
+            $jwt,
+            $id,
+            $parameter,
+            $cardService,
+            $countryService
+        );
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug);
+        }
+        return $this->sendSuccess("Collection successfully updated");
+    }
 }

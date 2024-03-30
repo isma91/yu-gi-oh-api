@@ -274,4 +274,81 @@ class CardCollection
         }
         return $response;
     }
+
+    /**
+     * @param string $jwt
+     * @param int $id
+     * @param array $parameter
+     * @param Card $cardService
+     * @param Country $countryService
+     * @return array[
+     * "error" => string,
+     * "errorDebug" => string,
+     */
+    public function update(
+        string $jwt,
+        int $id,
+        array $parameter,
+        CardService $cardService,
+        CountryService $countryService
+    ):array
+    {
+        $response = [...$this->customGenericService->getEmptyReturnResponse()];
+        try {
+            [
+                "error" => $errorCheckUserCollection,
+                "errorDebug" => $errorDebugCheckUserCollection,
+                "user" => $user,
+                "collection" => $cardCollection,
+            ] = $this->checkUserAndCollection($jwt, $id);
+            if (empty($errorCheckUserCollection) === FALSE) {
+                $response["error"] = $errorCheckUserCollection;
+                $response["errorDebug"] = $errorDebugCheckUserCollection;
+                return $response;
+            }
+            $collectionUser = $cardCollection->getUser();
+            $isAdmin = $this->customGenericService->checkIfUserIsAdmin($user);
+            if (
+                $isAdmin === FALSE &&
+                $cardCollection->isIsPublic() === FALSE &&
+                $collectionUser->getId() !== $user->getId()
+            ) {
+                $response["error"] = "Collection not available.";
+                return $response;
+            }
+            [
+                "name" => $name,
+                "isPublic" => $isPublic,
+                "artwork" => $artwork,
+                "card-collection" => $cardCollectionArray
+            ] = $parameter;
+            $cardORMService = $cardService->getORMService();
+            $countryORMService = $countryService->getORMService();
+            $cardCollection->setName($name)
+                ->setSlugName($this->customGenericService->slugify($name))
+                ->setIsPublic($isPublic)
+                ->setUser($user);
+            $cardCollectionArray["artwork"] = $artwork;
+            $cardCollection = $this->cardCollectionEntityService->removeCardCardCollection(
+                $cardCollection,
+                $this->cardCollectionORMService
+            );
+            $cardCollection = $this->cardCollectionEntityService->createCardCardCollection(
+                $cardCollection,
+                $cardCollectionArray,
+                $cardORMService,
+                $countryORMService,
+                $this->cardCollectionORMService
+            );
+            $user->addCardCollection($cardCollection);
+            $this->cardCollectionORMService->persist($cardCollection);
+            $this->cardCollectionORMService->flush();
+            $this->customGenericService->addInfoLogFromDebugBacktrace();
+        } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
+            $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
+            $response["error"] = "Error while updating Collection.";
+        }
+        return $response;
+    }
 }
