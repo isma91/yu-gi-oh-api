@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ExceptionListener
@@ -28,7 +29,7 @@ class ExceptionListener
     {
         if ($this->param->get('APP_ENV') !== 'prod') {
             $exception = $event->getThrowable();
-            if ($exception instanceof NotFoundHttpException) {
+            if ($exception instanceof NotFoundHttpException || $exception instanceof MethodNotAllowedHttpException) {
                 $jsonResponse = new JsonResponse(
                     [
                         "error" => "Route not found, go to /swagger to see the full documentation",

@@ -9,10 +9,6 @@ We use the [YGOPRODeck API](https://ygoprodeck.com/) to get all Card and Set inf
 ### Create .env file
 You can take example with the `.env.example` file to create your own.
 
-### Install dependencies
-
-Just run `composer install` in the root of the project.
-
 ### Create the database with tables
 
 Run `php bin/console doctrine:database:create` to have your empty database.
@@ -47,7 +43,7 @@ Download the auth.json file and add it to `var/google` folder of the project.
 
 ### Send log to Telegram
 
-Be aware that only error log in production will be sent to avoid too much spam.
+Be aware that only error & warning log in production will be sent to avoid too much spam.
 
 You need first to set in your `.env` the var `SEND_LOG_TO_TELEGRAM` to `"TRUE"`.
 
@@ -62,11 +58,36 @@ You can now update your `env` file with the bot token, name and chat id.
 
 ### Prepare Docker
 
-`docker-compose -f docker-compose.yml build` then `docker-compose -f docker-compose.yml up -d`
+We prepare a Dockerfile to avoid installing all the dependencies needed to run the project, 
+we take the `Europe/Paris` timezone so if you want to change you can set it in the `Dockerfile`.
+
+We already named the container `yu-gi-oh-api`, but you can rename it in the `docker-compose.yaml`.
+
+
+Run `docker-compose -f docker-compose.yml build` 
+then `docker-compose -f docker-compose.yml up -d` to have your container ready-to-use.
+
+### Install dependencies if not use of Docker
+
+Just run `composer install` in the root of the project.
+
+## Logger
+
+You can see all logs in `var/log` directory of the project.
+
+The Logger create text file with the nomenclature `YYYY-MM-DD_IS_CRON_LOG_LEVEL.txt`
+(ex: `2024-03-21_cron_error.txt`, `2024-03-22_info.txt`).
+
+We separate log from CRON from the project to be quickly findable.
+
+Please be aware that if you activate the `Backup` cron, we delete old all logs file who's not created on the day the cron is launched. 
+
+Errors related to aa non-existent route or an existing route but with a bad request method are not
+taken into account and we only display a JSONResponse with the documentation route.
 
 ## Crontab
 
-Use the `cron.txt` file to help you with the implementation of various tasks such as Import in your cron daemon.
+Use the `cron.txt` file to help you with the implementation of various tasks such as Import or Backup in your cron daemon.
 
 ## Documentation
 

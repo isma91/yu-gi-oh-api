@@ -18,6 +18,7 @@ use App\Service\PropertyType as PropertyTypeService;
 use App\Service\SubPropertyType as SubPropertyTypeService;
 use App\Service\SubType as SubTypeService;
 use App\Service\Type as TypeService;
+use App\Service\CardCollection as CardCollectionService;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
@@ -225,7 +226,7 @@ class SearchController extends CustomAbstractController
                 properties: [
                     new OA\Property(
                         property: "name",
-                        description: "Part of name or description of the Deck",
+                        description: "Part of name of the Deck",
                         type: "string"
                     ),
                     new OA\Property(
@@ -437,5 +438,106 @@ class SearchController extends CustomAbstractController
             return $this->sendError($error, $errorDebug, $data);
         }
         return $this->sendSuccess("Set list", $data);
+    }
+
+    #[OA\RequestBody(
+        request: "SearchCollectionUserRequest",
+        description: "Filter to find specific Collection from current User.",
+        required: false,
+        content: new OA\MediaType(
+            mediaType: "multipart/form-data",
+            schema: new OA\Schema(
+                properties: [
+                    new OA\Property(
+                        property: "name",
+                        description: "Part of name of the Collection",
+                        type: "string"
+                    ),
+                    new OA\Property(
+                        property: "offset",
+                        description: "Page number if you want to access to the next {limit} number Collection",
+                        type: "integer"
+                    ),
+                    new OA\Property(
+                        property: "limit",
+                        description: "Number of Collection result we send back, if the total is more than {limit}",
+                        type: "integer",
+                        maximum: 100,
+                        minimum: 1,
+                    ),
+                ]
+            )
+        )
+    )]
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_OK,
+        description: "List of all current User's Collection",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "success", type: "string"),
+                new OA\Property(
+                    property: "collection",
+                    type: "array",
+                    items: new OA\Items(ref: "#/components/schemas/CardCollectionUserList")),
+                new OA\Property(
+                    property: "collectionAllResultCount",
+                    description: "Result number of all Deck from filter, for pagination purpose",
+                    type: "integer",
+                ),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_BAD_REQUEST,
+        description: "Error when getting Collection from current User",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "error", type: "string"),
+                new OA\Property(
+                    property: "collection",
+                    description: "Sometimes an empty array",
+                    type: "array",
+                    items: new OA\Items(ref: "#/components/schemas/CardCollectionUserList")
+                ),
+                new OA\Property(
+                    property: "collectionAllResultCount",
+                    description: "Result number of all Collection from filter, for pagination purpose",
+                    type: "integer",
+                ),
+            ]
+        )
+    )]
+    #[Security(name: "Bearer")]
+    #[Route('/collection-current-user', name: '_collection_current_user', methods: ["POST"])]
+    public function collectionCurrentUser(
+        Request $request,
+        SearchService $searchService,
+        CardCollectionService $cardCollectionService
+    ): JsonResponse
+    {
+        $waitedParameter = [
+            "name_OPT" => "string",
+            "offset_OPT" => "int",
+            "limit_OPT" => "int",
+        ];
+        [
+            "error" => $error,
+            "parameter" => $parameter,
+            "jwt" => $jwt
+        ] = $this->checkRequestParameter($request, $waitedParameter);
+        if ($error !== "") {
+            return $this->sendError($error);
+        }
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug,
+            "collection" => $collection,
+            "collectionAllResultCount" => $collectionAllResultCount
+        ] = $searchService->cardCollectionCurrentUser($jwt, $parameter, $cardCollectionService);
+        $data = ["collection" => $collection, "collectionAllResultCount" => $collectionAllResultCount];
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug, $data);
+        }
+        return $this->sendSuccess("Collection list", $data);
     }
 }

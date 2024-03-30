@@ -68,6 +68,53 @@ nelmio_api_doc:
                                     You can add as many as you want but 15 card is the maximum recommended"
                                     items:
                                         $ref: "#/components/schemas/DeckCardFieldTypeContent"
+                CardCollectionContentRequest:
+                    description: "Card Collection content array"
+                    type: object
+                    properties:
+                        card:
+                            type: integer
+                            description: "Id of the Card to add"
+                            nullable: false
+                        nbCopie:
+                            type: integer
+                            description: "Number of Copie to add"
+                            nullable: false
+                        country:
+                            type: integer
+                            description: "Id of the Country of the Card"
+                            nullable: true
+                        rarity:
+                            type: integer
+                            description: "Id of the Rarity of the Card"
+                            nullable: true
+                        set:
+                            type: integer
+                            description: "Id of the Set of the Card"
+                            nullable: true
+                        picture:
+                            type: integer
+                            description: "Id of the CardPicture of the Card"
+                            nullable: true
+                CardCollectionCreateRequest:
+                    type: object
+                    properties:
+                        name:
+                            type: string
+                            description: "Name of the Collection"
+                            nullable: false
+                        isPublic:
+                            type: boolean
+                            description: "If the Collection is going to be seen from other."
+                            nullable: true
+                        artwork:
+                            type: integer
+                            description: "Id of the CardPicture to use as Artwork"
+                            nullable: true
+                        card-collection:
+                            type: array
+                            items:
+                                $ref: "#/components/schemas/CardCollectionContentRequest"
             securitySchemes:
                 Bearer:
                     type: http
@@ -85,6 +132,9 @@ nelmio_api_doc:
             - { alias: SubTypeList, type: App\Entity\SubType, groups: ["sub_type_list"] }
             - { alias: TypeList, type: App\Entity\Type, groups: ["type_list"] }
             - { alias: SearchCardList, type: App\Entity\Card, groups: ["search_card"] }
+            - { alias: SearchCardCardSet, type: App\Entity\CardSet, groups: ["search_card"] }
+            - { alias: SearchCardCardSetSet, type: App\Entity\Set, groups: ["search_card"] }
+            - { alias: SearchCardCardSetRarity, type: App\Entity\Rarity, groups: ["search_card"] }
             - { alias: SearchCardCardAttribute, type: App\Entity\CardAttribute, groups: ["search_card"] }
             - { alias: SearchCardProperty, type: App\Entity\Property, groups: ["search_card"] }
             - { alias: SearchCardPropertyType, type: App\Entity\PropertyType, groups: ["search_card"] }
@@ -122,6 +172,14 @@ nelmio_api_doc:
             - { alias: CardRandomInfo, type: App\Entity\Card, groups: ["card_random_info"] }
             - { alias: UserBasicInfo, type: App\Entity\User, groups: ["user_basic_info"] }
             - { alias: UserBasicDeckInfo, type: App\Entity\Deck, groups: ["user_basic_info"] }
+            - { alias: UserBasicCardCollectionInfo, type: App\Entity\CardCollection, groups: ["user_basic_info"] }
+            - { alias: CountryList, type: App\Entity\Country, groups: ["country_list"] }
+            - { alias: CardCollectionUserList, type: App\Entity\CardCollection, groups: ["collection_user_list"] }
+            - { alias: CardCollectionInfo, type: App\Entity\CardCollection, groups: ["collection_info"] }
+            - { alias: CardCollectionInfoCardCardCollection, type: App\Entity\CardCardCollection, groups: ["collection_info"] }
+            - { alias: CardCollectionInfoCardCardCollectionSet, type: App\Entity\Set, groups: ["collection_info"] }
+            - { alias: CardCollectionInfoCardCardCollectionRarity, type: App\Entity\Rarity, groups: ["collection_info"] }
+            - { alias: CardCollectionInfoCardCardCollectionCardPicture, type: App\Entity\CardPicture, groups: ["collection_info"] }
     areas: # to filter documented areas
         default:
             disable_default_routes: true

@@ -22,23 +22,26 @@ class CardSet
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["card_info", "set_info"])]
+    #[Groups(["card_info", "set_info", "search_card"])]
     private ?int $id = null;
 
     #[OA\Property(
         description: "Set of the CardSet",
         type: "array",
         items: new OA\Items(
-            oneOf: [new OA\Schema(ref: "#/components/schemas/CardInfoCardSetSet")]
+            oneOf: [
+                new OA\Schema(ref: "#/components/schemas/CardInfoCardSetSet"),
+                new OA\Schema(ref: "#/components/schemas/SearchCardCardSetSet"),
+            ]
         ),
     )]
     #[ORM\ManyToMany(targetEntity: Set::class, inversedBy: 'cardSets')]
-    #[Groups(["card_info"])]
+    #[Groups(["card_info", "search_card"])]
     private Collection $sets;
 
     #[OA\Property(description: "Code of the Card name for the Set", type: "string", maxLength: 255, nullable: true)]
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(["card_info", "set_info"])]
+    #[Groups(["card_info", "set_info", "search_card"])]
     private ?string $code = null;
 
     #[OA\Property(
@@ -48,11 +51,12 @@ class CardSet
             oneOf: [
                 new OA\Schema(ref: "#/components/schemas/CardInfoCardSetRarity"),
                 new OA\Schema(ref: "#/components/schemas/SetInfoCardSetRarity"),
+                new OA\Schema(ref: "#/components/schemas/SearchCardCardSetRarity"),
             ]
         )
     )]
     #[ORM\ManyToMany(targetEntity: Rarity::class, inversedBy: 'cardSets')]
-    #[Groups(["card_info", "set_info"])]
+    #[Groups(["card_info", "set_info", "search_card"])]
     private Collection $rarities;
 
     #[OA\Property(
