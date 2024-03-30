@@ -4,6 +4,7 @@ namespace App\Service\Tool\CardCollection;
 
 use App\Entity\CardCardCollection as CardCardCollectionEntity;
 use App\Entity\CardCollection as CardCollectionEntity;
+use App\Entity\CardSet as CardSetEntity;
 use App\Service\Logger as LoggerService;
 use App\Service\Tool\Card\ORM as CardORMService;
 use App\Service\Tool\Country\ORM as CountryORMService;
@@ -17,6 +18,33 @@ class Entity
     {
         $this->loggerService = $loggerService;
         $this->loggerService->setIsCron(FALSE);
+    }
+
+    /**
+     * @param CardSetEntity[] $cardSetArray
+     * @param int $rarityId
+     * @return array[
+     * "set" => CardSetEntity,
+     * "rarity" => RarityEntity|null
+     * ]
+     */
+    public function findCardSetAndRarityFromCardSetArrayAndRarityId(array $cardSetArray, int $rarityId): array
+    {
+        $return = ["set" => $cardSetArray[0], "rarity" => NULL];
+        if ($rarityId === 0) {
+            return $return;
+        }
+        foreach ($cardSetArray as $cardSet) {
+            $rarities = $cardSet->getRarities();
+            foreach ($rarities as $rarity) {
+                if ($rarity->getId() === $rarityId) {
+                    $return["set"] = $cardSet;
+                    $return["rarity"] = $rarity;
+                    break 2;
+                }
+            }
+        }
+        return $return;
     }
 
     /**
@@ -71,7 +99,7 @@ class Entity
             }
             $setId = (int)$setId;
             $cardSets = $cardEntity->getCardSets();
-            $cardSetToUse = NULL;
+            $cardSetToUseArray = [];
             foreach ($cardSets as $cardSet) {
                 $sets = $cardSet->getSets();
                 if ($cardSet->getSets()->count() === 0) {
@@ -81,40 +109,31 @@ class Entity
                     continue;
                 }
                 if ($sets[0]->getId() === $setId) {
-                    $cardSetToUse = $cardSet;
-                    break;
+                    $cardSetToUseArray[] = $cardSet;
                 }
             }
             $cardCardCollection = new CardCardCollectionEntity();
             $cardCardCollection->setNbCopie($nbCopie)
                 ->setCard($cardEntity)
                 ->setCountry($country);
-            if ($cardSetToUse !== NULL) {
+            if (empty($cardSetToUseArray) === FALSE) {
                 $rarityId = (int)$rarityId;
-                if ($rarityId > 0) {
-                    $cardCardCollection->setCardSet($cardSetToUse->getSets()[0]);
-                    $rarityToUse = NULL;
-                    $rarities = $cardSetToUse->getRarities();
-                    $rarityIdArray = [];
-                    foreach ($rarities as $rarity) {
-                        $rarityIdArray[] = $rarity->getId();
-                        if ($rarity->getId() === $rarityId) {
-                            $rarityToUse = $rarity;
-                        }
-                    }
-                    if ($rarityToUse === NULL) {
-                        $this->loggerService
-                            ->setLevel(LoggerService::WARNING)
-                            ->addLog(
-                                sprintf(
-                                    "Rarity not found with id => %s in CardSet id => %d, list of id rarity available => (%s)",
-                                    $cardCollectionInfo["rarity"],
-                                    $cardSetToUse->getId(),
-                                    implode(",", $rarityIdArray)
-                                )
-                            );
-                    }
-                    $cardCardCollection->setRarity($rarityToUse);
+                [
+                    "set" => $cardSetToUse,
+                    "rarity" => $rarityToUse
+                ] = $this->findCardSetAndRarityFromCardSetArrayAndRarityId($cardSetToUseArray, $rarityId);
+                $cardCardCollection->setCardSet($cardSetToUse->getSets()[0])
+                    ->setRarity($rarityToUse);
+                if ($rarityId > 0 && $rarityToUse === NULL) {
+                    $this->loggerService
+                        ->setLevel(LoggerService::WARNING)
+                        ->addLog(
+                            sprintf(
+                                "Rarity not found with id => %s in CardSet id => %d",
+                                $cardCollectionInfo["rarity"],
+                                $cardSetToUse->getId(),
+                            )
+                        );
                 }
             }
             $pictureId = (int)$pictureId;
