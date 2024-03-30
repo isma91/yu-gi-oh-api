@@ -107,14 +107,14 @@ class CardCollection
 
     #[OA\Property(
         property: "artworkCardId",
-        description: "Card Id of the CardPicture",
+        description: "Id of the CardPicture",
         type: "integer",
         nullable: true
     )]
     #[Groups(["collection_info"])]
-    public function getArtworkCardId(): ?int
+    public function getArtworkId(): ?int
     {
-        return $this->artwork?->getCard()?->getId();
+        return $this->artwork?->getId();
     }
 
     #[OA\Property(
