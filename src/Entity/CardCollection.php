@@ -106,6 +106,18 @@ class CardCollection
     }
 
     #[OA\Property(
+        property: "artworkCardId",
+        description: "Card Id of the CardPicture",
+        type: "integer",
+        nullable: true
+    )]
+    #[Groups(["collection_info"])]
+    public function getArtworkCardId(): ?int
+    {
+        return $this->artwork?->getCard()?->getId();
+    }
+
+    #[OA\Property(
         property: "artworkUrl",
         description: "URL for the Collection Artwork",
         type: "string",
@@ -115,7 +127,6 @@ class CardCollection
     public function getArtworkUrl(): ?string
     {
         return $this->artwork?->getArtworkUrl();
-
     }
 
     public function getArtwork(): ?CardPicture
