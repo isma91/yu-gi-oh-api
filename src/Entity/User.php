@@ -30,7 +30,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
-    #[Groups(["user_login", "user_list", "deck_user_list", "deck_info", "card_info", "user_basic_info"])]
+    #[Groups([
+        "user_login",
+        "user_list",
+        "deck_user_list",
+        "deck_info",
+        "card_info",
+        "user_basic_info",
+        "collection_user_list",
+        "collection_info"
+    ])]
     private ?string $username = null;
 
     #[ORM\Column(type: Types::JSON)]
@@ -55,9 +64,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(["user_basic_info"])]
     private Collection $decks;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: CardCollection::class)]
+    #[Groups(["user_basic_info"])]
+    private Collection $cardCollections;
+
     public function __construct()
     {
         $this->decks = new ArrayCollection();
+        $this->cardCollections = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -199,6 +213,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($deck->getUser() === $this) {
                 $deck->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CardCollection>
+     */
+    public function getCardCollections(): Collection
+    {
+        return $this->cardCollections;
+    }
+
+    public function addCardCollection(CardCollection $cardCollection): static
+    {
+        if (!$this->cardCollections->contains($cardCollection)) {
+            $this->cardCollections->add($cardCollection);
+            $cardCollection->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCardCollection(CardCollection $cardCollection): static
+    {
+        if ($this->cardCollections->removeElement($cardCollection)) {
+            // set the owning side to null (unless already changed)
+            if ($cardCollection->getUser() === $this) {
+                $cardCollection->setUser(null);
             }
         }
 

@@ -294,14 +294,14 @@ final class Logger
     }
 
     /**
-     * We send only not empty error log in production
+     * We send only not empty error or warning log in production
      * @return void
      */
     protected function sendLogToTelegram(): void
     {
         if (
-            $this->level === self::ERROR &&
             empty($this->message) === FALSE &&
+            in_array($this->level, [self::ERROR, self::WARNING], TRUE) === TRUE &&
             $this->param->get("APP_ENV") === "prod"
         ) {
             $this->telegramService->sendMessage($this->message);
