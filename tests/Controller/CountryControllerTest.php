@@ -13,7 +13,7 @@ class CountryControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testBaseCountry(): void
+    public function testCountryBase(): void
     {
         static::expectRouteNotFound($this->baseUrl);
     }
@@ -21,7 +21,7 @@ class CountryControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testGetAllCountryWithoutAuth(): void
+    public function testCountryGetAllWithoutAuth(): void
     {
         static::expectRouteUnauthorized($this->baseUrl . "/all");
     }
@@ -29,7 +29,7 @@ class CountryControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testGetAllCountryWithAuth(): void
+    public function testCountryGetAllWithAuth(): void
     {
         static::getAllProtected($this->baseUrl . "/all", "country");
     }

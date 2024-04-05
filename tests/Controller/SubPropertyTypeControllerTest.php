@@ -13,7 +13,7 @@ class SubPropertyTypeControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testBaseSubPropertyType(): void
+    public function testSubPropertyTypeBase(): void
     {
         static::expectRouteNotFound($this->baseUrl);
     }
@@ -21,7 +21,7 @@ class SubPropertyTypeControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testGetAllSubPropertyTypeWithoutAuth(): void
+    public function testSubPropertyTypeGetAllWithoutAuth(): void
     {
         static::expectRouteUnauthorized($this->baseUrl . "/all");
     }
@@ -29,7 +29,7 @@ class SubPropertyTypeControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testGetAllSubPropertyTypeWithAuth(): void
+    public function testSubPropertyTypeGetAllWithAuth(): void
     {
         static::getAllProtected($this->baseUrl . "/all", "subPropertyType");
     }

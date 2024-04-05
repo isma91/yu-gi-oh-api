@@ -13,7 +13,7 @@ class TypeControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testBaseType(): void
+    public function testTypeBase(): void
     {
         static::expectRouteNotFound($this->baseUrl);
     }
@@ -21,7 +21,7 @@ class TypeControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testGetAllTypeWithoutAuth(): void
+    public function testTypeGetAllWithoutAuth(): void
     {
         static::expectRouteUnauthorized($this->baseUrl . "/all");
     }
@@ -29,7 +29,7 @@ class TypeControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testGetAllTypeWithAuth(): void
+    public function testTypeGetAllWithAuth(): void
     {
         static::getAllProtected($this->baseUrl . "/all", "type");
     }

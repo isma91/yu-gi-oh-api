@@ -11,7 +11,7 @@ class UserControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testBaseUser(): void
+    public function testUserBase(): void
     {
         static::expectRouteNotFound("/user");
     }
@@ -19,7 +19,7 @@ class UserControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testLoginUserWithoutParameter(): void
+    public function testUserLoginWithoutParameter(): void
     {
         static::expectRouteFieldEmpty(
             "/user/login",
@@ -31,7 +31,7 @@ class UserControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testLoginUserWithoutUsername(): void
+    public function testUserLoginWithoutUsername(): void
     {
         static::expectRouteFieldEmpty(
             "/user/login",
@@ -44,7 +44,7 @@ class UserControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testLoginUserWithoutPassword(): void
+    public function testUserLoginWithoutPassword(): void
     {
         static::expectRouteFieldEmpty(
             "/user/login",
@@ -57,7 +57,7 @@ class UserControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testLoginUserWithBadCredential(): void
+    public function testUserLoginWithBadCredential(): void
     {
         [
             "status" => $status,
@@ -72,7 +72,7 @@ class UserControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testLoginUserWithGoodCredential(): void
+    public function testUserLoginWithGoodCredential(): void
     {
         [
             "status" => $status,

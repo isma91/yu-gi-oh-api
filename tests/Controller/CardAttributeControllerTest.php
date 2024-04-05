@@ -13,7 +13,7 @@ class CardAttributeControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testBaseCardAttribute(): void
+    public function testCardAttributeBase(): void
     {
         static::expectRouteNotFound($this->baseUrl);
     }
@@ -21,7 +21,7 @@ class CardAttributeControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testGetAllCardAttributeWithoutAuth(): void
+    public function testCardAttributeGetAllWithoutAuth(): void
     {
         static::expectRouteUnauthorized($this->baseUrl . "/all");
     }
@@ -29,7 +29,7 @@ class CardAttributeControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testGetAllCardAttributeWithAuth(): void
+    public function testCardAttributeGetAllWithAuth(): void
     {
         static::getAllProtected($this->baseUrl . "/all", "cardAttribute");
     }

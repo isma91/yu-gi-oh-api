@@ -13,7 +13,7 @@ class ArchetypeControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testBaseArchetype(): void
+    public function testArchetypeBase(): void
     {
         static::expectRouteNotFound($this->baseUrl);
     }
@@ -21,7 +21,7 @@ class ArchetypeControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testGetAllArchetypeWithoutAuth(): void
+    public function testArchetypeGetAllWithoutAuth(): void
     {
         static::expectRouteUnauthorized($this->baseUrl . "/all");
     }
@@ -29,7 +29,7 @@ class ArchetypeControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testGetAllArchetypeWithAuth(): void
+    public function testArchetypeGetAllWithAuth(): void
     {
         static::getAllProtected($this->baseUrl . "/all", "archetype");
     }

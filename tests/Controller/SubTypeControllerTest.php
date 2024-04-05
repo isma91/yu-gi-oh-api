@@ -13,7 +13,7 @@ class SubTypeControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testBaseSubType(): void
+    public function testSubTypeBase(): void
     {
         static::expectRouteNotFound($this->baseUrl);
     }
@@ -21,7 +21,7 @@ class SubTypeControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testGetAllSubTypeWithoutAuth(): void
+    public function testSubTypeGetAllWithoutAuth(): void
     {
         static::expectRouteUnauthorized($this->baseUrl . "/all");
     }
@@ -29,7 +29,7 @@ class SubTypeControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testGetAllSubTypeWithAuth(): void
+    public function testSubTypeGetAllWithAuth(): void
     {
         static::getAllProtected($this->baseUrl . "/all", "subType");
     }

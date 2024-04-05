@@ -13,7 +13,7 @@ class CategoryControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testBaseCategory(): void
+    public function testCategoryBase(): void
     {
         static::expectRouteNotFound($this->baseUrl);
     }
@@ -21,7 +21,7 @@ class CategoryControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testGetAllCategoryWithoutAuth(): void
+    public function testCategoryGetAllWithoutAuth(): void
     {
         static::expectRouteUnauthorized($this->baseUrl . "/all");
     }
@@ -29,7 +29,7 @@ class CategoryControllerTest extends AbstractWebTestCase
     /**
      * @throws JsonException
      */
-    public function testGetAllCategoryWithAuth(): void
+    public function testCategoryGetAllWithAuth(): void
     {
         static::getAllProtected($this->baseUrl . "/all", "category");
     }
