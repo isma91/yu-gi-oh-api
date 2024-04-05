@@ -146,8 +146,8 @@ class CustomGeneric
                 $response["error"] = "No user found.";
                 return $response;
             }
-            $findUniqueEntityFunName = ($isUuid === TRUE) ? "findByUuid" : "findById";
-            $entity = ($isGetAll === TRUE) ? $ORMService->findAll() : $ORMService->$findUniqueEntityFunName($idOrUuid);
+            $findUniqueEntityFuncName = ($isUuid === TRUE) ? "findByUuid" : "findById";
+            $entity = ($isGetAll === TRUE) ? $ORMService->findAll() : $ORMService->$findUniqueEntityFuncName($idOrUuid);
             $infoSerialize = [];
             if ($isGetAll === TRUE) {
                 $infoSerialize = $this->getInfoSerialize($entity, $groupNameArray);
