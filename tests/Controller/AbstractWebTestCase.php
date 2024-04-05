@@ -7,7 +7,10 @@ use InvalidArgumentException;
 use JsonException;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\File\File as SymfonyFile;
 
 abstract class AbstractWebTestCase extends WebTestCase
 {
@@ -62,7 +65,7 @@ abstract class AbstractWebTestCase extends WebTestCase
      * @param array|null $headers
      * @return array[
      * "status" => int,
-     * "content" => string|array[
+     * "content" => string|SymfonyFile|array[
      *      "error" => string,
      *      "errorDebug" => string|undefined,
      *      "data" => mixed|null,
@@ -98,7 +101,9 @@ abstract class AbstractWebTestCase extends WebTestCase
         self::$client->request($method, $url, $data, [], $headers);
         $response = self::$client->getResponse();
         $requestContent = $response->getContent();
-        if (str_starts_with($requestContent, "{") === TRUE && str_ends_with($requestContent, "}") === TRUE) {
+        if ($response instanceof BinaryFileResponse) {
+            $content = $response->getFile();
+        } elseif ($response instanceof JsonResponse) {
             $content = json_decode($requestContent, TRUE, 512, JSON_THROW_ON_ERROR);
         } else {
             $content = $requestContent;
