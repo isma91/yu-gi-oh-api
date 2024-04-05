@@ -19,6 +19,9 @@ Change `$username` and `$password` value in `src/DataFixtures/User.php`
 
 Finally, run `php bin/console doctrine:fixtures:load --append` to have some basic needed with an Admin ready to use.
 
+Be aware that we also have a fixtures for testing purposes who's `UserTestFixtures`,
+delete these two user in your database or rename the file by adding `.old` in the file name to ber avoided by doctrine.
+
 ### Get all Card first time
 
 We're going to use the `app:import` command to get all Set and Card with theirs information but,
@@ -83,7 +86,7 @@ We separate log from CRON from the project to be quickly findable.
 Please be aware that if you activate the `Backup` cron, we delete old all logs file who's not created on the day the cron is launched. 
 
 Errors related to aa non-existent route or an existing route but with a bad request method are not
-taken into account and we only display a JSONResponse with the documentation route.
+taken into account, and we only display a JSONResponse with the documentation route.
 
 ## Crontab
 
@@ -92,3 +95,17 @@ Use the `cron.txt` file to help you with the implementation of various tasks suc
 ## Documentation
 
 The documentation is available at the `/swagger` route
+
+## Testing
+
+We use the `symfony/test-pack` for Testing the project, it comes with PHPUnit.
+
+Be aware that this package is not required in production but only in dev environment
+
+If you want to test the project you must create a `.env.test` file who's a copy of your `.env` file
+but, you need to change the `DATABASE_URL` value, usually the same database name but with the suffixe `-test`.
+
+Launch the `UserTestFixtures` to have a user and an admin as test purposes with the command
+`php bin/console doctrine:fixtures:load --group=user-test --env=test --append`.
+
+After that, all you need is run the command `php bin/phpunit` at the root of the project.
