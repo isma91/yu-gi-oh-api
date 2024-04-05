@@ -42,6 +42,18 @@ abstract class AbstractWebTestCase extends WebTestCase
     }
 
     /**
+     * Initiate the Kernel once to avoid futur Logic Exception.
+     * We externalize because sometimes we need the self::$client for Injecting Entity Repository
+     * @return void
+     */
+    public static function initiateClient(): void
+    {
+        if (self::$client === NULL) {
+            self::$client = static::createClient();
+        }
+    }
+
+    /**
      * Create a client if not exist, send request with data & header if any.
      * Return a JsonResponse or a basic string
      * @param string $url
@@ -76,9 +88,7 @@ abstract class AbstractWebTestCase extends WebTestCase
         if (in_array($method, $acceptedMethodArray, TRUE) === FALSE) {
             throw new InvalidArgumentException(sprintf("method %s not valid", $method));
         }
-        if (self::$client === NULL) {
-            self::$client = static::createClient();
-        }
+        self::initiateClient();
         if ($data === NULL) {
             $data = [];
         }
@@ -114,7 +124,6 @@ abstract class AbstractWebTestCase extends WebTestCase
     ): void
     {
         [
-            "content" => $content,
             "status" => $status
         ] = self::getRequestInfo($url, $method, $data, $headers);
         self::assertSame(Response::HTTP_NOT_FOUND, $status);
@@ -137,7 +146,6 @@ abstract class AbstractWebTestCase extends WebTestCase
     ): void
     {
         [
-            "content" => $content,
             "status" => $status
         ] = self::getRequestInfo($url, $method, $data, $headers);
         self::assertSame(Response::HTTP_UNAUTHORIZED, $status);
