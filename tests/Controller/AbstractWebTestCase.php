@@ -15,11 +15,13 @@ abstract class AbstractWebTestCase extends WebTestCase
     public const REQUEST_POST = "POST";
     public const REQUEST_PUT = "PUT";
     public const REQUEST_DELETE = "DELETE";
+
     /**
      * Use class property to avoid the Logic Exception because we can't boot the Kernel more than one
      * @var KernelBrowser|null
      */
     public static ?KernelBrowser $client = NULL;
+
     /**
      * Store it here to be quickly updated if we change in UserTestFixtures
      * @var array|array[]
@@ -219,7 +221,7 @@ abstract class AbstractWebTestCase extends WebTestCase
      * @return void
      * @throws JsonException
      */
-    public static function testGetAllProtected(
+    public static function getAllProtected(
         string $url,
         string $fieldName,
         bool $isAdmin = FALSE
@@ -231,6 +233,6 @@ abstract class AbstractWebTestCase extends WebTestCase
             "content" => $content
         ] = static::getRequestInfo($url, self::REQUEST_GET, NULL, static::createHeaderArrayForJwt($jwt));
         self::assertSame(Response::HTTP_OK, $status);
-        self::assertNotEmpty(count($content["data"][$fieldName]));
+        self::assertNotEmpty($content["data"][$fieldName]);
     }
 }
