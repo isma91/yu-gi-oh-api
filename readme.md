@@ -98,14 +98,23 @@ The documentation is available at the `/swagger` route
 
 ## Testing
 
+### Package
+
 We use the `symfony/test-pack` for Testing the project, it comes with PHPUnit.
 
 Be aware that this package is not required in production but only in dev environment
 
+### Initialization
+
 If you want to test the project you must create a `.env.test` file who's a copy of your `.env` file
 but, you need to change the `DATABASE_URL` value, usually the same database name but with the suffixe `-test`.
+
+We need to clone the current database (fulfilled) to another; we can do it with the mysqldump command:
+`mysqldump --host=127.0.0.1 --port=3306 --user=DB_USER --password=DB_PASSWORD yu-gi-oh-api | mysql -u DB_USER -p yu-gi-oh-api-test`.
 
 Launch the `UserTestFixtures` to have a user and an admin as test purposes with the command
 `php bin/console doctrine:fixtures:load --group=user-test --env=test --append`.
 
-After that, all you need is run the command `php bin/phpunit` at the root of the project.
+### Run Tests
+
+After that, all you need is run the command `php bin/phpunit --process-isolation` at the root of the project.
