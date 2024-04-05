@@ -8,12 +8,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class UserControllerTest extends AbstractWebTestCase
 {
+    public string $baseUrl = "/user";
     /**
      * @throws JsonException
      */
     public function testUserBase(): void
     {
-        static::expectRouteNotFound("/user");
+        static::expectRouteNotFound($this->baseUrl);
     }
 
     /**
@@ -22,7 +23,7 @@ class UserControllerTest extends AbstractWebTestCase
     public function testUserLoginWithoutParameter(): void
     {
         static::expectRouteFieldEmpty(
-            "/user/login",
+            $this->baseUrl . "/login",
             "username",
             static::REQUEST_POST
         );
@@ -34,7 +35,7 @@ class UserControllerTest extends AbstractWebTestCase
     public function testUserLoginWithoutUsername(): void
     {
         static::expectRouteFieldEmpty(
-            "/user/login",
+            $this->baseUrl . "/login",
             "username",
             static::REQUEST_POST,
             ["password" => "test"]
@@ -47,7 +48,7 @@ class UserControllerTest extends AbstractWebTestCase
     public function testUserLoginWithoutPassword(): void
     {
         static::expectRouteFieldEmpty(
-            "/user/login",
+            $this->baseUrl . "/login",
             "username",
             static::REQUEST_POST,
             ["password" => "test"]
@@ -62,7 +63,7 @@ class UserControllerTest extends AbstractWebTestCase
         [
             "status" => $status,
         ] = static::getRequestInfo(
-            "/user/login",
+            $this->baseUrl . "/login",
             static::REQUEST_POST,
             ["username" => "bad-username", "password" => "password9999"]
         );
@@ -77,10 +78,51 @@ class UserControllerTest extends AbstractWebTestCase
         [
             "status" => $status,
         ] = static::runProtectedRoute(
-            "/user/login",
+            $this->baseUrl . "/login",
             static::REQUEST_POST,
             static::$userCredentialByRoleArray["user"]
         );
+        $this->assertSame(Response::HTTP_OK, $status);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testUserRefreshLoginWithBadJwt(): void
+    {
+        $jwt = static::generateJWTFromUserType();
+        $jwt[0] = "f";
+        [
+            "status" => $status,
+            "content" => $content
+        ] = static::getRequestInfo(
+            $this->baseUrl . "/refresh-login",
+            static::REQUEST_GET,
+            NULL,
+            static::createHeaderArrayForJwt($jwt)
+        );
+        $this->assertSame(Response::HTTP_UNAUTHORIZED, $status);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testUserRefreshLoginWithGoodJwt(): void
+    {
+        [
+            "status" => $status
+        ] = static::runProtectedRoute($this->baseUrl . "/refresh-login");
+        $this->assertSame(Response::HTTP_OK, $status);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testUserLogout(): void
+    {
+        [
+            "status" => $status
+        ] = static::runProtectedRoute($this->baseUrl . "/logout");
         $this->assertSame(Response::HTTP_OK, $status);
     }
 }
