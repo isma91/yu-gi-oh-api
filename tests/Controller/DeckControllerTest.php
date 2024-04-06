@@ -121,6 +121,7 @@ class DeckControllerTest extends AbstractWebTestCase
     }
 
     /**
+     * @depends testDeckCreate
      * @group deck-get-info
      * @return void
      * @throws EntityNotFoundException
@@ -139,6 +140,7 @@ class DeckControllerTest extends AbstractWebTestCase
     }
 
     /**
+     * @depends testDeckCreate
      * @group deck-get-info
      * @return void
      * @throws EntityNotFoundException
@@ -151,6 +153,7 @@ class DeckControllerTest extends AbstractWebTestCase
     }
 
     /**
+     * @depends testDeckCreate
      * @group deck-update-public
      * @return void
      * @throws EntityNotFoundException
@@ -172,6 +175,7 @@ class DeckControllerTest extends AbstractWebTestCase
     }
 
     /**
+     * @depends testDeckCreate
      * @group deck-update-info
      * @return void
      * @throws EntityNotFoundException
@@ -204,6 +208,7 @@ class DeckControllerTest extends AbstractWebTestCase
     }
 
     /**
+     * @depends testDeckCreate
      * @group deck-delete
      * @return void
      * @throws EntityNotFoundException
