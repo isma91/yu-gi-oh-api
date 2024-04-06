@@ -117,7 +117,8 @@ Launch the `UserTestFixtures` to have a user and an admin as test purposes with 
 
 ### Run Tests
 
-After that, all you need is run the command `php bin/phpunit --process-isolation` at the root of the project.
+After that, all you need is run the command `php bin/phpunit <directory> --process-isolation` at the root of the project,
+where `<directory>` can be `test/Controller`, `test/Entity` or `test/Service`.
 
 Be aware that some test WILL fail because they have dependencies, run `php bin/phpunit --list-groups` to find it.
 
