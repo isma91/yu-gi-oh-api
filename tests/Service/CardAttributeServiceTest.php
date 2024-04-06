@@ -6,7 +6,7 @@ use App\Service\CardAttribute;
 use App\Service\Tool\CardAttribute\ORM;
 use Doctrine\ORM\EntityNotFoundException;
 
-class CardAttributeTestService extends AbstractTestService
+class CardAttributeServiceTest extends AbstractTestService
 {
     private CardAttribute $service;
 

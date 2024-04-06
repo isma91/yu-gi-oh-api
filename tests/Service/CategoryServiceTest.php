@@ -6,7 +6,7 @@ use App\Service\Category;
 use App\Service\Tool\Category\ORM;
 use Doctrine\ORM\EntityNotFoundException;
 
-class CategoryTestService extends AbstractTestService
+class CategoryServiceTest extends AbstractTestService
 {
     private Category $service;
 

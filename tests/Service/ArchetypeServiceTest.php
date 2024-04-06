@@ -6,7 +6,7 @@ use App\Service\Archetype;
 use App\Service\Tool\Archetype\ORM;
 use Doctrine\ORM\EntityNotFoundException;
 
-class ArchetypeTestService extends AbstractTestService
+class ArchetypeServiceTest extends AbstractTestService
 {
     private Archetype $service;
 
