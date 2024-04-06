@@ -2,7 +2,8 @@
 
 namespace App\Tests\Service;
 
-use App\Service\User;
+use App\Repository\UserRepository;
+use App\Service\Tool\User\Auth;
 use Doctrine\ORM\EntityNotFoundException;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
@@ -33,15 +34,16 @@ abstract class AbstractTestService extends KernelTestCase
     {
         $userType = ($isAdmin === TRUE) ? "admin": "user";
         $userCredential = self::$userCredentialByRoleArray[$userType];
-        $userService = self::getService(User::class);
-        [
-            "error" => $error,
-            "user" => $userInfo
-        ] = $userService->login($userCredential);
-        if (empty($userInfo) === TRUE || $error !== "") {
+        $userRepository = self::getService(UserRepository::class);
+        $user = $userRepository->findOneBy(["username" => $userCredential["username"]]);
+        if ($user === NULL) {
             throw new EntityNotFoundException("User test not found, maybe you forgot to run the UserTestFixtures before testing ??");
         }
-        return $userInfo["jwt"];
+        $userAuthService = self::getService(Auth::class);
+        [
+            "jwt" => $jwt
+        ] = $userAuthService->loginAndGetInfo($user);
+        return $jwt;
     }
 
     /**
