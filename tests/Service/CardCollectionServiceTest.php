@@ -84,10 +84,10 @@ class CardCollectionServiceTest extends AbstractTestService
     }
 
     /**
-     * @group card-collection-check-user
-     * @group card-collection-get-info
-     * @group card-collection-update-public
-     * @group card-collection-update-info
+     * @group card-collection-service-check-user
+     * @group card-collection-service-get-info
+     * @group card-collection-service-update-public
+     * @group card-collection-service-update-info
      * @return void
      * @throws EntityNotFoundException
      */
@@ -123,7 +123,7 @@ class CardCollectionServiceTest extends AbstractTestService
     }
 
     /**
-     * @group card-collection-check-user
+     * @group card-collection-service-check-user
      * @return void
      * @throws EntityNotFoundException
      */
@@ -143,7 +143,7 @@ class CardCollectionServiceTest extends AbstractTestService
 
     /**
      * @depends testCardCollectionCreate
-     * @group card-collection-get-info
+     * @group card-collection-service-get-info
      * @return void
      * @throws EntityNotFoundException
      */
@@ -161,7 +161,7 @@ class CardCollectionServiceTest extends AbstractTestService
 
     /**
      * @depends testCardCollectionCreate
-     * @group card-collection-update-public
+     * @group card-collection-service-update-public
      * @return void
      * @throws EntityNotFoundException
      */
@@ -182,7 +182,7 @@ class CardCollectionServiceTest extends AbstractTestService
 
     /**
      * @depends testCardCollectionCreate
-     * @group card-collection-update-info
+     * @group card-collection-service-update-info
      * @return void
      * @throws EntityNotFoundException
      */
