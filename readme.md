@@ -19,6 +19,9 @@ Change `$username` and `$password` value in `src/DataFixtures/User.php`
 
 Finally, run `php bin/console doctrine:fixtures:load --append` to have some basic needed with an Admin ready to use.
 
+Be aware that we also have a fixtures for testing purposes who's `UserTestFixtures`,
+delete these two user in your database or rename the file by adding `.old` in the file name to ber avoided by doctrine.
+
 ### Get all Card first time
 
 We're going to use the `app:import` command to get all Set and Card with theirs information but,
@@ -83,7 +86,7 @@ We separate log from CRON from the project to be quickly findable.
 Please be aware that if you activate the `Backup` cron, we delete old all logs file who's not created on the day the cron is launched. 
 
 Errors related to aa non-existent route or an existing route but with a bad request method are not
-taken into account and we only display a JSONResponse with the documentation route.
+taken into account, and we only display a JSONResponse with the documentation route.
 
 ## Crontab
 
@@ -92,3 +95,31 @@ Use the `cron.txt` file to help you with the implementation of various tasks suc
 ## Documentation
 
 The documentation is available at the `/swagger` route
+
+## Testing
+
+### Package
+
+We use the `symfony/test-pack` for Testing the project, it comes with PHPUnit.
+
+Be aware that this package is not required in production but only in dev environment
+
+### Initialization
+
+If you want to test the project you must create a `.env.test` file who's a copy of your `.env` file
+but, you need to change the `DATABASE_URL` value, usually the same database name but with the suffixe `-test`.
+
+We need to clone the current database (fulfilled) to another; we can do it with the mysqldump command:
+`mysqldump --host=127.0.0.1 --port=3306 --user=DB_USER --password=DB_PASSWORD yu-gi-oh-api | mysql -u DB_USER -p yu-gi-oh-api-test`.
+
+Launch the `UserTestFixtures` to have a user and an admin as test purposes with the command
+`php bin/console doctrine:fixtures:load --group=user-test --env=test --append`.
+
+### Run Tests
+
+After that, all you need is run the command `php bin/phpunit <directory> --process-isolation` at the root of the project,
+where `<directory>` can be `test/Controller`, `test/Entity` or `test/Service`.
+
+Be aware that some test WILL fail if you try to run it individually because they have dependencies, run `php bin/phpunit --list-groups` to find it.
+
+You can also run `php bin/phpunit --process-isolation`to run all test at once.

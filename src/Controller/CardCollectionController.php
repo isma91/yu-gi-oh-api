@@ -165,7 +165,7 @@ class CardCollectionController extends CustomAbstractController
     )]
     #[OA\Parameter(
         name: "id",
-        description: "Unique identifier of the Collection, must be your Deck.",
+        description: "Unique identifier of the Collection, must be your Collection.",
         in: "path",
         required: true,
         schema: new OA\Schema(type: "integer")
@@ -222,7 +222,7 @@ class CardCollectionController extends CustomAbstractController
     )]
     #[OA\Parameter(
         name: "id",
-        description: "Unique identifier of the Collection, must be your Deck or a public one.",
+        description: "Unique identifier of the Collection, must be your Collection or a public one.",
         in: "path",
         required: true,
         schema: new OA\Schema(type: "integer")
@@ -284,7 +284,7 @@ class CardCollectionController extends CustomAbstractController
     )]
     #[OA\Parameter(
         name: "id",
-        description: "Unique identifier of the Collection, must be your Deck.",
+        description: "Unique identifier of the Collection, must be your Collection.",
         in: "path",
         required: true,
         schema: new OA\Schema(type: "integer")

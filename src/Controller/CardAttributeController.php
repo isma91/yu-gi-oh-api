@@ -22,7 +22,7 @@ class CardAttributeController extends CustomAbstractController
             properties: [
                 new OA\Property(property: "success", type: "string"),
                 new OA\Property(
-                    property: "attribute",
+                    property: "cardAttribute",
                     type: "array",
                     items: new OA\Items(ref: "#/components/schemas/CardAttributeList")),
             ]
@@ -35,7 +35,7 @@ class CardAttributeController extends CustomAbstractController
             properties: [
                 new OA\Property(property: "error", type: "string"),
                 new OA\Property(
-                    property: "attribute",
+                    property: "cardAttribute",
                     description: "Sometimes an empty array",
                     type: "array",
                     items: new OA\Items(ref: "#/components/schemas/CardAttributeList")

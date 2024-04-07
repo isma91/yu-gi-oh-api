@@ -63,7 +63,7 @@ class Card
                 if (empty($deckUser) === TRUE) {
                     continue;
                 }
-                if ($isAdmin === FALSE && $isPublic === FALSE && $deckUser->getUsername() !== $user->getUsername()) {
+                if ($isAdmin === FALSE && $isPublic === FALSE && $deckUser["username"] !== $user->getUsername()) {
                     continue;
                 }
                 $deckList[] = $deckInfo;
