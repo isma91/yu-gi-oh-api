@@ -167,7 +167,7 @@ class Backup extends Command
             if ($zipPath !== null) {
                 $this->uploadFile($zipPath, $gzipMimeType, $currentMonthFolderId);
             }
-            $this->deleteOldLogfiles();
+            $this->deleteOldLogFiles();
         } catch (GoogleException|GoogleServiceException|JsonException|FileNotFoundException|Exception $e) {
             $this->loggerService->setException($e)
                 ->addErrorExceptionOrTrace();
@@ -284,14 +284,11 @@ class Backup extends Command
      * Delete old log file who's not current date and not the .gitkeep file
      * @return void
      */
-    protected function deleteOldLogfiles(): void
+    protected function deleteOldLogFiles(): void
     {
         $fileRegex = $this->filePrefix . "*.txt";
-        $fileExist = $this->checkIfLogfileExist($fileRegex);
-        if ($fileExist === TRUE) {
-            $cmd = sprintf("find %s -type f -not -name '%s' -not -name '.gitkeep' -delete", $this->logDir, $fileRegex);
-            exec($cmd);
-        }
+        $cmd = sprintf("find %s -type f -not -name '%s' -not -name '.gitkeep' -delete", $this->logDir, $fileRegex);
+        exec($cmd);
     }
 
     /**

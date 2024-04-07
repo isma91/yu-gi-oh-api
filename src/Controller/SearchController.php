@@ -116,12 +116,12 @@ class SearchController extends CustomAbstractController
                     ),
                     new OA\Property(
                         property: "propertyType",
-                        description: "Id of PropertyType",
+                        description: "Id of PropertyType ( monster card level type ).",
                         type: "integer",
                     ),
                     new OA\Property(
                         property: "property",
-                        description: "array with 2 element: the minimum level value and the maximum level value",
+                        description: "2 element separated with comma: the minimum level value and the maximum level value",
                         type: "string",
                         example: "2,8"
                     ),
@@ -147,6 +147,20 @@ class SearchController extends CustomAbstractController
                         description: "Ids of Race separated by a comma",
                         type: "string",
                         example: "5,6"
+                    ),
+                    new OA\Property(
+                        property: "isPendulum",
+                        description: "if the card is a Pendulum monster, leave null if it's not a monster",
+                        type: "string",
+                        example: "true",
+                        nullable: true
+                    ),
+                    new OA\Property(
+                        property: "isEffect",
+                        description: "if the card is an effect monster, leave null if it's not a monster",
+                        type: "string",
+                        example: "true",
+                        nullable: true
                     ),
                 ]
             )

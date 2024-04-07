@@ -26,12 +26,15 @@ doctrine:
             softdeleteable:
                 class: Gedmo\SoftDeleteable\Filter\SoftDeleteableFilter
                 enabled: true
+        controller_resolver:
+            auto_mapping: false
 
 when@test:
     doctrine:
         dbal:
             # "TEST_TOKEN" is typically set by ParaTest
-            dbname_suffix: '_test%env(default::TEST_TOKEN)%'
+            #dbname_suffix: '_test%env(default::TEST_TOKEN)%'
+            url: '%env(resolve:DATABASE_URL)%'
 
 when@prod:
     doctrine:
