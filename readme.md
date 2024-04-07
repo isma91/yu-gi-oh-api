@@ -120,6 +120,6 @@ Launch the `UserTestFixtures` to have a user and an admin as test purposes with 
 After that, all you need is run the command `php bin/phpunit <directory> --process-isolation` at the root of the project,
 where `<directory>` can be `test/Controller`, `test/Entity` or `test/Service`.
 
-Be aware that some test WILL fail because they have dependencies, run `php bin/phpunit --list-groups` to find it.
+Be aware that some test WILL fail if you try to run it individually because they have dependencies, run `php bin/phpunit --list-groups` to find it.
 
-You need to run theme separately because we create some entity in the database before update/get/delete.
+You can also run `php bin/phpunit --process-isolation`to run all test at once.
