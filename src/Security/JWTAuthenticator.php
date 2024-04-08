@@ -22,17 +22,14 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
 class JWTAuthenticator extends AbstractAuthenticator
 {
     private UserRepository $userRepository;
-    private ParameterBagInterface $param;
     private UserAuthService $userAuthService;
 
     public function __construct(
         UserRepository $userRepository,
-        ParameterBagInterface $param,
         UserAuthService $userAuthService
     )
     {
         $this->userRepository = $userRepository;
-        $this->param = $param;
         $this->userAuthService = $userAuthService;
     }
 
