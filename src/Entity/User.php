@@ -48,9 +48,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $token = null;
-
     #[OA\Property(
         description: "All Deck of the User",
         type: "array",
@@ -68,10 +65,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(["user_basic_info"])]
     private Collection $cardCollections;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: UserToken::class)]
+    private Collection $userTokens;
+
     public function __construct()
     {
         $this->decks = new ArrayCollection();
         $this->cardCollections = new ArrayCollection();
+        $this->userTokens = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -165,18 +166,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // $this->plainPassword = null;
     }
 
-    public function getToken(): ?string
-    {
-        return $this->token;
-    }
-
-    public function setToken(?string $token): static
-    {
-        $this->token = $token;
-
-        return $this;
-    }
-
     #[Groups(["user_list"])]
     public function getCreatedAt(): DateTime
     {
@@ -243,6 +232,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($cardCollection->getUser() === $this) {
                 $cardCollection->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, UserToken>
+     */
+    public function getUserTokens(): Collection
+    {
+        return $this->userTokens;
+    }
+
+    public function addUserToken(UserToken $userToken): static
+    {
+        if (!$this->userTokens->contains($userToken)) {
+            $this->userTokens->add($userToken);
+            $userToken->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUserToken(UserToken $userToken): static
+    {
+        if ($this->userTokens->removeElement($userToken)) {
+            // set the owning side to null (unless already changed)
+            if ($userToken->getUser() === $this) {
+                $userToken->setUser(null);
             }
         }
 

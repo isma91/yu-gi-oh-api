@@ -6,6 +6,7 @@ use App\Entity\User as UserEntity;
 use App\Service\Tool\User\ORM as UserORMService;
 use App\Service\Tool\User\Auth as UserAuthService;
 use Exception;
+use JsonException;
 
 class User
 {
@@ -28,6 +29,7 @@ class User
      * @param UserEntity $user
      * @return array
      * @throws Exception
+     * @throws JsonException
      */
     private function _getUserInfoLogin(UserEntity $user): array
     {
@@ -92,11 +94,16 @@ class User
     {
         $response = [...$this->customGenericService->getEmptyReturnResponse(), "user" => []];
         try {
-            $user = $this->userAuthService->checkJwt($jwt);
+            [
+                "user" => $user,
+                "userToken" => $userToken
+            ] = $this->userAuthService->checkJwt($jwt, TRUE);
             if ($user === NULL) {
                 $response["error"] = "No user found.";
                 return $response;
             }
+            //remove the old token
+            $this->userAuthService->logout($userToken);
             $response["user"] = $this->_getUserInfoLogin($user);
         } catch (Exception $e) {
             $this->customGenericService->addExceptionLog($e);
@@ -114,12 +121,15 @@ class User
     {
         $response = [...$this->customGenericService->getEmptyReturnResponse()];
         try {
-            $user = $this->userAuthService->checkJwt($jwt);
+            [
+                "user" => $user,
+                "userToken" => $userToken
+            ] = $this->userAuthService->checkJwt($jwt, TRUE);
             if ($user === NULL) {
                 $response["error"] = "No user found.";
                 return $response;
             }
-            $this->userAuthService->logout($user);
+            $this->userAuthService->logout($userToken);
         } catch (Exception $e) {
             $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
@@ -139,7 +149,7 @@ class User
     {
         $response = [...$this->customGenericService->getEmptyReturnResponse()];
         try {
-            $user = $this->userAuthService->checkJwt($jwt);
+            ["user" => $user] = $this->userAuthService->checkJwt($jwt);
             if ($user === NULL) {
                 $response["error"] = "No user found.";
                 return $response;
@@ -188,7 +198,7 @@ class User
                 $response["error"] = "Your new Username must be at least 3 character long !!";
                 return $response;
             }
-            $user = $this->userAuthService->checkJwt($jwt);
+            ["user" => $user] = $this->userAuthService->checkJwt($jwt);
             if ($user === NULL) {
                 $response["error"] = "No user found.";
                 return $response;
@@ -230,7 +240,7 @@ class User
     {
         $response = [...$this->customGenericService->getEmptyReturnResponse(), "user" => []];
         try {
-            $user = $this->userAuthService->checkJwt($jwt);
+            ["user" => $user] = $this->userAuthService->checkJwt($jwt);
             if ($user === NULL) {
                 $response["error"] = "No user found.";
                 return $response;

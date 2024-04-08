@@ -22,14 +22,12 @@ class User extends Fixture implements FixtureGroupInterface
         $current = new \DateTime();
         $username = "@ChangeMe@";
         $password = "@ChangeMe@";
-        $token = md5(uniqid($username, TRUE));
         $user = new UserEntity();
         $user->setUsername($username)
             ->setPassword(
                 $this->userPasswordHasher->hashPassword($user, $password)
             )
             ->addAdminRole()
-            ->setToken($token)
             ->setCreatedAt($current)
             ->setUpdatedAt($current);
         $manager->persist($user);
