@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Service\Tool\Set\ORM as SetORMService;
+use App\Entity\Set as SetEntity;
 use Exception;
 
 class Set
@@ -26,28 +27,17 @@ class Set
     }
 
     /**
-     * @param string $jwt
-     * @param int $id
+     * @param SetEntity $set
      * @return array[
      *  "error" => string,
      *  "errorDebug" => string,
      * "set" => array[mixed]
      * ]
      */
-    public function getInfo(string $jwt, int $id): array
+    public function getInfo(SetEntity $set): array
     {
         $response = [...$this->customGenericService->getEmptyReturnResponse(), "set" => []];
         try {
-            $user = $this->customGenericService->customGenericCheckJwt($jwt);
-            if ($user === NULL) {
-                $response["error"] = "No user found.";
-                return $response;
-            }
-            $set = $this->setORMService->findById($id);
-            if ($set === NULL) {
-                $response["error"] = "Set not found.";
-                return $response;
-            }
             $setSerialize = $this->customGenericService->getInfoSerialize([$set], ["set_info"])[0];
             $cardSets = $set->getCardSets();
             foreach ($cardSets as $key => $cardSet) {
