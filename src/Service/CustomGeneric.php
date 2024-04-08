@@ -61,7 +61,9 @@ class CustomGeneric
      */
     public function enableSoftDeleteable(): void
     {
-        $this->emFilters->enable($this::SOFTDELETEABLE);
+        if ($this->emFilters->isEnabled($this::SOFTDELETEABLE) === FALSE) {
+            $this->emFilters->enable($this::SOFTDELETEABLE);
+        }
     }
 
     /**
@@ -69,7 +71,9 @@ class CustomGeneric
      */
     public function disableSoftDeleteable(): void
     {
-        $this->emFilters->disable($this::SOFTDELETEABLE);
+        if ($this->emFilters->isEnabled($this::SOFTDELETEABLE) === TRUE) {
+            $this->emFilters->disable($this::SOFTDELETEABLE);
+        }
     }
 
     /**
@@ -81,16 +85,6 @@ class CustomGeneric
     public function getEmptyReturnResponse(): array
     {
         return ["error" => "", "errorDebug" => ""];
-    }
-
-    /**
-     * @param string $jwt
-     * @return UserEntity|null
-     */
-    public function checkJwt(string $jwt): ?UserEntity
-    {
-        //@todo: add new parameters after we have a minimum good backend
-        return $this->userAuthService->checkJWT($jwt);
     }
 
     /**
@@ -174,10 +168,10 @@ class CustomGeneric
      */
     public function customGenericCheckJwt(string $jwt): ?UserEntity
     {
-        if ($jwt === "") {
+        if (empty($jwt) === TRUE) {
             throw new AuthenticationException("No User found.");
         }
-        return $this->userAuthService->checkJWT($jwt);
+        return $this->userAuthService->checkJWT($jwt)["user"];
     }
     public function checkIfUserIsAdmin(UserEntity $user): bool
     {
