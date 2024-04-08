@@ -180,7 +180,7 @@ class CardCollectionController extends CustomAbstractController
         ],
         methods: ["DELETE"],
     )]
-    #[IsGranted(CardCollectionVoter::DELETE, subject: "cardCollection")]
+    #[IsGranted(CardCollectionVoter::DELETE, subject: "cardCollectionEntity")]
     public function deleteFromId(
         Request $request,
         CardCollectionEntity $cardCollectionEntity,
