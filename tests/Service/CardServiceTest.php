@@ -26,7 +26,7 @@ class CardServiceTest extends AbstractTestService
      * @return void
      * @throws EntityNotFoundException
      */
-    public function testCardGetInfoWithGoodUuid(): void
+    public function testCardGetInfo(): void
     {
         $cardRepository = self::getService(CardRepository::class);
         $cards = $cardRepository->findBy([], NULL, 1);
@@ -38,30 +38,9 @@ class CardServiceTest extends AbstractTestService
         [
             "error" => $error,
             "card" => $cardInfo
-        ] = $this->service->getCardInfo($jwt, $cardToCheck->getUuid()->__toString());
+        ] = $this->service->getCardInfo($jwt, $cardToCheck);
         $this->assertEmpty($error);
         $this->assertSame($cardInfo["id"], $cardToCheck->getId());
-    }
-
-    /**
-     * @return void
-     * @throws EntityNotFoundException
-     */
-    public function testCardGetInfoWithBadUuid(): void
-    {
-        $cardRepository = self::getService(CardRepository::class);
-        $cards = $cardRepository->findBy([], NULL, 1);
-        if (empty($cards) === TRUE) {
-            throw new EntityNotFoundException("No card found, maybe you forgot to run the Import before testing ??");
-        }
-        $cardToCheck = $cards[0];
-        $jwt = self::getJWT();
-        [
-            "error" => $error,
-            "card" => $cardInfo
-        ] = $this->service->getCardInfo($jwt, $cardToCheck->getId());
-        $this->assertNotEmpty($error);
-        $this->assertEmpty($cardInfo);
     }
 
     public function testCardGetRandom(): void

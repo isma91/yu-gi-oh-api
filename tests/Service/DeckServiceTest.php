@@ -79,7 +79,6 @@ class DeckServiceTest extends AbstractTestService
     }
 
     /**
-     * @group deck-service-check-user
      * @group deck-service-get-info
      * @group deck-service-update-public
      * @group deck-service-update-info
@@ -118,38 +117,17 @@ class DeckServiceTest extends AbstractTestService
 
     /**
      * @depends testDeckCreate
-     * @group deck-service-check-user
-     * @return void
-     * @throws EntityNotFoundException
-     */
-    public function testDeckCheckUserAndDeck(): void
-    {
-        $jwt = self::getJWT();
-        $deck = $this->getTestDeck();
-        [
-            "error" => $error,
-            "user" => $user,
-            "deck" => $duplicateDeck
-        ] = $this->service->checkUserAndDeck($jwt, $deck->getId());
-        $this->assertEmpty($error);
-        $this->assertSame($user->getUsername(), self::$userCredentialByRoleArray["user"]["username"]);
-        $this->assertSame($duplicateDeck->getId(), $deck->getId());
-    }
-
-    /**
-     * @depends testDeckCreate
      * @group deck-service-get-info
      * @return void
      * @throws EntityNotFoundException
      */
     public function testDeckGetInfo(): void
     {
-        $jwt = self::getJWT();
         $deck = $this->getTestDeck();
         [
             "error" => $error,
             "deck" => $duplicateDeck
-        ] = $this->service->getInfo($jwt, $deck->getId());
+        ] = $this->service->getInfo($deck);
         $this->assertEmpty($error);
         $this->assertSame($duplicateDeck["id"], $deck->getId());
     }
@@ -162,14 +140,13 @@ class DeckServiceTest extends AbstractTestService
      */
     public function testDeckUpdatePublic(): void
     {
-        $jwt = self::getJWT();
         $deck = $this->getTestDeck();
         $isPublicBeforeUpdate = $deck->isIsPublic();
         $publicValue = ($isPublicBeforeUpdate === TRUE) ? 0 : 1;
         [
             "error" => $error,
             "deck" => $updatedDeck
-        ] = $this->service->updatePublic($jwt, $deck->getId(), $publicValue);
+        ] = $this->service->updatePublic($deck, $publicValue);
         $this->assertEmpty($error);
         $this->assertSame($updatedDeck["id"], $deck->getId());
         $this->assertSame(!$isPublicBeforeUpdate, $updatedDeck["isPublic"]);
@@ -183,7 +160,6 @@ class DeckServiceTest extends AbstractTestService
      */
     public function testDeckUpdateInfo(): void
     {
-        $jwt = self::getJWT();
         $deck = $this->getTestDeck();
         $deckNameBeforeUpdate = $deck->getName();
         $cardSideDeckCountBeforeUpdate = $deck->getCardSideDecks()->count();
@@ -196,8 +172,7 @@ class DeckServiceTest extends AbstractTestService
         [
             "error" => $error,
         ] = $this->service->update(
-            $jwt,
-            $deck->getId(),
+            $deck,
             $deckUpdateRequest,
             $cardService,
         );
@@ -205,7 +180,7 @@ class DeckServiceTest extends AbstractTestService
         [
             "error" => $error,
             "deck" => $duplicateDeck
-        ] = $this->service->getInfo($jwt, $deck->getId());
+        ] = $this->service->getInfo($deck);
         $this->assertEmpty($error);
         $this->assertSame($duplicateDeck["id"], $deck->getId());
         $this->assertNotSame($duplicateDeck["name"], $deckNameBeforeUpdate);
@@ -220,17 +195,11 @@ class DeckServiceTest extends AbstractTestService
      */
     public function testDeckDelete(): void
     {
-        $jwt = self::getJWT();
-        $deckId = $this->getTestDeck()->getId();
+        $deck = $this->getTestDeck();
         [
             "error" => $error,
-        ] = $this->service->deleteFromId($jwt, $deckId);
+        ] = $this->service->deleteFromId($deck);
         $this->assertEmpty($error);
-        [
-            "error" => $error,
-            "deck" => $duplicateDeck
-        ] = $this->service->getInfo($jwt, $deckId);
-        $this->assertNotEmpty($error);
-        $this->assertEmpty($duplicateDeck);
+       $this->assertNull($deck->getId());
     }
 }
