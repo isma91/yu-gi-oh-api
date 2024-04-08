@@ -146,7 +146,7 @@ class Deck
     {
         $response = [...$this->customGenericService->getEmptyReturnResponse(), "deck" => []];
         try {
-            $deck->setIsPublic($publicValue);
+            $deck->setIsPublic($public === 1);
             $this->deckORMService->persist($deck);
             $this->deckORMService->flush();
             $response["deck"] = $this->customGenericService->getInfoSerialize([$deck], ["deck_info", "card_info"])[0];

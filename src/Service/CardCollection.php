@@ -142,8 +142,7 @@ class CardCollection
     }
 
     /**
-     * @param string $jwt
-     * @param int $id
+     * @param CardCollectionEntity $cardCollection
      * @param int $public
      * @return array[
      * "error" => string,
