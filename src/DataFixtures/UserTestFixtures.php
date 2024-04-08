@@ -29,7 +29,6 @@ class UserTestFixtures extends Fixture implements FixtureGroupInterface
                 $this->userPasswordHasher->hashPassword($userTestAdmin, $password)
             )
             ->addAdminRole()
-            ->setToken(md5(uniqid($usernameTestAdmin, TRUE)))
             ->setCreatedAt($current)
             ->setUpdatedAt($current);
         $manager->persist($userTestAdmin);
@@ -38,7 +37,6 @@ class UserTestFixtures extends Fixture implements FixtureGroupInterface
             ->setPassword(
                 $this->userPasswordHasher->hashPassword($userTestUser, $password)
             )
-            ->setToken(md5(uniqid($usernameTestUser, TRUE)))
             ->setCreatedAt($current)
             ->setUpdatedAt($current);
         $manager->persist($userTestUser);
