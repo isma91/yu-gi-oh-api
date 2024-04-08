@@ -26,13 +26,4 @@ class ORM extends AbstractORM
     {
         return $this->ORMSearch;
     }
-
-    /**
-     * @param string $uuid
-     * @return Set|null
-     */
-    public function findByUuid(string $uuid): ?Set
-    {
-        return $this->repository->findOneBy(["uuid" => $uuid]);
-    }
 }

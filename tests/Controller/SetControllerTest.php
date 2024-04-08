@@ -69,8 +69,8 @@ class SetControllerTest extends AbstractWebTestCase
             "status" => $status,
             "content" => $content
         ] = static::runProtectedRoute($this->baseUrl . "/info/" . $setId);
-        $this->assertSame(Response::HTTP_BAD_REQUEST, $status);
-        $this->assertEmpty($content["data"]["set"]);
+        $this->assertSame(Response::HTTP_NOT_FOUND, $status);
+        $this->assertEmpty($content["data"]);
     }
 
     /**

@@ -35,14 +35,4 @@ class ORM extends AbstractORM
     {
         return $this->ORMSearch;
     }
-
-    /**
-     * @param User $user
-     * @param int $id
-     * @return Deck|null
-     */
-    public function findByIdAndUser(User $user, int $id): ?Deck
-    {
-        return $this->repository->findOneBy(["user" => $user, "id" => $id]);
-    }
 }

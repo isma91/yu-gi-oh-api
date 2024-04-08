@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Controller\Abstract\CustomAbstractController;
+use App\Entity\Set as SetEntity;
 use Nelmio\ApiDocBundle\Annotation\Areas;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security;
@@ -61,17 +62,16 @@ class SetController extends CustomAbstractController
         methods: ["GET"],
     )]
     public function getInfo(
-        int $id,
         Request $request,
+        SetEntity $setEntity,
         SetService $setService
     ): JsonResponse
     {
-        $jwt = $this->getJwt($request);
         [
             "error" => $error,
             "errorDebug" => $errorDebug,
             "set" => $set
-        ] = $setService->getInfo($jwt, $id);
+        ] = $setService->getInfo($setEntity);
         $data = ["set" => $set];
         if ($error !== "") {
             return $this->sendError($error, $errorDebug, $data);

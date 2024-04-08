@@ -37,48 +37,6 @@ class CardCollection
 
     /**
      * @param string $jwt
-     * @param int $id
-     * @return array[
-     * "error" => string,
-     * "errorDebug" => string,
-     * "user" => null|UserEntity,
-     * "collection" => null|CardCollectionEntity,
-     * ]
-     */
-    public function checkUserAndCollection(string $jwt, int $id): array
-    {
-        $response = [
-            ...$this->customGenericService->getEmptyReturnResponse(),
-            "user" => NULL,
-            "collection" => NULL
-        ];
-        $user = $this->customGenericService->customGenericCheckJwt($jwt);
-        if ($user === NULL) {
-            $response["error"] = "No user found.";
-            return $response;
-        }
-        $response["user"] = $user;
-        $collection = $this->cardCollectionORMService->findById($id);
-        if ($collection === NULL) {
-            $response["error"] = "Collection not found.";
-            return $response;
-        }
-        $collectionUser = $collection->getUser();
-        if ($collectionUser === NULL) {
-            $this->customGenericService->addErrorMessageLog(
-                sprintf(
-                    "No User found for Collection id => %d", $collection->getId()
-                )
-            );
-            $response["error"] = "Collection not available.";
-            return $response;
-        }
-        $response["collection"] = $collection;
-        return $response;
-    }
-
-    /**
-     * @param string $jwt
      * @param array $parameter
      * @param Card $cardService
      * @param Country $countryService
@@ -134,38 +92,16 @@ class CardCollection
     }
 
     /**
-     * @param string $jwt
-     * @param int $id
+     * @param CardCollectionEntity $cardCollection
      * @return array[
      * "error" => string,
      * "errorDebug" => string,
      * "collection" => array[mixed]
      */
-    public function getInfo(string $jwt, int $id):array
+    public function getInfo(CardCollectionEntity $cardCollection):array
     {
         $response = [...$this->customGenericService->getEmptyReturnResponse(), "collection" => []];
         try {
-            [
-                "error" => $errorCheckUserCollection,
-                "errorDebug" => $errorDebugCheckUserCollection,
-                "user" => $user,
-                "collection" => $cardCollection,
-            ] = $this->checkUserAndCollection($jwt, $id);
-            if (empty($errorCheckUserCollection) === FALSE) {
-                $response["error"] = $errorCheckUserCollection;
-                $response["errorDebug"] = $errorDebugCheckUserCollection;
-                return $response;
-            }
-            $collectionUser = $cardCollection->getUser();
-            $isAdmin = $this->customGenericService->checkIfUserIsAdmin($user);
-            if (
-                $isAdmin === FALSE &&
-                $cardCollection->isIsPublic() === FALSE &&
-                $collectionUser->getId() !== $user->getId()
-            ) {
-                $response["error"] = "Collection not available.";
-                return $response;
-            }
             $response["collection"] = $this->customGenericService
                 ->getInfoSerialize(
                     [$cardCollection],
@@ -180,33 +116,15 @@ class CardCollection
     }
 
     /**
-     * @param string $jwt
-     * @param int $id
+     * @param CardCollectionEntity $cardCollection
      * @return array[
      * "error" => string,
      * "errorDebug" => string,
      */
-    public function deleteFromId(string $jwt, int $id):array
+    public function deleteFromId(CardCollectionEntity $cardCollection):array
     {
         $response = [...$this->customGenericService->getEmptyReturnResponse()];
         try {
-            [
-                "error" => $errorCheckUserCollection,
-                "errorDebug" => $errorDebugCheckUserCollection,
-                "user" => $user,
-                "collection" => $cardCollection,
-            ] = $this->checkUserAndCollection($jwt, $id);
-            if (empty($errorCheckUserCollection) === FALSE) {
-                $response["error"] = $errorCheckUserCollection;
-                $response["errorDebug"] = $errorDebugCheckUserCollection;
-                return $response;
-            }
-            $collectionUser = $cardCollection->getUser();
-            $isAdmin = $this->customGenericService->checkIfUserIsAdmin($user);
-            if ($isAdmin === FALSE && $collectionUser->getId() !== $user->getId()) {
-                $response["error"] = "Collection not available.";
-                return $response;
-            }
             $cardCollection = $this->cardCollectionEntityService
                 ->removeCardCardCollection(
                     $cardCollection,
@@ -224,41 +142,18 @@ class CardCollection
     }
 
     /**
-     * @param string $jwt
-     * @param int $id
+     * @param CardCollectionEntity $cardCollection
      * @param int $public
      * @return array[
      * "error" => string,
      * "errorDebug" => string,
      * "collection" => array[mixed]
      */
-    public function updatePublic(string $jwt, int $id, int $public):array
+    public function updatePublic(CardCollectionEntity $cardCollection, int $public):array
     {
         $response = [...$this->customGenericService->getEmptyReturnResponse(), "collection" => []];
         try {
-            [
-                "error" => $errorCheckUserCollection,
-                "errorDebug" => $errorDebugCheckUserCollection,
-                "user" => $user,
-                "collection" => $cardCollection,
-            ] = $this->checkUserAndCollection($jwt, $id);
-            if (empty($errorCheckUserCollection) === FALSE) {
-                $response["error"] = $errorCheckUserCollection;
-                $response["errorDebug"] = $errorDebugCheckUserCollection;
-                return $response;
-            }
-            $collectionUser = $cardCollection->getUser();
-            $isAdmin = $this->customGenericService->checkIfUserIsAdmin($user);
-            if (
-                $isAdmin === FALSE &&
-                $cardCollection->isIsPublic() === FALSE &&
-                $collectionUser->getId() !== $user->getId()
-            ) {
-                $response["error"] = "Collection not available.";
-                return $response;
-            }
-            $publicValue = $public === 1;
-            $cardCollection->setIsPublic($publicValue);
+            $cardCollection->setIsPublic($public === 1);
             $this->cardCollectionORMService->persist($cardCollection);
             $this->cardCollectionORMService->flush();
             $response["collection"] = $this->customGenericService
@@ -270,14 +165,13 @@ class CardCollection
         } catch (Exception $e) {
             $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
-            $response["error"] = "Error while getting Collection.";
+            $response["error"] = "Error while updating and getting Collection.";
         }
         return $response;
     }
 
     /**
-     * @param string $jwt
-     * @param int $id
+     * @param CardCollectionEntity $cardCollection
      * @param array $parameter
      * @param Card $cardService
      * @param Country $countryService
@@ -286,8 +180,7 @@ class CardCollection
      * "errorDebug" => string,
      */
     public function update(
-        string $jwt,
-        int $id,
+        CardCollectionEntity $cardCollection,
         array $parameter,
         CardService $cardService,
         CountryService $countryService
@@ -295,27 +188,6 @@ class CardCollection
     {
         $response = [...$this->customGenericService->getEmptyReturnResponse()];
         try {
-            [
-                "error" => $errorCheckUserCollection,
-                "errorDebug" => $errorDebugCheckUserCollection,
-                "user" => $user,
-                "collection" => $cardCollection,
-            ] = $this->checkUserAndCollection($jwt, $id);
-            if (empty($errorCheckUserCollection) === FALSE) {
-                $response["error"] = $errorCheckUserCollection;
-                $response["errorDebug"] = $errorDebugCheckUserCollection;
-                return $response;
-            }
-            $collectionUser = $cardCollection->getUser();
-            $isAdmin = $this->customGenericService->checkIfUserIsAdmin($user);
-            if (
-                $isAdmin === FALSE &&
-                $cardCollection->isIsPublic() === FALSE &&
-                $collectionUser->getId() !== $user->getId()
-            ) {
-                $response["error"] = "Collection not available.";
-                return $response;
-            }
             [
                 "name" => $name,
                 "isPublic" => $isPublic,
@@ -326,8 +198,7 @@ class CardCollection
             $countryORMService = $countryService->getORMService();
             $cardCollection->setName($name)
                 ->setSlugName($this->customGenericService->slugify($name))
-                ->setIsPublic($isPublic)
-                ->setUser($user);
+                ->setIsPublic($isPublic);
             $cardCollectionArray["artwork"] = $artwork;
             $cardCollection = $this->cardCollectionEntityService->removeCardCardCollection(
                 $cardCollection,
@@ -340,7 +211,6 @@ class CardCollection
                 $countryORMService,
                 $this->cardCollectionORMService
             );
-            $user->addCardCollection($cardCollection);
             $this->cardCollectionORMService->persist($cardCollection);
             $this->cardCollectionORMService->flush();
             $this->customGenericService->addInfoLogFromDebugBacktrace();

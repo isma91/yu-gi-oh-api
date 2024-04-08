@@ -3,7 +3,10 @@
 namespace App\Controller;
 
 use App\Controller\Abstract\CustomAbstractController;
+use App\Entity\Card as CardEntity;
 use App\Service\CardPicture as CardPictureService;
+use App\Entity\CardPicture as CardPictureEntity;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -50,13 +53,15 @@ class CardPictureController extends CustomAbstractController
         methods: ["GET"])
     ]
     public function displayCardPicture(
-        string $uuid,
-        int $idYGO,
+        #[MapEntity(mapping: ["uuid" => "uuid"])]
+        CardEntity $cardEntity,
+        #[MapEntity(mapping: ["idYGO" => "idYGO"])]
+        CardPictureEntity $cardPictureEntity,
         string $name,
         Request $request,
         CardPictureService $cardPictureService
     ): BinaryFileResponse
     {
-        return new BinaryFileResponse($cardPictureService->getPicture($uuid, $idYGO, $name));
+        return new BinaryFileResponse($cardPictureService->getPicture($cardEntity, $cardPictureEntity, $name));
     }
 }
