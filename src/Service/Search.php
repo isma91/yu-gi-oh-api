@@ -9,10 +9,12 @@ use App\Service\Category as CategoryService;
 use App\Service\PropertyType as PropertyTypeService;
 use App\Service\SubPropertyType as SubPropertyTypeService;
 use App\Service\SubType as SubTypeService;
+use App\Service\Tool\ORMSearch;
 use App\Service\Type as TypeService;
 use App\Service\Deck as DeckService;
 use App\Service\Set as SetService;
 use App\Service\CardCollection as CardCollectionService;
+use DateTime;
 use Exception;
 
 class Search
@@ -96,7 +98,6 @@ class Search
     ): array
     {
         [
-            "name" => $name,
             "archetype" => $archetypeIdArray,
             "cardAttribute" => $cardAttributeIdArray,
             "category" => $categoryId,
@@ -116,9 +117,6 @@ class Search
         }
         if (empty($isEffectMonsterValueString) === FALSE && $isEffectMonsterValueString !== "null") {
             $filter["isEffect"] = $isEffectMonsterValueString === "true";
-        }
-        if (empty($name) === FALSE) {
-            $filter["slugName"] = $this->customGenericService->slugify($name);
         }
         $filter = $this->fulfillFilterForCardFromEntityIdArray(
             $filter,
@@ -204,6 +202,53 @@ class Search
     /**
      * @param string $jwt
      * @param array $parameter
+     * @param ORMSearch $ORMSearch
+     * @param bool $addUser
+     * @return array
+     */
+    public function fulfillBasicSearch(
+        string $jwt,
+        array $parameter,
+        ORMSearch $ORMSearch,
+        bool $addUser = FALSE
+    ): array
+    {
+        $response = [
+            ...$this->customGenericService->getEmptyReturnResponse(),
+            'filter' => []
+        ];
+        $user = $this->customGenericService->customGenericCheckJwt($jwt);
+        if ($user === NULL) {
+            $response["error"] = "No user found.";
+            return $response;
+        }
+        [
+            "offset" => $offset,
+            "limit" => $limit,
+            "name" => $name,
+        ] = $parameter;
+        $filter = [];
+        if ($addUser === TRUE) {
+            $filter  = [
+                "user" => $user
+            ];
+        }
+        if (empty($offset) === FALSE) {
+            $ORMSearch->offset = $offset;
+        }
+        if (empty($limit) === FALSE) {
+            $ORMSearch->limit = $limit;
+        }
+        if (empty($name) === FALSE) {
+            $filter["slugName"] = $this->customGenericService->slugify($name);
+        }
+        $response["filter"] = $filter;
+        return $response;
+    }
+
+    /**
+     * @param string $jwt
+     * @param array $parameter
      * @param Card $cardService
      * @param Archetype $archetypeService
      * @param CardAttribute $cardAttributeService
@@ -238,23 +283,16 @@ class Search
             "cardAllResultCount" => 0
         ];
         try {
+            $cardORMSearchService = $cardService->getORMService()->getORMSearch();
             [
-                "offset" => $offset,
-                "limit" => $limit,
-            ] = $parameter;
-            $user = $this->customGenericService->customGenericCheckJwt($jwt);
-            if ($user === NULL) {
-                $response["error"] = "No user found.";
+                "error" => $error,
+                "filter" => $filter
+            ] = $this->fulfillBasicSearch($jwt, $parameter, $cardORMSearchService);
+            if ($error !== "") {
+                $response["error"] = $error;
                 return $response;
             }
-            $cardORMSearchService = $cardService->getORMService()->getORMSearch();
-            if ($offset > 0) {
-                $cardORMSearchService->offset = $offset;
-            }
-            if ($limit > 0) {
-                $cardORMSearchService->limit = $limit;
-            }
-            $filter = $this->createFilterForCard(
+            $filterCard = $this->createFilterForCard(
                 $parameter,
                 $archetypeService,
                 $cardAttributeService,
@@ -264,6 +302,7 @@ class Search
                 $subTypeService,
                 $typeService
             );
+            $filter = array_merge($filter, $filterCard);
             $cardResultArray = $cardORMSearchService->findFromSearchFilter($filter);
             $newCardArray = [];
             foreach ($cardResultArray as $card) {
@@ -306,28 +345,14 @@ class Search
             "deckAllResultCount" => 0
         ];
         try {
-            $user = $this->customGenericService->customGenericCheckJwt($jwt);
-            if ($user === NULL) {
-                $response["error"] = "No user found.";
-                return $response;
-            }
-            [
-                "offset" => $offset,
-                "limit" => $limit,
-                "name" => $name,
-            ] = $parameter;
-            $filter  = [
-                "user" => $user
-            ];
             $deckORMSearch = $deckService->getORMService()->getORMSearch();
-            if (empty($offset) === FALSE) {
-                $deckORMSearch->offset = $offset;
-            }
-            if (empty($limit) === FALSE) {
-                $deckORMSearch->limit = $limit;
-            }
-            if (empty($name) === FALSE) {
-                $filter["slugName"] = $this->customGenericService->slugify($name);
+            [
+                "error" => $error,
+                "filter" => $filter
+            ] = $this->fulfillBasicSearch($jwt, $parameter, $deckORMSearch, TRUE);
+            if ($error !== "") {
+                $response["error"] = $error;
+                return $response;
             }
             $deck = $deckORMSearch->findFromSearchFilter($filter);
             $response["deck"] = $this->customGenericService->getInfoSerialize($deck, ["deck_user_list"]);
@@ -359,31 +384,21 @@ class Search
             "setAllResultCount" => 0
         ];
         try {
-            $user = $this->customGenericService->customGenericCheckJwt($jwt);
+            $setORMSearch = $setService->getORMService()->getORMSearch();
             $minYear = 1900;
             $maxYear = 2100;
-            if ($user === NULL) {
-                $response["error"] = "No user found.";
-                return $response;
-            }
             [
-                "offset" => $offset,
-                "limit" => $limit,
-                "name" => $name,
                 "code" => $code,
                 "yearBegin" => $yearBegin,
                 "yearEnd" => $yearEnd,
             ] = $parameter;
-            $filter  = [];
-            $setORMSearch = $setService->getORMService()->getORMSearch();
-            if (empty($offset) === FALSE) {
-                $setORMSearch->offset = $offset;
-            }
-            if (empty($limit) === FALSE) {
-                $setORMSearch->limit = $limit;
-            }
-            if (empty($name) === FALSE) {
-                $filter["slugName"] = $this->customGenericService->slugify($name);
+            [
+                "error" => $error,
+                "filter" => $filter
+            ] = $this->fulfillBasicSearch($jwt, $parameter, $setORMSearch);
+            if ($error !== "") {
+                $response["error"] = $error;
+                return $response;
             }
             if (empty($code) === FALSE) {
                 $filter["code"] = strtoupper($code);
@@ -401,10 +416,10 @@ class Search
                     $filter["dateBegin"] = $filterYearEnd;
                     $filter["dateEnd"] = $filterYearBegin;
                 }
-                $dateTimeBegin = new \DateTime();
+                $dateTimeBegin = new DateTime();
                 $dateTimeBegin->setDate($yearBegin, 01, 01)
                     ->setTime(00, 00, 00);
-                $dateTimeEnd = new \DateTime();
+                $dateTimeEnd = new DateTime();
                 $dateTimeEnd->setDate($yearEnd, 12, 31)
                     ->setTime(23, 59, 59);
                 $filter["dateBegin"] = $dateTimeBegin;
@@ -444,28 +459,14 @@ class Search
             "collectionAllResultCount" => 0
         ];
         try {
-            $user = $this->customGenericService->customGenericCheckJwt($jwt);
-            if ($user === NULL) {
-                $response["error"] = "No user found.";
-                return $response;
-            }
-            [
-                "offset" => $offset,
-                "limit" => $limit,
-                "name" => $name,
-            ] = $parameter;
-            $filter  = [
-                "user" => $user
-            ];
             $cardCollectionORMSearch = $cardCollectionService->getORMService()->getORMSearch();
-            if (empty($offset) === FALSE) {
-                $cardCollectionORMSearch->offset = $offset;
-            }
-            if (empty($limit) === FALSE) {
-                $cardCollectionORMSearch->limit = $limit;
-            }
-            if (empty($name) === FALSE) {
-                $filter["slugName"] = $this->customGenericService->slugify($name);
+            [
+                "error" => $error,
+                "filter" => $filter
+            ] = $this->fulfillBasicSearch($jwt, $parameter, $cardCollectionORMSearch, TRUE);
+            if ($error !== "") {
+                $response["error"] = $error;
+                return $response;
             }
             $deck = $cardCollectionORMSearch->findFromSearchFilter($filter);
             $response["collection"] = $this->customGenericService->getInfoSerialize($deck, ["collection_user_list"]);
