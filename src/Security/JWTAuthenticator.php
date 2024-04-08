@@ -2,6 +2,7 @@
 
 namespace App\Security;
 
+use App\Service\Tool\User\Auth as UserAuthService;
 use App\Repository\UserRepository;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -22,11 +23,17 @@ class JWTAuthenticator extends AbstractAuthenticator
 {
     private UserRepository $userRepository;
     private ParameterBagInterface $param;
+    private UserAuthService $userAuthService;
 
-    public function __construct(UserRepository $userRepository, ParameterBagInterface $param)
+    public function __construct(
+        UserRepository $userRepository,
+        ParameterBagInterface $param,
+        UserAuthService $userAuthService
+    )
     {
         $this->userRepository = $userRepository;
         $this->param = $param;
+        $this->userAuthService = $userAuthService;
     }
 
     /**
@@ -98,16 +105,12 @@ class JWTAuthenticator extends AbstractAuthenticator
         try {
             $bearer = $request->headers->get('Authorization');
             $credentials = str_replace('Bearer ', '', $bearer);
-            $jwtKey = new Key(
-                $this->param->get("JWT_SECRET"),
-                $this->param->get("JWT_ALGO"),
-            );
-            [
-                "username" => $username,
-                "token" => $token
-            ] = (array)JWT::decode($credentials, $jwtKey);
+            ["user" => $userEntity] = $this->userAuthService->checkJWT($credentials);
+            if ($userEntity === NULL) {
+                throw new UserNotFoundException("");
+            }
             $userBadge = new UserBadge(
-                $username,
+                $userEntity->getUserIdentifier(),
                 function (string $userIdentifier): ?UserInterface
                 {
                     return $this->userRepository->findOneBy(['username' => $userIdentifier]);
