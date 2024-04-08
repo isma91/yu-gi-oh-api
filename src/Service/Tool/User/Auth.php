@@ -2,29 +2,37 @@
 
 namespace App\Service\Tool\User;
 
-
 use App\Entity\User as UserEntity;
+use App\Entity\UserToken as UserTokenEntity;
 use App\Service\Tool\User\ORM as UserORMService;
+use App\Service\Tool\UserToken\ORM as UserTokenORMService;
+use DateTime;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
+use JsonException;
+use RuntimeException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Uid\Uuid;
 
 class Auth
 {
     private ParameterBagInterface $param;
     private UserPasswordHasherInterface $userPasswordHasher;
     private UserORMService $userORMService;
+    private UserTokenORMService $userTokenORMService;
 
     public function __construct(
         ParameterBagInterface $param,
         UserPasswordHasherInterface $userPasswordHasher,
-        UserORMService $userORMService
+        UserORMService $userORMService,
+        UserTokenORMService $userTokenORMService
     )
     {
         $this->param = $param;
         $this->userPasswordHasher = $userPasswordHasher;
         $this->userORMService = $userORMService;
+        $this->userTokenORMService = $userTokenORMService;
     }
 
     /**
@@ -38,12 +46,86 @@ class Auth
     }
 
     /**
-     * @param string $username
-     * @return string
+     * Create an array with some user info from server
+     * @return array
      */
-    private function _generateToken(string $username): string
+    private function _createUserTokenInfo(): array
     {
-        return md5(uniqid($username, TRUE));
+        $ip1 = $_SERVER['REMOTE_ADDR'] ?? "";
+        $ip2 = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? "";
+        $ip3 = $_SERVER['HTTP_REMOTE_IP'] ?? "";
+        if (($ip1 === $ip2) && ($ip2 === $ip3)) {
+            $ip = $ip1;
+        } else {
+            $ip = sprintf("%s-%s-%s", $ip1, $ip2, $ip3);
+        }
+        $infoKey = [
+            'REMOTE_ADDR',
+            'HTTP_X_FORWARDED_FOR',
+            'HTTP_REMOTE_IP',
+            'HTTP_USER_AGENT',
+            'HTTP_ACCEPT_LANGUAGE',
+            'HTTP_ACCEPT_ENCODING',
+            'HTTP_REFERER',
+            'HTTP_X_FORWARDED_PROTO',
+            'GEOIP_LATITUDE',
+            'GEOIP_LONGITUDE',
+            'GEOIP_CITY',
+            'GEOIP_COUNTRY_NAME',
+        ];
+        $info = [
+            "ip" => $ip,
+        ];
+        foreach ($infoKey as $key) {
+            $value = "";
+            if (empty($_SERVER[$key]) === FALSE)  {
+                $value = $_SERVER[$key];
+            }
+            $info[$key] = $value;
+        }
+        return $info;
+    }
+
+    /**
+     * Create fingerprint to see if a user is the same
+     * @param array $userTokenInfo
+     * @return string
+     * @throws JsonException
+     */
+    private function _createFingerprint(array $userTokenInfo): string
+    {
+        $infoFingerprint = [
+            "ip" => $userTokenInfo["ip"],
+            "HTTP_USER_AGENT" => $userTokenInfo["HTTP_USER_AGENT"],
+            "HTTP_ACCEPT_LANGUAGE" => $userTokenInfo['HTTP_ACCEPT_LANGUAGE'],
+            "HTTP_ACCEPT_ENCODING" => $userTokenInfo['HTTP_ACCEPT_ENCODING'],
+        ];
+        return hash('sha256', json_encode($infoFingerprint, JSON_THROW_ON_ERROR));
+    }
+
+    /**
+     * Create a UserToken entity
+     * @param UserEntity $user
+     * @return UserTokenEntity
+     * @throws JsonException
+     */
+    private function _generateUserToken(UserEntity $user): UserTokenEntity
+    {
+        $userIdentifier = $user->getUserIdentifier();
+        $userTokenEntity = new UserTokenEntity();
+        $token = md5(uniqid($userIdentifier, TRUE));
+        $userTokenInfo = $this->_createUserTokenInfo();
+        $fingerprint = $this->_createFingerprint($userTokenInfo);
+        $expDatetime = new DateTime();
+        $expDatetime->modify("+ 1 month");
+        return $userTokenEntity->setToken($token)
+            ->setInfo($userTokenInfo)
+            ->setFingerprint($fingerprint)
+            ->setUuid(Uuid::v7())
+            ->setExpiratedAt($expDatetime)
+            ->setUser($user)
+            ->setCreatedAt(new DateTime())
+            ->setUpdatedAt(new DateTime());
     }
 
     /**
@@ -58,15 +140,27 @@ class Auth
     }
 
     /**
-     * @param string $userIdentifier
-     * @param string $token
+     * Create a JWT with date who's going to be active and an expiration date
+     * @param UserTokenEntity $userTokenEntity
      * @return string
      */
-    private function _generateJWT(string $userIdentifier, string $token): string
+    private function _generateJWT(UserTokenEntity $userTokenEntity): string
     {
+        $user = $userTokenEntity->getUser();
+        $userTokenCreatedAt = $userTokenEntity->getCreatedAt();
+        $userTokenExpiratedAt = $userTokenEntity->getExpiratedAt();
+        if ($user === NULL) {
+            throw new RuntimeException("User not found in UserToken.");
+        }
+        if ($userTokenCreatedAt === NULL || $userTokenExpiratedAt === NULL) {
+            throw new RuntimeException("UserToken don't have some mandatory date.");
+        }
+        $userIdentifier = $user->getUserIdentifier();
         $payload = [
             "username" => $userIdentifier,
-            "token" => $token,
+            "token" => $userTokenEntity->getToken(),
+            "nbf" => $userTokenCreatedAt->getTimestamp(),
+            "exp" => $userTokenExpiratedAt->getTimestamp()
         ];
         [
             "algo" =>  $JWT_ALGO,
@@ -77,20 +171,18 @@ class Auth
 
     /**
      * @param UserEntity $user
-     * @return array[
-     * "jwt" => string,
-     * "token" => string
-     * ]
+     * @return string
+     * @throws JsonException
      */
-    private function _refreshTokenAndJWT(UserEntity $user): array
+    private function _refreshTokenAndJWT(UserEntity $user): string
     {
-        $userIdentifier = $user->getUserIdentifier();
-        $token = $this->_generateToken($userIdentifier);
-        $jwt = $this->_generateJWT($userIdentifier, $token);
-        $user->setToken($token);
+        $userToken = $this->_generateUserToken($user);
+        $jwt = $this->_generateJWT($userToken);
+        $user->addUserToken($userToken);
         $this->userORMService->persist($user);
+        $this->userORMService->persist($userToken);
         $this->userORMService->flush();
-        return ["jwt" => $jwt, "token" => $token];
+        return $jwt;
     }
 
     /**
@@ -99,31 +191,75 @@ class Auth
      * "jwt" => string,
      * "role" => string,
      * ]
+     * @throws JsonException
      */
     public function loginAndGetInfo(UserEntity $user): array
     {
-        ["jwt" => $jwt] = $this->_refreshTokenAndJWT($user);
+        $jwt = $this->_refreshTokenAndJWT($user);
         $userMaxRole = $this->getMaxRole($user->getRoles());
         $roleFrontName = $this->param->get($userMaxRole);
         return ["jwt" => $jwt, "role" => $roleFrontName];
     }
 
     /**
+     * Get info from JWT to check in our database if it's expirated nor too soon
      * @param string $jwt
-     * @return UserEntity|null
+     * @param bool $addUserToken
+     * @return array[
+     * "user" => UserEntity|null,
+     * "userToken" => UserTokenEntity|null
+     * ]
      */
-    public function checkJWT(string $jwt): ?UserEntity
+    public function checkJWT(string $jwt, bool $addUserToken = FALSE): array
     {
+        $response = ["user" => NULL, "userToken" => NULL];
         [
             "algo" =>  $JWT_ALGO,
             "secret" =>  $JWT_SECRET,
         ] = $this->_getJWTParam();
         $JWT_KEY = new Key($JWT_SECRET, $JWT_ALGO);
+        $decodedJwt = (array)JWT::decode($jwt, $JWT_KEY);
         [
             "username" => $username,
             "token" => $token
-        ] = (array)JWT::decode($jwt, $JWT_KEY);
-        return $this->userORMService->findByUserIdentifiant($username);
+        ] = $decodedJwt;
+        $currentDateTime = new DateTime();
+        $currentTimestamp = $currentDateTime->getTimestamp();
+        $notBeforeTimestamp = NULL;
+        $expirationTimestamp = NULL;
+        if (empty($decodedJwt["nbf"]) === FALSE) {
+            $notBeforeTimestamp = $decodedJwt["nbf"];
+        }
+        if (empty($decodedJwt["exp"]) === FALSE) {
+            $expirationTimestamp = $decodedJwt["exp"];
+        }
+        if ($notBeforeTimestamp !== NULL && $notBeforeTimestamp > $currentTimestamp) {
+            return $response;
+        }
+        if ($expirationTimestamp !== NULL && $expirationTimestamp < $currentTimestamp) {
+            return $response;
+        }
+        $userEntity = $this->userORMService->findByUserIdentifiant($username);
+        if ($userEntity === NULL) {
+            return $response;
+        }
+        $userToken = $this->userTokenORMService->findByUserAndToken($userEntity, $token);
+        if ($userToken === NULL) {
+            return $response;
+        }
+        $createdDateTime = $userToken->getCreatedAt();
+        $expirationDateTime = $userToken->getExpiratedAt();
+        if ($createdDateTime === NULL || $expirationDateTime === NULL) {
+            throw new RuntimeException("Some mandatory datetime are missing from UserToken");
+        }
+        if ($createdDateTime > $currentDateTime || $expirationDateTime < $currentDateTime) {
+            return $response;
+        }
+        $response["user"] = $userEntity;
+        if ($addUserToken === TRUE) {
+            $response["userToken"] = $userToken;
+        }
+        return $response;
     }
 
     public function checkIsAdmin(UserEntity $user): bool
@@ -183,13 +319,12 @@ class Auth
     }
 
     /**
-     * @param UserEntity $user
+     * @param UserTokenEntity $userToken
      * @return void
      */
-    public function logout(UserEntity $user): void
+    public function logout(UserTokenEntity $userToken): void
     {
-        $user->setToken(NULL);
-        $this->userORMService->persist($user);
+        $this->userORMService->remove($userToken);
         $this->userORMService->flush();
     }
 }
