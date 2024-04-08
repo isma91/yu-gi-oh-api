@@ -215,7 +215,7 @@ class CardCollectionControllerTest extends AbstractWebTestCase
             "status" => $status,
             "content" => $content
         ] = self::runProtectedRoute($this->baseUrl . "/info/" . $cardCollection->getId());
-        $this->assertSame(Response::HTTP_BAD_REQUEST, $status);
-        $this->assertEmpty($content["data"]["collection"]);
+        $this->assertSame(Response::HTTP_NOT_FOUND, $status);
+        $this->assertEmpty($content["data"]);
     }
 }

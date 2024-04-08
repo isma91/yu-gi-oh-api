@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Service\Tool\Card\ORM as CardORMService;
+use App\Entity\Card as CardEntity;
 use Exception;
 
 class Card
@@ -27,14 +28,14 @@ class Card
 
     /**
      * @param string $jwt
-     * @param string $cardUuid
+     * @param CardEntity $card
      * @return array[
      *   "error" => string,
      *   "errorDebug" => string,
      *   "card" => array[mixed]|null,
      * ]
      */
-    public function getCardInfo(string $jwt, string $cardUuid): array
+    public function getCardInfo(string $jwt, CardEntity $card): array
     {
         $response = [
             ...$this->customGenericService->getEmptyReturnResponse(),
@@ -44,11 +45,6 @@ class Card
             $user = $this->customGenericService->customGenericCheckJwt($jwt);
             if ($user === NULL) {
                 $response["error"] = "No user found.";
-                return $response;
-            }
-            $card = $this->cardORMService->findByUuid($cardUuid);
-            if ($card === NULL) {
-                $response["error"] = "Card not found.";
                 return $response;
             }
             $isAdmin = $this->customGenericService->checkIfUserIsAdmin($user);

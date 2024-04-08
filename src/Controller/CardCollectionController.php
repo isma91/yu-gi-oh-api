@@ -3,8 +3,8 @@
 namespace App\Controller;
 
 use App\Controller\Abstract\CustomAbstractController;
-use Nelmio\ApiDocBundle\Annotation\Areas;
-use Nelmio\ApiDocBundle\Annotation\Model;
+use App\Entity\CardCollection as CardCollectionEntity;
+use App\Security\Voter\CardCollectionVoter;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,6 +16,7 @@ use App\Service\Card as CardService;
 use App\Service\Country as CountryService;
 use OpenApi\Attributes as OA;
 use Symfony\Component\Routing\Requirement\Requirement;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[OA\Tag(name: "Card Collection")]
 #[Route("/card-collection", name: "api_card_collection")]
@@ -126,18 +127,18 @@ class CardCollectionController extends CustomAbstractController
         ],
         methods: ["GET"]
     )]
+    #[IsGranted(CardCollectionVoter::INFO, subject: "cardCollectionEntity")]
     public function getInfo(
-        int $id,
         Request $request,
+        CardCollectionEntity $cardCollectionEntity,
         CardCollectionService $cardCollectionService
     ): JsonResponse
     {
-        $jwt = $this->getJwt($request);
         [
             "error" => $error,
             "errorDebug" => $errorDebug,
             "collection" => $collection,
-        ] = $cardCollectionService->getInfo($jwt, $id);
+        ] = $cardCollectionService->getInfo($cardCollectionEntity);
         $data = ["collection" => $collection];
         if ($error !== "") {
             return $this->sendError($error, $errorDebug, $data);
@@ -179,17 +180,17 @@ class CardCollectionController extends CustomAbstractController
         ],
         methods: ["DELETE"],
     )]
+    #[IsGranted(CardCollectionVoter::DELETE, subject: "cardCollectionEntity")]
     public function deleteFromId(
-        int $id,
         Request $request,
+        CardCollectionEntity $cardCollectionEntity,
         CardCollectionService $cardCollectionService
     ): JsonResponse
     {
-        $jwt = $this->getJwt($request);
         [
             "error" => $error,
             "errorDebug" => $errorDebug,
-        ] = $cardCollectionService->deleteFromId($jwt, $id);
+        ] = $cardCollectionService->deleteFromId($cardCollectionEntity);
         if ($error !== "") {
             return $this->sendError($error, $errorDebug);
         }
@@ -244,19 +245,19 @@ class CardCollectionController extends CustomAbstractController
         ],
         methods: ["PUT"],
     )]
+    #[IsGranted(CardCollectionVoter::UPDATE, subject: "cardCollectionEntity")]
     public function updatePublicFromId(
-        int $id,
         int $public,
+        CardCollectionEntity $cardCollectionEntity,
         Request $request,
         CardCollectionService $cardCollectionService
     ): JsonResponse
     {
-        $jwt = $this->getJwt($request);
         [
             "error" => $error,
             "errorDebug" => $errorDebug,
             "collection" => $collection,
-        ] = $cardCollectionService->updatePublic($jwt, $id, $public);
+        ] = $cardCollectionService->updatePublic($cardCollectionEntity, $public);
         $data = ["collection" => $collection];
         if ($error !== "") {
             return $this->sendError($error, $errorDebug, $data);
@@ -307,9 +308,10 @@ class CardCollectionController extends CustomAbstractController
         ],
         methods: ["POST"],
     )]
+    #[IsGranted(CardCollectionVoter::UPDATE, subject: "cardCollectionEntity")]
     public function edit(
-        int $id,
         Request $request,
+        CardCollectionEntity $cardCollectionEntity,
         CardCollectionService $cardCollectionService,
         CardService $cardService,
         CountryService $countryService
@@ -324,10 +326,10 @@ class CardCollectionController extends CustomAbstractController
         [
             "error" => $error,
             "parameter" => $parameter,
-            "jwt" => $jwt
         ] = $this->checkRequestParameter(
             $request,
-            $waitedParameter
+            $waitedParameter,
+            FALSE
         );
         if ($error !== "") {
             return $this->sendError($error);
@@ -336,8 +338,7 @@ class CardCollectionController extends CustomAbstractController
             "error" => $error,
             "errorDebug" => $errorDebug,
         ] = $cardCollectionService->update(
-            $jwt,
-            $id,
+            $cardCollectionEntity,
             $parameter,
             $cardService,
             $countryService

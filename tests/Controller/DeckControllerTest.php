@@ -226,7 +226,7 @@ class DeckControllerTest extends AbstractWebTestCase
             "status" => $status,
             "content" => $content
         ] = self::runProtectedRoute($this->baseUrl . "/info/" . $deck->getId());
-        $this->assertSame(Response::HTTP_BAD_REQUEST, $status);
-        $this->assertEmpty($content["data"]["deck"]);
+        $this->assertSame(Response::HTTP_NOT_FOUND, $status);
+        $this->assertEmpty($content["data"]);
     }
 }

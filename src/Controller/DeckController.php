@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Controller\Abstract\CustomAbstractController;
+use App\Entity\Deck as DeckEntity;
+use App\Security\Voter\DeckVoter;
 use Nelmio\ApiDocBundle\Annotation\Areas;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security;
@@ -15,6 +17,7 @@ use App\Service\Deck as DeckService;
 use App\Service\Card as CardService;
 use OpenApi\Attributes as OA;
 use Symfony\Component\Routing\Requirement\Requirement;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[OA\Tag(name: "Deck")]
 #[Route("/deck", name: "api_deck")]
@@ -117,18 +120,18 @@ class DeckController extends CustomAbstractController
         ],
         methods: ["GET"],
     )]
+    #[IsGranted(DeckVoter::INFO, subject: "deckEntity")]
     public function getInfo(
-        int $id,
         Request $request,
+        DeckEntity $deckEntity,
         DeckService $deckService
     ): JsonResponse
     {
-        $jwt = $this->getJwt($request);
         [
             "error" => $error,
             "errorDebug" => $errorDebug,
             "deck" => $deck
-        ] = $deckService->getInfo($jwt, $id);
+        ] = $deckService->getInfo($deckEntity);
         $data = ["deck" => $deck];
         if ($error !== "") {
             return $this->sendError($error, $errorDebug, $data);
@@ -170,17 +173,17 @@ class DeckController extends CustomAbstractController
         ],
         methods: ["DELETE"],
     )]
+    #[IsGranted(DeckVoter::DELETE, subject: "deckEntity")]
     public function deleteFromId(
-        int $id,
         Request $request,
+        DeckEntity $deckEntity,
         DeckService $deckService
     ): JsonResponse
     {
-        $jwt = $this->getJwt($request);
         [
             "error" => $error,
             "errorDebug" => $errorDebug,
-        ] = $deckService->deleteFromId($jwt, $id);
+        ] = $deckService->deleteFromId($deckEntity);
         if ($error !== "") {
             return $this->sendError($error, $errorDebug);
         }
@@ -237,19 +240,19 @@ class DeckController extends CustomAbstractController
         ],
         methods: ["PUT"],
     )]
+    #[IsGranted(DeckVoter::UPDATE, subject: "deckEntity")]
     public function updatePublicFromId(
-        int $id,
+        DeckEntity $deckEntity,
         int $public,
         Request $request,
         DeckService $deckService
     ): JsonResponse
     {
-        $jwt = $this->getJwt($request);
         [
             "error" => $error,
             "errorDebug" => $errorDebug,
             "deck" => $deckInfo
-        ] = $deckService->updatePublic($jwt, $id, $public);
+        ] = $deckService->updatePublic($deckEntity, $public);
         $data = ["deck" => $deckInfo];
         if ($error !== "") {
             return $this->sendError($error, $errorDebug, $deckInfo);
@@ -300,9 +303,10 @@ class DeckController extends CustomAbstractController
             ],
         methods: ["POST"]
     )]
+    #[IsGranted(DeckVoter::UPDATE, subject: "deckEntity")]
     public function edit(
-        int $id,
         Request $request,
+        DeckEntity $deckEntity,
         DeckService $deckService,
         CardService $cardService
     ): JsonResponse
@@ -315,16 +319,15 @@ class DeckController extends CustomAbstractController
         ];
         [
             "error" => $error,
-            "parameter" => $parameter,
-            "jwt" => $jwt
-        ] = $this->checkRequestParameter($request, $waitedParameter);
+            "parameter" => $parameter
+        ] = $this->checkRequestParameter($request, $waitedParameter, FALSE);
         if ($error !== "") {
             return $this->sendError($error);
         }
         [
             "error" => $error,
             "errorDebug" => $errorDebug,
-        ] = $deckService->update($jwt, $id, $parameter, $cardService);
+        ] = $deckService->update($deckEntity, $parameter, $cardService);
         if ($error !== "") {
             return $this->sendError($error, $errorDebug);
         }

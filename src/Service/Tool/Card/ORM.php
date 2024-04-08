@@ -28,15 +28,6 @@ class ORM extends AbstractORM
     }
 
     /**
-     * @param string $uuid
-     * @return Card|null
-     */
-    public function findByUuid(string $uuid): ?Card
-    {
-        return $this->repository->findOneBy(["uuid" => $uuid]);
-    }
-
-    /**
      * @return Card|null
      */
     public function findRandom(): ?Card

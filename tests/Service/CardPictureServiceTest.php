@@ -34,11 +34,10 @@ class CardPictureServiceTest extends AbstractTestService
                 )
             );
         }
-        $cardUuid = $result[0]->getUuid()->__toString();
-        $cardPicture = $result[0]->getPictures()[0];
-        $idYGO = $cardPicture->getIdYGO();
+        $card = $result[0];
+        $cardPicture = $card->getPictures()[0];
         $name = $cardPicture->getPictureSmall();
-        $filePath = $this->service->getPicture($cardUuid, $idYGO, $name);
+        $filePath = $this->service->getPicture($card, $cardPicture, $name);
         $this->assertTrue((bool)fileExists($filePath));
     }
 }

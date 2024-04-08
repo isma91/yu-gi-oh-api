@@ -39,7 +39,6 @@ class File implements FileInterface
             "idYGO" => $idYGO,
             "name" => $name
         ] = $option;
-        $file = $this->getDefaultFilePath();
         $fileFullPath = sprintf(
             '%s/%s/%s/%s',
                 $this->param->get($this->prefixArray[$prefix]),
@@ -47,6 +46,6 @@ class File implements FileInterface
             $idYGO,
             $name
         );
-        return ($this->filesystem->exists($fileFullPath) === FALSE) ? $file : $fileFullPath;
+        return ($this->filesystem->exists($fileFullPath) === FALSE) ? $this->getDefaultFilePath() : $fileFullPath;
     }
 }

@@ -84,7 +84,6 @@ class CardCollectionServiceTest extends AbstractTestService
     }
 
     /**
-     * @group card-collection-service-check-user
      * @group card-collection-service-get-info
      * @group card-collection-service-update-public
      * @group card-collection-service-update-info
@@ -125,38 +124,17 @@ class CardCollectionServiceTest extends AbstractTestService
 
     /**
      * @depends testCardCollectionCreate
-     * @group card-collection-service-check-user
-     * @return void
-     * @throws EntityNotFoundException
-     */
-    public function testCardCollectionCheckUserAndCollection(): void
-    {
-        $jwt = self::getJWT();
-        $cardCollection = $this->getTestCardCollection();
-        [
-            "error" => $error,
-            "user" => $user,
-            "collection" => $duplicateCardCollection
-        ] = $this->service->checkUserAndCollection($jwt, $cardCollection->getId());
-        $this->assertEmpty($error);
-        $this->assertSame($user->getUsername(), self::$userCredentialByRoleArray["user"]["username"]);
-        $this->assertSame($duplicateCardCollection->getId(), $cardCollection->getId());
-    }
-
-    /**
-     * @depends testCardCollectionCreate
      * @group card-collection-service-get-info
      * @return void
      * @throws EntityNotFoundException
      */
     public function testCardCollectionGetInfo(): void
     {
-        $jwt = self::getJWT();
         $cardCollection = $this->getTestCardCollection();
         [
             "error" => $error,
             "collection" => $duplicateCardCollection
-        ] = $this->service->getInfo($jwt, $cardCollection->getId());
+        ] = $this->service->getInfo($cardCollection);
         $this->assertEmpty($error);
         $this->assertSame($duplicateCardCollection["id"], $cardCollection->getId());
     }
@@ -169,14 +147,13 @@ class CardCollectionServiceTest extends AbstractTestService
      */
     public function testCardCollectionUpdatePublic(): void
     {
-        $jwt = self::getJWT();
         $cardCollection = $this->getTestCardCollection();
         $isPublicBeforeUpdate = $cardCollection->isIsPublic();
         $publicValue = ($isPublicBeforeUpdate === TRUE) ? 0 : 1;
         [
             "error" => $error,
             "collection" => $updatedCardCollection
-        ] = $this->service->updatePublic($jwt, $cardCollection->getId(), $publicValue);
+        ] = $this->service->updatePublic($cardCollection, $publicValue);
         $this->assertEmpty($error);
         $this->assertSame($updatedCardCollection["id"], $cardCollection->getId());
         $this->assertSame(!$isPublicBeforeUpdate, $updatedCardCollection["isPublic"]);
@@ -190,7 +167,6 @@ class CardCollectionServiceTest extends AbstractTestService
      */
     public function testCardCollectionUpdateInfo(): void
     {
-        $jwt = self::getJWT();
         $cardCollection = $this->getTestCardCollection();
         $cardCollectionNameBeforeUpdate = $cardCollection->getName();
         $cardCardCollectionCountBeforeUpdate = $cardCollection->getCardCardCollections()->count();
@@ -202,8 +178,7 @@ class CardCollectionServiceTest extends AbstractTestService
         [
             "error" => $error,
         ] = $this->service->update(
-            $jwt,
-            $cardCollection->getId(),
+            $cardCollection,
             $cardCollectionCreateParam,
             $cardService,
             $countryService
@@ -212,7 +187,7 @@ class CardCollectionServiceTest extends AbstractTestService
         [
             "error" => $error,
             "collection" => $duplicateCardCollection
-        ] = $this->service->getInfo($jwt, $cardCollection->getId());
+        ] = $this->service->getInfo($cardCollection);
         $this->assertEmpty($error);
         $this->assertSame($duplicateCardCollection["id"], $cardCollection->getId());
         $this->assertNotSame($duplicateCardCollection["name"], $cardCollectionNameBeforeUpdate);
@@ -227,17 +202,11 @@ class CardCollectionServiceTest extends AbstractTestService
      */
     public function testCardCollectionDelete(): void
     {
-        $jwt = self::getJWT();
-        $cardCollectionId = $this->getTestCardCollection()->getId();
+        $cardCollection = $this->getTestCardCollection();
         [
             "error" => $error,
-        ] = $this->service->deleteFromId($jwt, $cardCollectionId);
+        ] = $this->service->deleteFromId($cardCollection);
         $this->assertEmpty($error);
-        [
-            "error" => $error,
-            "collection" => $duplicateCardCollection
-        ] = $this->service->getInfo($jwt, $cardCollectionId);
-        $this->assertNotEmpty($error);
-        $this->assertEmpty($duplicateCardCollection);
+        $this->assertNull($cardCollection->getId());
     }
 }

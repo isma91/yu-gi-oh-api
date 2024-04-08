@@ -3,7 +3,10 @@
 namespace App\Controller;
 
 use App\Controller\Abstract\CustomAbstractController;
+use App\Entity\Card as CardEntity;
+use App\Security\Voter\CardVoter;
 use Nelmio\ApiDocBundle\Annotation\Security;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -11,6 +14,7 @@ use App\Service\Card as CardService;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\Routing\Requirement\Requirement;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[OA\Tag(name: "Card")]
 #[Route("/card", name: "api_card")]
@@ -60,9 +64,11 @@ class CardController extends CustomAbstractController
         ],
         methods: ["GET"]
     )]
+    #[IsGranted(CardVoter::VIEW, subject: "cardEntity")]
     public function getInfoFromUuid(
         Request $request,
-        string $uuid,
+        #[MapEntity(mapping: ["uuid" => "uuid"])]
+        CardEntity $cardEntity,
         CardService $cardService
     ): JsonResponse
     {
@@ -71,7 +77,7 @@ class CardController extends CustomAbstractController
             "error" => $error,
             "errorDebug" => $errorDebug,
             "card" => $cardInfo,
-        ] = $cardService->getCardInfo($jwt, $uuid);
+        ] = $cardService->getCardInfo($jwt, $cardEntity);
         $data = ["card" => $cardInfo];
         if ($error !== "") {
             return $this->sendError($error, $errorDebug, $data);
