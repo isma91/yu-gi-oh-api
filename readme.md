@@ -96,6 +96,32 @@ Use the `cron.txt` file to help you with the implementation of various tasks suc
 
 The documentation is available at the `/swagger` route
 
+## UserToken
+
+### What is it
+
+The `UserToken` entity serve multiple purposes. 
+
+It stores the unique token that the user is going to use for this specific session (or in many cases, machine like laptop, smartphone...).
+
+It also takes some info from the server like the ip, user-agent, accepted encoding/language, geolocation (with the help of Maxmind see below) etc...
+
+We take all that to get a fingerprint, usable in the futur to target ban some user who are trying to do bad behavior.
+
+If you want to know more, check the method `_generateUserToken` in `src/Service/Tool/User/Auth.php`.
+
+### Maxmind
+
+We use Maxmind's GeoLite2 database which is a free database service where you put an ip and he finds a city/country/ASN.
+
+Maxmind offer 3 databases, one for each purpose (city/country/asn) and do search in it but first, you need to sing up [here](https://www.maxmind.com/en/geolite2/signup).
+
+Then you need to go to the License key page (you will see it in the Account category in your left after login).
+
+You need to create a new license key where you can store it in your `.env` file in `MAXMIND_LICENSE_KEY` key, don't forget to put your account id in `MAXMIND_ACCOUNT_ID`.
+
+After that you juste need to run the `GeoIpCheck` command with `php bin/console app:geo-ip` or leave your crontab do it for you ( see crontab section).
+
 ## Testing
 
 ### Package
