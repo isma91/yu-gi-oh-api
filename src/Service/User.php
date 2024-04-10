@@ -102,8 +102,6 @@ class User
                 $response["error"] = "No user found.";
                 return $response;
             }
-            //remove the old token
-            $this->userAuthService->logout($userToken);
             $response["user"] = $this->_getUserInfoLogin($user);
         } catch (Exception $e) {
             $this->customGenericService->addExceptionLog($e);
