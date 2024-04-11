@@ -26,7 +26,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["user_list"])]
+    #[Groups(["user_list", "user_admin_list"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
@@ -38,7 +38,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         "card_info",
         "user_basic_info",
         "collection_user_list",
-        "collection_info"
+        "collection_info",
+        "user_admin_list"
     ])]
     private ?string $username = null;
 
