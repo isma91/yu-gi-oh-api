@@ -282,4 +282,25 @@ class User
         }
         return $response;
     }
+
+    /**
+     * @return array[
+     * "error" => string,
+     * "errorDebug" => string,
+     * "user" => array[mixed]
+     */
+    public function getUserAdminInfo(UserEntity $user):array
+    {
+        $response = [...$this->customGenericService->getEmptyReturnResponse(), "user" => []];
+        try {
+            $userSerialize = $this->customGenericService->getInfoSerialize([$user], ["user_admin_info"])[0];
+            $userSerialize["role"] = $this->userAuthService->getRoleFrontName($user);
+            $response["user"] = $userSerialize;
+        } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
+            $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
+            $response["error"] = "Error while getting user admin info.";
+        }
+        return $response;
+    }
 }

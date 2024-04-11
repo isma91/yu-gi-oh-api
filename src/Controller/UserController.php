@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Controller\Abstract\CustomAbstractController;
+use App\Security\Voter\UserVoter;
 use App\Service\User as UserService;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -11,6 +12,8 @@ use Symfony\Component\Routing\Attribute\Route;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\Routing\Requirement\Requirement;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Entity\User as UserEntity;
 
 #[OA\Tag(name: "User")]
 #[Route('/user', name: 'api_user')]
@@ -314,5 +317,29 @@ class UserController extends CustomAbstractController
             return $this->sendError($error, $errorDebug, $data);
         }
         return $this->sendSuccess("All user info.", $data);
+    }
+
+    #[Route(
+        "/admin-info/{id}",
+        name: "_get_user_admin_info",
+        methods: ["GET"]
+    )]
+    #[IsGranted(UserVoter::USER_ADMIN_INFO, subject: "userEntity")]
+    public function getAdminInfo(
+        Request $request,
+        UserEntity $userEntity,
+        UserService $userService
+    ):JsonResponse
+    {
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug,
+            "user" => $user
+        ] = $userService->getUserAdminInfo($userEntity);
+        $data = ["user" => $user];
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug, $data);
+        }
+        return $this->sendSuccess("User info.", $data);
     }
 }
