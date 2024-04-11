@@ -275,7 +275,6 @@ class User
                 $userSerialize["userTokenCount"] = $userInfo->getUserTokens()->count();
                 $response["user"][] = $userSerialize;
             }
-            dd($response["user"]);
         } catch (Exception $e) {
             $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
