@@ -169,13 +169,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // $this->plainPassword = null;
     }
 
-    #[Groups(["user_list", "user_admin_list"])]
+    #[Groups(["user_list", "user_admin_list", "user_admin_info"])]
     public function getCreatedAt(): DateTime
     {
         return $this->createdAt;
     }
 
-    #[Groups(["user_list", "user_admin_list"])]
+    #[Groups(["user_list", "user_admin_list", "user_admin_info"])]
     public function getUpdatedAt(): DateTime
     {
         return $this->updatedAt;
