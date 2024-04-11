@@ -251,4 +251,36 @@ class User
         }
         return $response;
     }
+
+    /**
+     * @param string $jwt
+     * @return array[
+     * "error" => string,
+     * "errorDebug" => string,
+     * "user" => array[mixed]
+     */
+    public function getAll(string $jwt):array
+    {
+        $response = [...$this->customGenericService->getEmptyReturnResponse(), "user" => []];
+        try {
+            ["user" => $user] = $this->userAuthService->checkJwt($jwt);
+            if ($user === NULL) {
+                $response["error"] = "No user found.";
+                return $response;
+            }
+            $users = $this->userORMService->findAll();
+            foreach ($users as $userInfo) {
+                $userSerialize = $this->customGenericService->getInfoSerialize([$userInfo], ["user_admin_list"])[0];
+                $userSerialize["role"] = $this->userAuthService->getRoleFrontName($userInfo);
+                $userSerialize["userTokenCount"] = $userInfo->getUserTokens()->count();
+                $response["user"][] = $userSerialize;
+            }
+            dd($response["user"]);
+        } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
+            $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
+            $response["error"] = "Error while getting all user info.";
+        }
+        return $response;
+    }
 }
