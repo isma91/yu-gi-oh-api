@@ -203,9 +203,18 @@ class Auth
     public function loginAndGetInfo(UserEntity $user): array
     {
         $jwt = $this->_refreshTokenAndJWT($user);
-        $userMaxRole = $this->getMaxRole($user->getRoles());
-        $roleFrontName = $this->param->get($userMaxRole);
+        $roleFrontName = $this->getRoleFrontName($user);
         return ["jwt" => $jwt, "role" => $roleFrontName];
+    }
+
+    /**
+     * @param UserEntity $user
+     * @return string
+     */
+    public function getRoleFrontName(UserEntity $user): string
+    {
+        $userMaxRole = $this->getMaxRole($user->getRoles());
+        return $this->param->get($userMaxRole);
     }
 
     /**
