@@ -256,7 +256,7 @@ class UserController extends CustomAbstractController
 
     #[OA\Response(
         response: SymfonyResponse::HTTP_OK,
-        description: "Username get basic info",
+        description: "User get basic info",
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: "success", type: "string"),
@@ -294,5 +294,25 @@ class UserController extends CustomAbstractController
             return $this->sendError($error, $errorDebug, $data);
         }
         return $this->sendSuccess("User basic info.", $data);
+    }
+
+    #[Route(
+        "/all",
+        name: "_get_all",
+        methods: ["GET"]
+    )]
+    public function getAll(Request $request, UserService $userService):JsonResponse
+    {
+        $jwt = $this->getJwt($request);
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug,
+            "user" => $user
+        ] = $userService->getAll($jwt);
+        $data = ["user" => $user];
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug, $data);
+        }
+        return $this->sendSuccess("All user info.", $data);
     }
 }
