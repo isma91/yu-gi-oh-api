@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
 use Gedmo\SoftDeleteable\Traits\SoftDeleteableEntity;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: UserTokenRepository::class)]
@@ -19,15 +20,19 @@ class UserToken
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(["user_admin_info"])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(["user_admin_info"])]
     private ?string $token = null;
 
     #[ORM\Column(type: Types::ARRAY)]
+    #[Groups(["user_admin_info"])]
     private array $info = [];
 
     #[ORM\Column(length: 255)]
+    #[Groups(["user_admin_info"])]
     private ?string $fingerprint = null;
 
     #[ORM\ManyToOne(inversedBy: 'userTokens')]
@@ -35,9 +40,11 @@ class UserToken
     private ?User $user = null;
 
     #[ORM\Column(type: 'uuid')]
+    #[Groups(["user_admin_info"])]
     private ?Uuid $uuid = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups(["user_admin_info"])]
     private ?\DateTimeInterface $expiratedAt = null;
 
     public function getId(): ?int
@@ -115,5 +122,17 @@ class UserToken
         $this->expiratedAt = $expiratedAt;
 
         return $this;
+    }
+
+    #[Groups(["user_admin_info"])]
+    public function getCreatedAt(): ?\DateTime
+    {
+        return $this->createdAt;
+    }
+
+    #[Groups(["user_admin_info"])]
+    public function getUpdatedAt(): ?\DateTime
+    {
+        return $this->updatedAt;
     }
 }
