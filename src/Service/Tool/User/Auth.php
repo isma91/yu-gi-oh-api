@@ -6,6 +6,7 @@ use App\Entity\User as UserEntity;
 use App\Entity\UserToken as UserTokenEntity;
 use App\Service\Tool\User\ORM as UserORMService;
 use App\Service\Tool\UserToken\ORM as UserTokenORMService;
+use App\Service\Maxmind as MaxmindService;
 use DateTime;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -21,18 +22,21 @@ class Auth
     private UserPasswordHasherInterface $userPasswordHasher;
     private UserORMService $userORMService;
     private UserTokenORMService $userTokenORMService;
+    private MaxmindService $maxmindService;
 
     public function __construct(
         ParameterBagInterface $param,
         UserPasswordHasherInterface $userPasswordHasher,
         UserORMService $userORMService,
-        UserTokenORMService $userTokenORMService
+        UserTokenORMService $userTokenORMService,
+        MaxmindService $maxmindService
     )
     {
         $this->param = $param;
         $this->userPasswordHasher = $userPasswordHasher;
         $this->userORMService = $userORMService;
         $this->userTokenORMService = $userTokenORMService;
+        $this->maxmindService = $maxmindService;
     }
 
     /**
@@ -46,7 +50,7 @@ class Auth
     }
 
     /**
-     * Create an array with some user info from server
+     * Create an array with some user info from server and with the help of Maxmind
      * @return array
      */
     private function _createUserTokenInfo(): array
@@ -68,13 +72,9 @@ class Auth
             'HTTP_ACCEPT_ENCODING',
             'HTTP_REFERER',
             'HTTP_X_FORWARDED_PROTO',
-            'GEOIP_LATITUDE',
-            'GEOIP_LONGITUDE',
-            'GEOIP_CITY',
-            'GEOIP_COUNTRY_NAME',
         ];
         $info = [
-            "ip" => $ip,
+            "ip" => $ip
         ];
         foreach ($infoKey as $key) {
             $value = "";
@@ -82,6 +82,13 @@ class Auth
                 $value = $_SERVER[$key];
             }
             $info[$key] = $value;
+        }
+        foreach (["REMOTE_ADDR", "HTTP_X_FORWARDED_FOR", "HTTP_REMOTE_IP"] as $item) {
+            $newItem = $item . "_GEOIP";
+            $maxmindResultArray = $this->maxmindService->findAll($info[$item]);
+            foreach ($maxmindResultArray as $key => $value) {
+                $info[$newItem][$newItem . "_" . $key] = $value;
+            }
         }
         return $info;
     }
