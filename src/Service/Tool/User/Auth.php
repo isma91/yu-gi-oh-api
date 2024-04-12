@@ -87,7 +87,7 @@ class Auth
             $newItem = $item . "_GEOIP";
             $maxmindResultArray = $this->maxmindService->findAll($info[$item]);
             foreach ($maxmindResultArray as $key => $value) {
-                $info[$newItem][$newItem . "_" . $key] = $value;
+                $info[$newItem][$key] = $value;
             }
         }
         return $info;
