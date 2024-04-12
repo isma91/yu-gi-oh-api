@@ -268,6 +268,7 @@ class User
                 $response["error"] = "No user found.";
                 return $response;
             }
+            $this->customGenericService->disableSoftDeleteable();
             $users = $this->userORMService->findAll();
             foreach ($users as $userInfo) {
                 $userSerialize = $this->customGenericService->getInfoSerialize([$userInfo], ["user_admin_list"])[0];
@@ -275,10 +276,12 @@ class User
                 $userSerialize["userTokenCount"] = $userInfo->getUserTokens()->count();
                 $response["user"][] = $userSerialize;
             }
+            $this->customGenericService->enableSoftDeleteable();
         } catch (Exception $e) {
             $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while getting all user info.";
+            $this->customGenericService->enableSoftDeleteable();
         }
         return $response;
     }
