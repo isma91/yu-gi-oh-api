@@ -135,4 +135,10 @@ class UserToken
     {
         return $this->updatedAt;
     }
+
+    #[Groups(["user_admin_info"])]
+    public function getDeletedAt(): ?\DateTime
+    {
+        return $this->deletedAt;
+    }
 }
