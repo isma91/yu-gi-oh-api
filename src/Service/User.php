@@ -293,9 +293,11 @@ class User
     {
         $response = [...$this->customGenericService->getEmptyReturnResponse(), "user" => []];
         try {
+            $this->customGenericService->disableSoftDeleteable();
             $userSerialize = $this->customGenericService->getInfoSerialize([$user], ["user_admin_info"])[0];
             $userSerialize["role"] = $this->userAuthService->getRoleFrontName($user);
             $response["user"] = $userSerialize;
+            $this->customGenericService->enableSoftDeleteable();
         } catch (Exception $e) {
             $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
