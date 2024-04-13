@@ -26,7 +26,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["user_list"])]
+    #[Groups(["user_list", "user_admin_list", "user_admin_info"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
@@ -38,7 +38,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         "card_info",
         "user_basic_info",
         "collection_user_list",
-        "collection_info"
+        "collection_info",
+        "user_admin_list",
+        "user_admin_info"
     ])]
     private ?string $username = null;
 
@@ -66,6 +68,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $cardCollections;
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: UserToken::class)]
+    #[Groups(["user_admin_info", "user_token_info"])]
     private Collection $userTokens;
 
     public function __construct()
@@ -166,13 +169,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // $this->plainPassword = null;
     }
 
-    #[Groups(["user_list"])]
+    #[Groups(["user_list", "user_admin_list", "user_admin_info"])]
     public function getCreatedAt(): DateTime
     {
         return $this->createdAt;
     }
 
-    #[Groups(["user_list"])]
+    #[Groups(["user_list", "user_admin_list", "user_admin_info"])]
     public function getUpdatedAt(): DateTime
     {
         return $this->updatedAt;

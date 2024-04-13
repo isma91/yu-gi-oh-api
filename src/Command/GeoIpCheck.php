@@ -253,7 +253,7 @@ class GeoIpCheck extends Command
                     $pharData->extractTo($maxmindDir, $fileInternalPath, TRUE);
                     $maxmindDBFileOldPath = $maxmindDir . "/" . $fileInternalPath;
                     if ($this->filesystem->exists($maxmindDBFileOldPath) === TRUE) {
-                        $this->filesystem->rename($maxmindDBFileOldPath, $maxmindDir . "/" . $maxmindDBFilename);
+                        $this->filesystem->rename($maxmindDBFileOldPath, $maxmindDir . "/" . $maxmindDBFilename, TRUE);
                         $this->filesystem->remove($maxmindDir . "/" . $folderToOpen->getFilename());
                     }
                     break;

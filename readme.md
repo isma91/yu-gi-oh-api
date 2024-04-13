@@ -104,11 +104,15 @@ The `UserToken` entity serve multiple purposes.
 
 It stores the unique token that the user is going to use for this specific session (or in many cases, machine like laptop, smartphone...).
 
-It also takes some info from the server like the ip, user-agent, accepted encoding/language, geolocation (with the help of Maxmind see below) etc...
+It stores also multiple `UserTracking` entity.
+
+### UserTracking
+
+It's an entity who takes some info from the server like the ip, user-agent, accepted encoding/language, geolocation (with the help of Maxmind see below) etc...
 
 We take all that to get a fingerprint, usable in the futur to target ban some user who are trying to do bad behavior.
 
-If you want to know more, check the method `_generateUserToken` in `src/Service/Tool/User/Auth.php`.
+If you want to know more, check the method `_refreshTokenAndJWT` in `src/Service/Tool/User/Auth.php`.
 
 ### Maxmind
 
@@ -121,6 +125,12 @@ Then you need to go to the License key page (you will see it in the Account cate
 You need to create a new license key where you can store it in your `.env` file in `MAXMIND_LICENSE_KEY` key, don't forget to put your account id in `MAXMIND_ACCOUNT_ID`.
 
 After that you juste need to run the `GeoIpCheck` command with `php bin/console app:geo-ip` or leave your crontab do it for you ( see crontab section).
+
+### Geocode.maps
+
+We use [geocode.maps](https://geocode.maps.co) as a free api to do reverse geocoding.
+
+All you need is to create an account and store your api key to `GEOCODE_MAPS_CO_API_KEY` key in your `.env` file.
 
 ## Testing
 

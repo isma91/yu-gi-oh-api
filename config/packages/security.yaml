@@ -34,6 +34,11 @@ security:
         - { path: ^/user/logout, roles: [ ROLE_USER ] }
         - { path: ^/user/edit-password, roles: [ ROLE_USER ] }
         - { path: ^/user/basic-info, roles: [ ROLE_USER ] }
+        - { path: ^/user/all, roles: [ ROLE_ADMIN ] }
+        - { path: ^/user/admin-info/[0-9]+$, roles: [ ROLE_ADMIN ] }
+        - { path: ^/user/revoke-token/[0-9]+$, roles: [ ROLE_USER ] }
+        - { path: ^/user/all-token$, roles: [ ROLE_USER ] }
+        - { path: ^/user/create$, roles: [ ROLE_ADMIN ] }
         - { path: ^/search/card, roles: [ ROLE_USER ] }
         - { path: ^/archetype/all, roles: [ ROLE_USER ] }
         - { path: ^/card-attribute/all, roles: [ ROLE_USER ] }

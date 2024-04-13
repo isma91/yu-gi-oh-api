@@ -49,6 +49,8 @@ class ExceptionListener
             $statusCode = $exception->getStatusCode();
             if ($statusCode === Response::HTTP_UNAUTHORIZED) {
                 $errorMsg = "An authentication is mandatory to access to this action.";
+            } elseif ($statusCode === Response::HTTP_FORBIDDEN) {
+                $errorMsg = "You don't have the right for this action.";
             } else {
                 $this->addToLog($exception);
             }
