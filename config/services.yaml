@@ -34,6 +34,7 @@ parameters:
     MAXMIND_ASN_FILENAME: '%env(MAXMIND_ASN_FILENAME)%'
     MAXMIND_CITY_FILENAME: '%env(MAXMIND_CITY_FILENAME)%'
     MAXMIND_COUNTRY_FILENAME: '%env(MAXMIND_COUNTRY_FILENAME)%'
+    GEOCODE_MAPS_CO_API_KEY: '%env(GEOCODE_MAPS_CO_API_KEY)%'
 
 services:
     # default configuration for services in *this* file
