@@ -2,11 +2,8 @@
 
 namespace App\Security;
 
-use App\Service\Tool\User\Auth as UserAuthService;
 use App\Repository\UserRepository;
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use App\Service\Tool\User\Auth as UserAuthService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,16 +18,16 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
 
 class JWTAuthenticator extends AbstractAuthenticator
 {
-    private UserRepository $userRepository;
     private UserAuthService $userAuthService;
+    private UserRepository $userRepository;
 
     public function __construct(
-        UserRepository $userRepository,
-        UserAuthService $userAuthService
+        UserAuthService $userAuthService,
+        UserRepository $userRepository
     )
     {
-        $this->userRepository = $userRepository;
         $this->userAuthService = $userAuthService;
+        $this->userRepository = $userRepository;
     }
 
     /**
@@ -102,7 +99,10 @@ class JWTAuthenticator extends AbstractAuthenticator
         try {
             $bearer = $request->headers->get('Authorization');
             $credentials = str_replace('Bearer ', '', $bearer);
-            ["user" => $userEntity] = $this->userAuthService->checkJWT($credentials);
+            [
+                "user" => $userEntity,
+                "userToken" => $userToken
+            ] = $this->userAuthService->checkJWT($credentials, TRUE);
             if ($userEntity === NULL) {
                 throw new UserNotFoundException("");
             }
@@ -120,6 +120,7 @@ class JWTAuthenticator extends AbstractAuthenticator
                     Response::HTTP_UNAUTHORIZED
                 );
             }
+            $this->userAuthService->extendUserTokenAndCreateUserTracking($userToken);
             return new SelfValidatingPassport($userBadge);
         } catch (\Exception $e) {
             $message = $e->getMessage();
