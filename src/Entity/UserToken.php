@@ -91,7 +91,7 @@ class UserToken
         return $this;
     }
 
-    #[Groups(["user_admin_info"])]
+    #[Groups(["user_admin_info", "user_token_info"])]
     public function getCreatedAt(): ?\DateTime
     {
         return $this->createdAt;
