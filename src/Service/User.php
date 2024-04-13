@@ -371,4 +371,90 @@ class User
         }
         return $response;
     }
+
+    /**
+     * @param string $jwt
+     * @return array[
+     * "error" => string,
+     * "errorDebug" => string,
+     * "userToken" => array,
+     */
+    public function getCurrentUserAllToken(string $jwt):array
+    {
+        $response = [...$this->customGenericService->getEmptyReturnResponse(), "userToken" => []];
+        try {
+            ["user" => $user] = $this->userAuthService->checkJWT($jwt);
+            if ($user === NULL) {
+                $response["error"] = "User not found.";
+                return $response;
+            }
+            $userSerialize = $this->customGenericService->getInfoSerialize([$user], ["user_token_info"])[0];
+            $userTokens = $user->getUserTokens();
+            foreach ($userTokens as $userTokenIndex => $userToken) {
+                $userTrackings = $userToken->getUserTrackings();
+                $potentialArray = [];
+                foreach ($userTrackings as $userTracking) {
+                    $userTrackingInfo = $userTracking->getInfo();
+                    $potentialIp = NULL;
+                    $potentialPreciseIp = NULL;
+                    $potentialAddress = NULL;
+                    $potentialGeoip = NULL;
+                    $potentialArrayToAdd = [];
+                    foreach ($userTrackingInfo as $key => $value) {
+                        if ($key === "ip" && empty($value) === FALSE) {
+                            $potentialIp = $value;
+                        }
+                        if (empty($value["CITY"]) === FALSE && str_ends_with($key, "_GEOIP") === TRUE) {
+                            if (empty($value["ASN"]) === FALSE && empty($value["ASN"]["ip_address"]) === FALSE) {
+                                $potentialPreciseIp = $value["ASN"]["ip_address"];
+                            }
+                            if (empty($value["CITY"]["address"]) === FALSE) {
+                                $potentialAddress = $value["CITY"]["address"];
+                            }
+                            if (empty($value["CITY"]["location"]) === FALSE &&
+                                empty($value["CITY"]["location"]["latitude"]) === FALSE &&
+                                empty($value["CITY"]["location"]["longitude"]) === FALSE
+                            ) {
+                                $accuracyRadius = NULL;
+                                if (empty($value["CITY"]["location"]["accuracy_radius"]) === FALSE) {
+                                    $accuracyRadius = $value["CITY"]["location"]["accuracy_radius"];
+                                }
+                                $potentialGeoip = [
+                                    "latitude" => $value["CITY"]["location"]["latitude"],
+                                    "longitude" => $value["CITY"]["location"]["longitude"],
+                                    "accuracy_radius" => $accuracyRadius
+                                ];
+                            }
+                        }
+                        if ($potentialIp !== NULL) {
+                            $potentialArrayToAdd["ip"] = $potentialIp;
+                        }
+                        if ($potentialPreciseIp !== NULL) {
+                            $potentialArrayToAdd["mostPreciseIp"] = $potentialPreciseIp;
+                        }
+                        if ($potentialGeoip !== NULL) {
+                            $potentialArrayToAdd["geoip"] = $potentialGeoip;
+                        }
+                        if ($potentialAddress !== NULL) {
+                            $potentialArrayToAdd["address"] = $potentialAddress;
+                        }
+                        $potentialArray[] = $potentialArrayToAdd;
+                    }
+                }
+                $truePotentialArray = max($potentialArray);
+                foreach (["ip", "mostPreciseIp", "address", "geoip"] as $item) {
+                    if (empty($truePotentialArray[$item]) === TRUE) {
+                        $truePotentialArray[$item] = NULL;
+                    }
+                }
+                $userSerialize["userTokens"][$userTokenIndex] += $truePotentialArray;
+                $response["userToken"] = $userSerialize["userTokens"];
+            }
+        } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
+            $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
+            $response["error"] = "Error while getting your user token.";
+        }
+        return $response;
+    }
 }

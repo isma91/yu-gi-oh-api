@@ -420,4 +420,24 @@ class UserController extends CustomAbstractController
         }
         return $this->sendSuccess("User created successfully.");
     }
+
+    #[Route(
+        "/all-token",
+        name: "_get_all_user_token",
+        methods: ["GET"]
+    )]
+    public function getCurrentUserAllAvailableToken(Request $request, UserService $userService):JsonResponse
+    {
+        $jwt = $this->getJwt($request);
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug,
+            "userToken" => $userToken
+        ] = $userService->getCurrentUserAllToken($jwt);
+        $data = ["userToken" => $userToken];
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug, $data);
+        }
+        return $this->sendSuccess("Current User token list.", $data);
+    }
 }
