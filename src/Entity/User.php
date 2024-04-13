@@ -68,7 +68,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $cardCollections;
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: UserToken::class)]
-    #[Groups(["user_admin_info"])]
+    #[Groups(["user_admin_info", "user_token_info"])]
     private Collection $userTokens;
 
     public function __construct()
