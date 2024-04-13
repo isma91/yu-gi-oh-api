@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\User as UserEntity;
+use App\Entity\UserToken as UserTokenEntity;
 use App\Service\Tool\User\ORM as UserORMService;
 use App\Service\Tool\User\Auth as UserAuthService;
 use Exception;
@@ -27,15 +28,15 @@ class User
 
     /**
      * @param UserEntity $user
+     * @param string $jwt
+     * @param string $frontRole
      * @return array
-     * @throws Exception
      * @throws JsonException
      */
-    private function _getUserInfoLogin(UserEntity $user): array
+    private function _getUserInfoLogin(UserEntity $user, string $jwt, string $frontRole): array
     {
-        $userAuthInfo = $this->userAuthService->loginAndGetInfo($user);
         $userSerialize = $this->customGenericService->getInfoSerialize([$user], ["user_login"])[0];
-        return array_merge($userAuthInfo, $userSerialize);
+        return array_merge(["jwt" => $jwt, "role" => $frontRole], $userSerialize);
     }
 
     /**
@@ -72,13 +73,14 @@ class User
                 $response["error"] = "User deleted, please contact the tech team.";
                 return $response;
             }
-            $response["user"] = $this->_getUserInfoLogin($user);
-            $this->customGenericService->enableSoftDeleteable();
+            $userAuthInfo = $this->userAuthService->loginAndGetInfo($user);
+            $response["user"] = $this->_getUserInfoLogin($user, $userAuthInfo["jwt"], $userAuthInfo["role"]);
         } catch (Exception $e) {
             $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while login.";
         }
+        $this->customGenericService->enableSoftDeleteable();
         return $response;
     }
 
@@ -102,7 +104,8 @@ class User
                 $response["error"] = "No user found.";
                 return $response;
             }
-            $response["user"] = $this->_getUserInfoLogin($user);
+            $role = $this->userAuthService->getRoleFrontName($user);
+            $response["user"] = $this->_getUserInfoLogin($user, $jwt, $role);
         } catch (Exception $e) {
             $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
@@ -305,6 +308,24 @@ class User
             $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
             $response["error"] = "Error while getting user admin info.";
+        }
+        return $response;
+    }
+
+    /**
+     * @return array[
+     * "error" => string,
+     * "errorDebug" => string
+     */
+    public function revokeToken(UserTokenEntity $userToken):array
+    {
+        $response = [...$this->customGenericService->getEmptyReturnResponse()];
+        try {
+            $this->userAuthService->logout($userToken);
+        } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
+            $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
+            $response["error"] = "Error while revoking token.";
         }
         return $response;
     }

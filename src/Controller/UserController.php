@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\Routing\Requirement\Requirement;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use App\Entity\User as UserEntity;
+use App\Entity\UserToken as UserTokenEntity;
 
 #[OA\Tag(name: "User")]
 #[Route('/user', name: 'api_user')]
@@ -341,5 +342,53 @@ class UserController extends CustomAbstractController
             return $this->sendError($error, $errorDebug, $data);
         }
         return $this->sendSuccess("User info.", $data);
+    }
+
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_OK,
+        description: "User revoke token successfully",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "success", type: "string"),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_BAD_REQUEST,
+        description: "Error when revoking token.",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "error", type: "string"),
+            ]
+        )
+    )]
+    #[OA\Parameter(
+        name: "id",
+        description: "Id of your token",
+        in: "path",
+        required: true,
+        schema: new OA\Schema(type: "integer")
+    )]
+    #[Security(name: "Bearer")]
+    #[Route(
+        "/revoke-token/{id}",
+        name: "_revoke_token",
+        methods: ["DELETE"]
+    )]
+    #[IsGranted(UserVoter::USER_REVOKE_TOKEN, subject: "userTokenEntity")]
+    public function revokeUserToken(
+        Request $request,
+        UserTokenEntity $userTokenEntity,
+        UserService $userService
+    ):JsonResponse
+    {
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug,
+        ] = $userService->revokeToken($userTokenEntity);
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug);
+        }
+        return $this->sendSuccess("Token successfully revoked.");
     }
 }
