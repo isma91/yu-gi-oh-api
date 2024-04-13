@@ -408,6 +408,9 @@ class UserController extends CustomAbstractController
             "error" => $error,
             "parameter" => $parameter,
         ] = $this->checkRequestParameter($request, $waitedParameter, FALSE);
+        if ($error !== "") {
+            return $this->sendError($error);
+        }
         [
             "error" => $error,
             "errorDebug" => $errorDebug,
