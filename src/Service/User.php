@@ -322,6 +322,7 @@ class User
         $response = [...$this->customGenericService->getEmptyReturnResponse()];
         try {
             $this->userAuthService->logout($userToken);
+            $this->customGenericService->addInfoLogFromDebugBacktrace();
         } catch (Exception $e) {
             $this->customGenericService->addExceptionLog($e);
             $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
