@@ -2,6 +2,7 @@
 
 namespace App\Security\Voter;
 
+use App\Entity\UserToken as UserTokenEntity;
 use App\Service\Logger as LoggerService;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -10,6 +11,7 @@ use App\Entity\User as UserEntity;
 class UserVoter extends Voter
 {
     public const USER_ADMIN_INFO = 'USER_GET_USER_ADMIN_INFO';
+    public const USER_REVOKE_TOKEN = 'USER_REVOKE_TOKEN';
     private LoggerService $loggerService;
     private Security $security;
 
@@ -22,25 +24,46 @@ class UserVoter extends Voter
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return $attribute === self::USER_ADMIN_INFO && $subject instanceof UserEntity;
+        return in_array($attribute, [self::USER_ADMIN_INFO, self::USER_REVOKE_TOKEN], TRUE) && $subject instanceof UserEntity;
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
     {
         $user = $token->getUser();
-        if (!$user instanceof UserEntity || !$subject instanceof UserEntity) {
+        if (!$user instanceof UserEntity) {
             return FALSE;
         }
         $isGranted = $this->security->isGranted("ROLE_ADMIN");
-        if ($isGranted === FALSE) {
-            $this->loggerService->addLog(
-                sprintf(
-                    "User non-admin '%s' try to go to the route '%s'",
-                    $user->getUsername() ?? "",
-                    $attribute
-                )
-            );
+        if ($attribute === self::USER_ADMIN_INFO) {
+            if (!$subject instanceof UserEntity) {
+                return FALSE;
+            }
+            if ($isGranted === FALSE) {
+                $this->loggerService->addLog(
+                    sprintf(
+                        "User non-admin '%s' try to go to the route '%s'",
+                        $user->getUsername() ?? "",
+                        $attribute
+                    )
+                );
+            }
+            return $isGranted;
         }
-        return $isGranted;
+
+        if ($attribute === self::USER_REVOKE_TOKEN) {
+            if (!$subject instanceof UserTokenEntity) {
+                return FALSE;
+            }
+            if ($isGranted === TRUE) {
+                return TRUE;
+            }
+            $userTokenUser = $subject->getUser();
+            if ($userTokenUser === NULL) {
+                $this->loggerService->addLog(sprintf("UserToken id %d without user", $subject->getId()));
+                return FALSE;
+            }
+            return $userTokenUser->getId() === $user->getId();
+        }
+        return FALSE;
     }
 }
