@@ -9,6 +9,7 @@ use GeoIp2\Record\City as GeoIp2CityRecord;
 use GeoIp2\Record\Country as GeoIp2CountryRecord;
 use GeoIp2\Record\Continent as GeoIp2ContinentRecord;
 use GeoIp2\Record\Subdivision as GeoIp2SubdivisionRecord;
+use GuzzleHttp\Client as GuzzleClient;
 use MaxMind\Db\Reader\InvalidDatabaseException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use App\Service\Logger as LoggerService;
@@ -18,6 +19,7 @@ class Maxmind
 {
     private ParameterBagInterface $param;
     private LoggerService $loggerService;
+    private GuzzleClient $guzzleClient;
     private const MAXMIND_ASN_TYPE = "ASN";
     private const MAXMIND_CITY_TYPE = "CITY";
     private const MAXMIND_COUNTRY_TYPE = "COUNTRY";
@@ -30,6 +32,60 @@ class Maxmind
         $this->param = $param;
         $this->loggerService = $loggerService;
         $this->loggerService->setIsCron(FALSE)->setLevel(LoggerService::ERROR);
+        $this->guzzleClient = new GuzzleClient([
+            "allow_redirect" => TRUE,
+            "http_errors" => TRUE,
+        ]);
+    }
+
+    /**
+     * Do a reverse geocoding from a free API
+     * @param float $lat
+     * @param float $long
+     * @return string|null
+     */
+    public function getReverseGeocoding(float $lat, float $long): ?string
+    {
+        $result = NULL;
+        $geocodeApiKey = $this->param->get("GEOCODE_MAPS_CO_API_KEY");
+        if (empty($geocodeApiKey) === TRUE) {
+            return NULL;
+        }
+        $url = sprintf(
+            "https://geocode.maps.co/reverse?lat=%s&lon=%s&api_key=%s",
+            $lat,
+            $long,
+            $geocodeApiKey
+        );
+        try {
+            /**
+             * 1 Request/Second for the free API
+             * @see https://geocode.maps.co/plans/
+             */
+            sleep(1);
+            $request = $this->guzzleClient->get($url);
+            $httpCode = $request->getStatusCode();
+            if ($httpCode === 200) {
+                $requestContent = json_decode($request->getBody()->getContents(), TRUE, 512, JSON_THROW_ON_ERROR);
+                if (empty($requestContent["display_name"]) === FALSE) {
+                    $result = $requestContent["display_name"];
+                } elseif (empty($requestContent["address"]) === FALSE) {
+                    $result = "";
+                    $addressKey = array_keys($requestContent["address"]);
+                    foreach ($addressKey as $key) {
+                        if (str_contains($key, "ISO") === FALSE) {
+                            $result .= $requestContent["address"][$key] . ", ";
+                        }
+                    }
+                } else {
+                    return NULL;
+                }
+            }
+        } catch (\GuzzleHttp\Exception\GuzzleException|Exception $e) {
+            $this->loggerService->setLevel(LoggerService::WARNING)
+                ->setException($e);
+        }
+        return $result;
     }
 
     /**
@@ -156,13 +212,20 @@ class Maxmind
             $citySerialize = $this->_cleanClassicRecord($city->city);
             $postal = $city->postal->code;
             $locationSerialize = $city->location->jsonSerialize();
+            $lat = $city->location->latitude;
+            $long = $city->location->longitude;
+            $address = NULL;
+            if ($lat !== NULL && $long !== NULL) {
+                $address = $this->getReverseGeocoding($lat, $long);
+            }
             $result = [
                 "continent" => $continentSerialize,
                 "country" => $countrySerialize,
                 "subdivisions" => $subdivisionSerialize,
                 "city" => $citySerialize,
                 "postal" => $postal,
-                "location" => $locationSerialize
+                "location" => $locationSerialize,
+                "address" => $address ?? "",
             ];
         } catch(AddressNotFoundException $e) {
             $this->loggerService->setLevel(LoggerService::INFO)
