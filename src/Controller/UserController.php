@@ -391,4 +391,30 @@ class UserController extends CustomAbstractController
         }
         return $this->sendSuccess("Token successfully revoked.");
     }
+
+    #[Route(
+        "/create",
+        name: "_create",
+        methods: ["POST"]
+    )]
+    public function createUser(Request $request, UserService $userService):JsonResponse
+    {
+        $waitedParameter = [
+            "username" => "string",
+            "password" => "password",
+            "confirmPassword" => "password",
+        ];
+        [
+            "error" => $error,
+            "parameter" => $parameter,
+        ] = $this->checkRequestParameter($request, $waitedParameter, FALSE);
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug,
+        ] = $userService->create($parameter);
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug);
+        }
+        return $this->sendSuccess("User created successfully.");
+    }
 }

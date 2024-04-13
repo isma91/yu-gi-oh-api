@@ -330,4 +330,45 @@ class User
         }
         return $response;
     }
+
+    /**
+     * @param array $parameter
+     * @return array[
+     * "error" => string,
+     * "errorDebug" => string
+     */
+    public function create(array $parameter):array
+    {
+        $response = [...$this->customGenericService->getEmptyReturnResponse()];
+        try {
+            [
+                "username" => $username,
+                "password" => $password,
+                "confirmPassword" => $confirmPassword
+            ] = $parameter;
+            $duplicate = $this->userORMService->findByUserIdentifiant($username);
+            if ($duplicate !== NULL) {
+                $response["error"] = sprintf("Username '%s' already taken.", $username);
+                return $response;
+            }
+            if ($password !== $confirmPassword) {
+                $response["error"] = "Please correctly confirm your password.";
+                return $response;
+            }
+            $currentDate = new \DateTime();
+            $user = new UserEntity();
+            $user->setUsername($username)
+                ->setCreatedAt($currentDate)
+                ->setUpdatedAt($currentDate);
+            $user = $this->userAuthService->editPassword($user, $password);
+            $this->userORMService->persist($user);
+            $this->userORMService->flush();
+            $this->customGenericService->addInfoLogFromDebugBacktrace();
+        } catch (Exception $e) {
+            $this->customGenericService->addExceptionLog($e);
+            $response["errorDebug"] = sprintf('Exception : %s', $e->getMessage());
+            $response["error"] = "Error while creating user.";
+        }
+        return $response;
+    }
 }
