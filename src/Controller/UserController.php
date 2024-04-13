@@ -421,6 +421,27 @@ class UserController extends CustomAbstractController
         return $this->sendSuccess("User created successfully.");
     }
 
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_OK,
+        description: "User get all his token info",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "success", type: "string"),
+                new OA\Property(property: "userToken", type: "array", items: new OA\Items(ref: "#/components/schemas/UserGetAllUserToken")),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_BAD_REQUEST,
+        description: "Error when getting all your token info.",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "error", type: "string"),
+                new OA\Property(property: "userToken", type: "array", items: new OA\Items(ref: "#/components/schemas/UserGetAllUserToken")),
+            ]
+        )
+    )]
+    #[Security(name: "Bearer")]
     #[Route(
         "/all-token",
         name: "_get_all_user_token",
