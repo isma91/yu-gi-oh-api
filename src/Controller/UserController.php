@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Controller\Abstract\CustomAbstractController;
+use App\Security\Voter\UserVoter;
 use App\Service\User as UserService;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -11,6 +12,9 @@ use Symfony\Component\Routing\Attribute\Route;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\Routing\Requirement\Requirement;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Entity\User as UserEntity;
+use App\Entity\UserToken as UserTokenEntity;
 
 #[OA\Tag(name: "User")]
 #[Route('/user', name: 'api_user')]
@@ -256,7 +260,7 @@ class UserController extends CustomAbstractController
 
     #[OA\Response(
         response: SymfonyResponse::HTTP_OK,
-        description: "Username get basic info",
+        description: "User get basic info",
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: "success", type: "string"),
@@ -294,5 +298,167 @@ class UserController extends CustomAbstractController
             return $this->sendError($error, $errorDebug, $data);
         }
         return $this->sendSuccess("User basic info.", $data);
+    }
+
+    #[Route(
+        "/all",
+        name: "_get_all",
+        methods: ["GET"]
+    )]
+    public function getAll(Request $request, UserService $userService):JsonResponse
+    {
+        $jwt = $this->getJwt($request);
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug,
+            "user" => $user
+        ] = $userService->getAll($jwt);
+        $data = ["user" => $user];
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug, $data);
+        }
+        return $this->sendSuccess("All user info.", $data);
+    }
+
+    #[Route(
+        "/admin-info/{id}",
+        name: "_get_user_admin_info",
+        methods: ["GET"]
+    )]
+    #[IsGranted(UserVoter::USER_ADMIN_INFO, subject: "userEntity")]
+    public function getAdminInfo(
+        Request $request,
+        UserEntity $userEntity,
+        UserService $userService
+    ):JsonResponse
+    {
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug,
+            "user" => $user
+        ] = $userService->getUserAdminInfo($userEntity);
+        $data = ["user" => $user];
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug, $data);
+        }
+        return $this->sendSuccess("User info.", $data);
+    }
+
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_OK,
+        description: "User revoke token successfully",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "success", type: "string"),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_BAD_REQUEST,
+        description: "Error when revoking token.",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "error", type: "string"),
+            ]
+        )
+    )]
+    #[OA\Parameter(
+        name: "id",
+        description: "Id of your token",
+        in: "path",
+        required: true,
+        schema: new OA\Schema(type: "integer")
+    )]
+    #[Security(name: "Bearer")]
+    #[Route(
+        "/revoke-token/{id}",
+        name: "_revoke_token",
+        methods: ["DELETE"]
+    )]
+    #[IsGranted(UserVoter::USER_REVOKE_TOKEN, subject: "userTokenEntity")]
+    public function revokeUserToken(
+        Request $request,
+        UserTokenEntity $userTokenEntity,
+        UserService $userService
+    ):JsonResponse
+    {
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug,
+        ] = $userService->revokeToken($userTokenEntity);
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug);
+        }
+        return $this->sendSuccess("Token successfully revoked.");
+    }
+
+    #[Route(
+        "/create",
+        name: "_create",
+        methods: ["POST"]
+    )]
+    public function createUser(Request $request, UserService $userService):JsonResponse
+    {
+        $waitedParameter = [
+            "username" => "string",
+            "password" => "password",
+            "confirmPassword" => "password",
+        ];
+        [
+            "error" => $error,
+            "parameter" => $parameter,
+        ] = $this->checkRequestParameter($request, $waitedParameter, FALSE);
+        if ($error !== "") {
+            return $this->sendError($error);
+        }
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug,
+        ] = $userService->create($parameter);
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug);
+        }
+        return $this->sendSuccess("User created successfully.");
+    }
+
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_OK,
+        description: "User get all his token info",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "success", type: "string"),
+                new OA\Property(property: "userToken", type: "array", items: new OA\Items(ref: "#/components/schemas/UserGetAllUserToken")),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: SymfonyResponse::HTTP_BAD_REQUEST,
+        description: "Error when getting all your token info.",
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: "error", type: "string"),
+                new OA\Property(property: "userToken", type: "array", items: new OA\Items(ref: "#/components/schemas/UserGetAllUserToken")),
+            ]
+        )
+    )]
+    #[Security(name: "Bearer")]
+    #[Route(
+        "/all-token",
+        name: "_get_all_user_token",
+        methods: ["GET"]
+    )]
+    public function getCurrentUserAllAvailableToken(Request $request, UserService $userService):JsonResponse
+    {
+        $jwt = $this->getJwt($request);
+        [
+            "error" => $error,
+            "errorDebug" => $errorDebug,
+            "userToken" => $userToken
+        ] = $userService->getCurrentUserAllToken($jwt);
+        $data = ["userToken" => $userToken];
+        if ($error !== "") {
+            return $this->sendError($error, $errorDebug, $data);
+        }
+        return $this->sendSuccess("Current User token list.", $data);
     }
 }

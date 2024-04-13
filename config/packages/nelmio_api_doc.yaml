@@ -4,7 +4,7 @@ nelmio_api_doc:
         info:
             title: Yu-Gi-Oh-API
             description: API part for the isma91/yu-gi-oh project
-            version: 1.3.0
+            version: 1.4.0
         components:
             schemas:
                 UserLogin:
@@ -115,6 +115,40 @@ nelmio_api_doc:
                             type: array
                             items:
                                 $ref: "#/components/schemas/CardCollectionContentRequest"
+                UserGetAllUserToken:
+                    type: object
+                    properties:
+                        id:
+                            type: integer
+                            nullable: false
+                        expiratedAt:
+                            type: string
+                            format: date-time
+                            nullable: false
+                        ip:
+                            type: string
+                            description: "If multiple, we separate with -"
+                            nullable: true
+                        mostPreciseIp:
+                            type: string
+                            description: "Most coherent Ip address from 'ip' field"
+                            nullable: true
+                        geoip:
+                            type: object
+                            properties:
+                                latitude:
+                                    type: float
+                                    nullable: false
+                                longitude:
+                                    type: float
+                                    nullable: false
+                                accuracy_radius:
+                                    type: integer
+                                    nullable: true
+                            nullable: true
+                        address:
+                            type: string
+                            nullable: true
             securitySchemes:
                 Bearer:
                     type: http
