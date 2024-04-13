@@ -22,7 +22,7 @@ class UserToken
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["user_admin_info"])]
+    #[Groups(["user_admin_info", "user_token_info"])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -34,7 +34,7 @@ class UserToken
     private ?User $user = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    #[Groups(["user_admin_info"])]
+    #[Groups(["user_admin_info", "user_token_info"])]
     private ?\DateTimeInterface $expiratedAt = null;
 
     #[ORM\OneToMany(mappedBy: 'userToken', targetEntity: UserTracking::class)]
@@ -42,7 +42,7 @@ class UserToken
     private Collection $userTrackings;
 
     #[ORM\Column]
-    #[Groups(["user_admin_info"])]
+    #[Groups(["user_admin_info", "user_token_info"])]
     private ?int $nbUsage = 0;
 
     public function __construct()
