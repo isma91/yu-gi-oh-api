@@ -4,9 +4,10 @@ namespace App\Service\Tool\User;
 
 use App\Entity\User as UserEntity;
 use App\Entity\UserToken as UserTokenEntity;
+use App\Entity\UserTracking as UserTrackingEntity;
 use App\Service\Tool\User\ORM as UserORMService;
 use App\Service\Tool\UserToken\ORM as UserTokenORMService;
-use App\Service\Maxmind as MaxmindService;
+use App\Service\Tool\UserTracking\Entity as UserTrackingEntityService;
 use DateTime;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -22,21 +23,22 @@ class Auth
     private UserPasswordHasherInterface $userPasswordHasher;
     private UserORMService $userORMService;
     private UserTokenORMService $userTokenORMService;
-    private MaxmindService $maxmindService;
+    private UserTrackingEntityService $userTrackingEntityService;
+    private string $userTokenDuration = "+3 days";
 
     public function __construct(
         ParameterBagInterface $param,
         UserPasswordHasherInterface $userPasswordHasher,
         UserORMService $userORMService,
         UserTokenORMService $userTokenORMService,
-        MaxmindService $maxmindService
+        UserTrackingEntityService $userTrackingEntityService
     )
     {
         $this->param = $param;
         $this->userPasswordHasher = $userPasswordHasher;
         $this->userORMService = $userORMService;
         $this->userTokenORMService = $userTokenORMService;
-        $this->maxmindService = $maxmindService;
+        $this->userTrackingEntityService = $userTrackingEntityService;
     }
 
     /**
@@ -50,67 +52,6 @@ class Auth
     }
 
     /**
-     * Create an array with some user info from server and with the help of Maxmind
-     * @return array
-     */
-    private function _createUserTokenInfo(): array
-    {
-        $ip1 = $_SERVER['REMOTE_ADDR'] ?? "";
-        $ip2 = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? "";
-        $ip3 = $_SERVER['HTTP_REMOTE_IP'] ?? "";
-        if (($ip1 === $ip2) && ($ip2 === $ip3)) {
-            $ip = $ip1;
-        } else {
-            $ip = sprintf("%s-%s-%s", $ip1, $ip2, $ip3);
-        }
-        $infoKey = [
-            'REMOTE_ADDR',
-            'HTTP_X_FORWARDED_FOR',
-            'HTTP_REMOTE_IP',
-            'HTTP_USER_AGENT',
-            'HTTP_ACCEPT_LANGUAGE',
-            'HTTP_ACCEPT_ENCODING',
-            'HTTP_REFERER',
-            'HTTP_X_FORWARDED_PROTO',
-        ];
-        $info = [
-            "ip" => $ip
-        ];
-        foreach ($infoKey as $key) {
-            $value = "";
-            if (empty($_SERVER[$key]) === FALSE)  {
-                $value = $_SERVER[$key];
-            }
-            $info[$key] = $value;
-        }
-        foreach (["REMOTE_ADDR", "HTTP_X_FORWARDED_FOR", "HTTP_REMOTE_IP"] as $item) {
-            $newItem = $item . "_GEOIP";
-            $maxmindResultArray = $this->maxmindService->findAll($info[$item]);
-            foreach ($maxmindResultArray as $key => $value) {
-                $info[$newItem][$key] = $value;
-            }
-        }
-        return $info;
-    }
-
-    /**
-     * Create fingerprint to see if a user is the same
-     * @param array $userTokenInfo
-     * @return string
-     * @throws JsonException
-     */
-    private function _createFingerprint(array $userTokenInfo): string
-    {
-        $infoFingerprint = [
-            "ip" => $userTokenInfo["ip"],
-            "HTTP_USER_AGENT" => $userTokenInfo["HTTP_USER_AGENT"],
-            "HTTP_ACCEPT_LANGUAGE" => $userTokenInfo['HTTP_ACCEPT_LANGUAGE'],
-            "HTTP_ACCEPT_ENCODING" => $userTokenInfo['HTTP_ACCEPT_ENCODING'],
-        ];
-        return hash('sha256', json_encode($infoFingerprint, JSON_THROW_ON_ERROR));
-    }
-
-    /**
      * Create a UserToken entity
      * @param UserEntity $user
      * @return UserTokenEntity
@@ -121,14 +62,9 @@ class Auth
         $userIdentifier = $user->getUserIdentifier();
         $userTokenEntity = new UserTokenEntity();
         $token = md5(uniqid($userIdentifier, TRUE));
-        $userTokenInfo = $this->_createUserTokenInfo();
-        $fingerprint = $this->_createFingerprint($userTokenInfo);
         $expDatetime = new DateTime();
-        $expDatetime->modify("+ 1 month");
+        $expDatetime->modify($this->userTokenDuration);
         return $userTokenEntity->setToken($token)
-            ->setInfo($userTokenInfo)
-            ->setFingerprint($fingerprint)
-            ->setUuid(Uuid::v7())
             ->setExpiratedAt($expDatetime)
             ->setUser($user)
             ->setCreatedAt(new DateTime())
@@ -165,9 +101,7 @@ class Auth
         $userIdentifier = $user->getUserIdentifier();
         $payload = [
             "username" => $userIdentifier,
-            "token" => $userTokenEntity->getToken(),
-            "nbf" => $userTokenCreatedAt->getTimestamp(),
-            "exp" => $userTokenExpiratedAt->getTimestamp()
+            "token" => $userTokenEntity->getToken()
         ];
         [
             "algo" =>  $JWT_ALGO,
@@ -184,10 +118,14 @@ class Auth
     private function _refreshTokenAndJWT(UserEntity $user): string
     {
         $userToken = $this->_generateUserToken($user);
+        $userTracking = $this->userTrackingEntityService->createEntity();
         $jwt = $this->_generateJWT($userToken);
+        $userToken->addUserTracking($userTracking);
+        $userTracking->setUserToken($userToken);
         $user->addUserToken($userToken);
         $this->userORMService->persist($user);
         $this->userORMService->persist($userToken);
+        $this->userORMService->persist($userTracking);
         $this->userORMService->flush();
         return $jwt;
     }
@@ -237,24 +175,9 @@ class Auth
         $decodedJwt = (array)JWT::decode($jwt, $JWT_KEY);
         [
             "username" => $username,
-            "token" => $token
+            "token" => $token,
         ] = $decodedJwt;
         $currentDateTime = new DateTime();
-        $currentTimestamp = $currentDateTime->getTimestamp();
-        $notBeforeTimestamp = NULL;
-        $expirationTimestamp = NULL;
-        if (empty($decodedJwt["nbf"]) === FALSE) {
-            $notBeforeTimestamp = $decodedJwt["nbf"];
-        }
-        if (empty($decodedJwt["exp"]) === FALSE) {
-            $expirationTimestamp = $decodedJwt["exp"];
-        }
-        if ($notBeforeTimestamp !== NULL && $notBeforeTimestamp > $currentTimestamp) {
-            return $response;
-        }
-        if ($expirationTimestamp !== NULL && $expirationTimestamp < $currentTimestamp) {
-            return $response;
-        }
         $userEntity = $this->userORMService->findByUserIdentifiant($username);
         if ($userEntity === NULL) {
             return $response;
@@ -342,5 +265,30 @@ class Auth
     {
         $this->userORMService->remove($userToken);
         $this->userORMService->flush();
+    }
+
+    /**
+     * Used every time the user go to a protected route (route needed an auth)
+     * We create a new UserTracking entity to see if he changes some static info (ip, location etc...)
+     * And we also add some time to the token to be expirated after $userTokenDuration
+     * So if the user use regularly this token he can use it forever
+     * @param UserTokenEntity $userToken
+     * @return void
+     */
+    public function extendUserTokenAndCreateUserTracking(UserTokenEntity $userToken): void
+    {
+        try {
+            $userTracking = $this->userTrackingEntityService->createEntity();
+            $expDatetime = new DateTime();
+            $expDatetime->modify($this->userTokenDuration);
+            $userToken->setExpiratedAt($expDatetime)
+                ->incrementNbUsage()
+                ->addUserTracking($userTracking);
+            $userTracking->setUserToken($userToken);
+            $this->userORMService->persist($userToken);
+            $this->userORMService->persist($userTracking);
+            $this->userORMService->flush();
+        } catch (\Exception $e) {
+        }
     }
 }
