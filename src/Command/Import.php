@@ -185,7 +185,7 @@ class Import extends Command
                 "idYGO",
                 NULL,
                 InputOption::VALUE_REQUIRED,
-                'IF you want to import a specific card'
+                'If you want to import a specific card'
             );
     }
 
