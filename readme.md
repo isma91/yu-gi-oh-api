@@ -1,92 +1,114 @@
 # Yu-Gi-Oh API
 
-**Yu-Gi-Oh API** is a complete solution backend to get all card from the popular TCG [Yu-Gi-Oh](https://www.yugioh-card.com/).
+**Yu-Gi-Oh API** is a complete backend solution to get all cards from the popular TCG [Yu-Gi-Oh](https://www.yugioh-card.com/).
 
 We use the [YGOPRODeck API](https://ygoprodeck.com/) to get all Card and Set information.
 
 ## Run the project
 
 ### Create .env file
-You can take example with the `.env.example` file to create your own.
+You can take the `.env.example` file as a template to create your own.
 
 ### Create the database with tables
 
 Run `php bin/console doctrine:database:create` to have your empty database.
 
-Run `php bin/console doctrine:schema:update --force --complete` to create all table with relation.
+Run `php bin/console doctrine:schema:update --force --complete` to create all tables with relations.
 
-Change `$username` and `$password` value in `src/DataFixtures/User.php`
+Change `$username` and `$password` values in `src/DataFixtures/User.php`
 
-Finally, run `php bin/console doctrine:fixtures:load --append` to have some basic needed with an Admin ready to use.
+Finally, run `php bin/console doctrine:fixtures:load --append` to have some basic needed data with an Admin ready to use.
 
-Be aware that we also have a fixtures for testing purposes who's `UserTestFixtures`,
-delete these two user in your database or rename the file by adding `.old` in the file name to ber avoided by doctrine.
+Be aware that we also have fixtures for testing purposes called `UserTestFixtures`.
+Delete these two users in your database or rename the file by adding `.old` to the filename to prevent them from being loaded by doctrine.
 
-### Get all Card first time
+### Get all Cards first time
 
-We're going to use the `app:import` command to get all Set and Card with theirs information but,
-we need some cards to avoid server explosion when we're going to import all Card and Set the first time 
-(13k Card & 1k Set for me).
+We're going to use the `app:import` command to get all Sets and Cards with their information. However,
+we need to import the data in chunks to avoid server overload when importing all Cards and Sets for the first time
+(approximately 13k Cards & 1k Sets).
 
-So, we're going to launch the import multiple times per slice of 5K cards each to avoid server overload:
+So, we're going to launch the import multiple times with slices of 5K cards each to avoid server overload:
 
 `php bin/console app:import --limit=5000 --no-dbygo-update`
 
-In my case, 2 times is largely enough, next time the Import launches, we won't have too many new Entity problems.
+In my case, 2 iterations are more than enough. For subsequent imports, we won't face issues with too many new entities.
 
+### OCG to TCG Card Converter
+
+The `app:ocg-tcg-converter` command allows you to convert OCG (Oriental Card Game) cards to their TCG (Trading Card Game) equivalents. This process:
+1. Identifies OCG cards in the database
+2. Finds their TCG equivalents
+3. Replaces all references to the OCG card with the TCG version
+4. Removes the OCG card data
+
+For the first run, it's recommended to process cards in batches to avoid overloading your server, similar to the initial card import. Each card processed will have its `isMaybeOCG` flag set to `false` if it's not an OCG card, ensuring it won't be processed again in future runs.
+
+To run the converter with a limit:
+```
+php bin/console app:ocg-tcg-converter --limit=200
+```
+
+Run this multiple times with appropriate limits until you've processed the majority of your cards. After this initial processing, subsequent cron job executions will be much faster as they'll only need to check newly added cards.
+
+You can also check a specific card by its YGO ID:
+```
+php bin/console app:ocg-tcg-converter --idYGO=12345
+```
+
+This progressive approach helps maintain a clean database focused on TCG cards which are more relevant for most users, while ensuring efficient resource usage over time.
 ### Set Google JSON Auth file for the Backup
 
-You can use the Backup in the `src/Command` folder, but you need to have a Gmail account with a Google Drive access.
+You can use the Backup functionality in the `src/Command` folder, but you need to have a Gmail account with Google Drive access.
 
-You need to create a Service Account and enable the Google Drive API in your console google cloud platform, if you need help you can go [here](https://github.com/googleapis/google-api-php-client/blob/main/docs/oauth-server.md).
+You need to create a Service Account and enable the Google Drive API in your Google Cloud Platform console. If you need help, you can refer to [this guide](https://github.com/googleapis/google-api-php-client/blob/main/docs/oauth-server.md).
 
-After that, you need to create a folder named `Backup` at the root of your Drive `My Drive` and share with the Service Account email.
+After that, you need to create a folder named `Backup` at the root of your Drive `My Drive` and share it with the Service Account email.
 
-Download the auth.json file and add it to `var/google` folder of the project.
+Download the auth.json file and add it to the `var/google` folder of the project.
 
-### Send log to Telegram
+### Send logs to Telegram
 
-Be aware that only error & warning log in production will be sent to avoid too much spam.
+Be aware that only error & warning logs in production will be sent to avoid too much spam.
 
-You need first to set in your `.env` the var `SEND_LOG_TO_TELEGRAM` to `"TRUE"`.
+You need to first set the `SEND_LOG_TO_TELEGRAM` variable to `"TRUE"` in your `.env` file.
 
-You can send some logs to a Telegram chat room. You need first to create a bot and speak with him to initiate a chat room with you and the bot, more info [here](https://core.telegram.org/bots/tutorial#getting-ready).
+You can send logs to a Telegram chat room. First, you need to create a bot and interact with it to initiate a chat room between you and the bot. More info [here](https://core.telegram.org/bots/tutorial#getting-ready).
 
-After you create your bot, you need to send a message to your newly created bot from telegram.
+After creating your bot, send a message to your newly created bot from Telegram.
 
-After the message send you can go to `https://api.telegram.org/bot<YOUR_BOT_Token>/getUpdates` to get a JSON response.
+Then go to `https://api.telegram.org/bot<YOUR_BOT_Token>/getUpdates` to get a JSON response.
 
-You need to get the chat id who's in `result[0]["message"]["chat"]["id"]`.
-You can now update your `env` file with the bot token, name and chat id.
+You need to get the chat id from `result[0]["message"]["chat"]["id"]`.
+You can now update your `.env` file with the bot token, name, and chat id.
 
 ### Prepare Docker
 
-We prepare a Dockerfile to avoid installing all the dependencies needed to run the project, 
-we take the `Europe/Paris` timezone so if you want to change you can set it in the `Dockerfile`.
+We've prepared a Dockerfile to avoid installing all the dependencies needed to run the project.
+We use the `Europe/Paris` timezone, which you can change in the `Dockerfile` if needed.
 
-We already named the container `yu-gi-oh-api`, but you can rename it in the `docker-compose.yaml`.
+We've already named the container `yu-gi-oh-api`, but you can rename it in the `docker-compose.yaml` file.
 
+Run `docker-compose -f docker-compose.yml build`
+then `docker-compose -f docker-compose.yml up -d` to have your container ready to use.
 
-Run `docker-compose -f docker-compose.yml build` 
-then `docker-compose -f docker-compose.yml up -d` to have your container ready-to-use.
-
-### Install dependencies if not use of Docker
+### Install dependencies if not using Docker
 
 Just run `composer install` in the root of the project.
 
 ## Logger
 
-You can see all logs in `var/log` directory of the project.
+You can see all logs in the `var/log` directory of the project.
 
-The Logger create text file with the nomenclature `YYYY-MM-DD_IS_CRON_LOG_LEVEL.txt`
-(ex: `2024-03-21_cron_error.txt`, `2024-03-22_info.txt`).
+The Logger creates text files with the nomenclature `YYYY-MM-DD_IS_CRON_LOG_LEVEL.txt`
+(e.g. `2024-03-21_cron_error.txt`, `2024-03-22_info.txt`).
 
-We separate log from CRON from the project to be quickly findable.
+We separate logs from CRON jobs from the rest of the project to make them easier to find.
 
-Please be aware that if you activate the `Backup` cron, we delete old all logs file who's not created on the day the cron is launched. 
+Please be aware that if you activate the `Backup` cron, it deletes all old log files that were not created on the day the cron is launched.
 
-Errors related to aa non-existent route or an existing route but with a bad request method are not
-taken into account, and we only display a JSONResponse with the documentation route.
+Errors related to non-existent routes or existing routes with incorrect request methods are not
+logged. Instead, we only display a JSONResponse with the documentation route.
 
 ## Crontab
 
@@ -94,68 +116,68 @@ Use the `cron.txt` file to help you with the implementation of various tasks suc
 
 ## Documentation
 
-The documentation is available at the `/swagger` route
+The documentation is available at the `/swagger` route.
 
 ## UserToken
 
 ### What is it
 
-The `UserToken` entity serve multiple purposes. 
+The `UserToken` entity serves multiple purposes.
 
-It stores the unique token that the user is going to use for this specific session (or in many cases, machine like laptop, smartphone...).
+It stores the unique token that the user is going to use for this specific session (or in many cases, device like laptop, smartphone, etc.).
 
-It stores also multiple `UserTracking` entity.
+It also stores multiple `UserTracking` entities.
 
 ### UserTracking
 
-It's an entity who takes some info from the server like the ip, user-agent, accepted encoding/language, geolocation (with the help of Maxmind see below) etc...
+This entity captures information from the server such as IP address, user-agent, accepted encoding/language, geolocation (with the help of MaxMind, see below), etc.
 
-We take all that to get a fingerprint, usable in the futur to target ban some user who are trying to do bad behavior.
+We collect all this to create a fingerprint, which can be used in the future to target ban users who demonstrate malicious behavior.
 
 If you want to know more, check the method `_refreshTokenAndJWT` in `src/Service/Tool/User/Auth.php`.
 
-### Maxmind
+### MaxMind
 
-We use Maxmind's GeoLite2 database which is a free database service where you put an ip and he finds a city/country/ASN.
+We use MaxMind's GeoLite2 database, which is a free database service where you input an IP address and it returns the associated city/country/ASN.
 
-Maxmind offer 3 databases, one for each purpose (city/country/asn) and do search in it but first, you need to sing up [here](https://www.maxmind.com/en/geolite2/signup).
+MaxMind offers 3 databases, one for each purpose (city/country/ASN). To use them, you first need to sign up [here](https://www.maxmind.com/en/geolite2/signup).
 
-Then you need to go to the License key page (you will see it in the Account category in your left after login).
+Then go to the License key page (you will see it in the Account category on the left after logging in).
 
-You need to create a new license key where you can store it in your `.env` file in `MAXMIND_LICENSE_KEY` key, don't forget to put your account id in `MAXMIND_ACCOUNT_ID`.
+Create a new license key and store it in your `.env` file as `MAXMIND_LICENSE_KEY`. Don't forget to put your account id in `MAXMIND_ACCOUNT_ID`.
 
-After that you juste need to run the `GeoIpCheck` command with `php bin/console app:geo-ip` or leave your crontab do it for you ( see crontab section).
+After that, you just need to run the `GeoIpCheck` command with `php bin/console app:geo-ip` or let your crontab handle it for you (see the crontab section).
 
 ### Geocode.maps
 
-We use [geocode.maps](https://geocode.maps.co) as a free api to do reverse geocoding.
+We use [geocode.maps](https://geocode.maps.co) as a free API for reverse geocoding.
 
-All you need is to create an account and store your api key to `GEOCODE_MAPS_CO_API_KEY` key in your `.env` file.
+All you need is to create an account and store your API key as `GEOCODE_MAPS_CO_API_KEY` in your `.env` file.
 
 ## Testing
 
 ### Package
 
-We use the `symfony/test-pack` for Testing the project, it comes with PHPUnit.
+We use the `symfony/test-pack` for testing the project, which comes with PHPUnit.
 
-Be aware that this package is not required in production but only in dev environment
+Be aware that this package is only required in the dev environment, not in production.
 
 ### Initialization
 
-If you want to test the project you must create a `.env.test` file who's a copy of your `.env` file
-but, you need to change the `DATABASE_URL` value, usually the same database name but with the suffixe `-test`.
+If you want to test the project, you must create a `.env.test` file as a copy of your `.env` file,
+but you need to change the `DATABASE_URL` value. Usually, use the same database name but with the suffix `-test`.
 
-We need to clone the current database (fulfilled) to another; we can do it with the mysqldump command:
+We need to clone the current database (with data) to another; we can do it with the mysqldump command:
 `mysqldump --host=127.0.0.1 --port=3306 --user=DB_USER --password=DB_PASSWORD yu-gi-oh-api | mysql -u DB_USER -p yu-gi-oh-api-test`.
 
-Launch the `UserTestFixtures` to have a user and an admin as test purposes with the command
+Launch the `UserTestFixtures` to have a user and an admin for testing purposes with the command:
 `php bin/console doctrine:fixtures:load --group=user-test --env=test --append`.
 
 ### Run Tests
 
-After that, all you need is run the command `php bin/phpunit <directory> --process-isolation` at the root of the project,
-where `<directory>` can be `test/Controller`, `test/Entity` or `test/Service`.
+After that, all you need to do is run the command `php bin/phpunit <directory> --process-isolation` at the root of the project,
+where `<directory>` can be `test/Controller`, `test/Entity`, or `test/Service`.
 
-Be aware that some test WILL fail if you try to run it individually because they have dependencies, run `php bin/phpunit --list-groups` to find it.
+Be aware that some tests WILL fail if you try to run them individually because they have dependencies. Run `php bin/phpunit --list-groups` to find them.
 
-You can also run `php bin/phpunit --process-isolation`to run all test at once.
+You can also run `php bin/phpunit --process-isolation` to run all tests at once.
