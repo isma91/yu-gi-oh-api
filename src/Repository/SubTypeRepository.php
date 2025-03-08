@@ -16,9 +16,24 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class SubTypeRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    public function __construct(
+        ManagerRegistry $registry,
+        private readonly FindAllContainingCardRepository $findAllContainingCardRepository
+    )
     {
         parent::__construct($registry, SubType::class);
+    }
+
+    /**
+     * @param int $cardId
+     * @return SubType[]
+     */
+    public function findAllContainingCard(int $cardId): array
+    {
+        $tableAliasName = 'st';
+        $qb = $this->createQueryBuilder($tableAliasName);
+        return $this->findAllContainingCardRepository
+            ->findAllContainingCard($qb, $tableAliasName, $cardId);
     }
 
     //    /**
