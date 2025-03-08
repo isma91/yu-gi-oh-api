@@ -36,7 +36,11 @@ class Rarity
     #[Groups(["card_info", "set_info", "search_card", "collection_info"])]
     private ?string $slugName = null;
 
-    #[ORM\ManyToMany(targetEntity: CardSet::class, mappedBy: 'rarities')]
+    #[ORM\ManyToMany(
+        targetEntity: CardSet::class,
+        mappedBy: 'rarities',
+        cascade: ['persist']
+    )]
     private Collection $cardSets;
 
     public function __construct()

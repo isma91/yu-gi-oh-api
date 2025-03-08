@@ -61,7 +61,11 @@ class Set
             ]
         ),
     )]
-    #[ORM\ManyToMany(targetEntity: CardSet::class, mappedBy: 'sets')]
+    #[ORM\ManyToMany(
+        targetEntity: CardSet::class,
+        mappedBy: 'sets',
+        cascade: ['persist']
+    )]
     #[Groups(["set_info"])]
     private Collection $cardSets;
 
