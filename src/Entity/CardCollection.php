@@ -50,7 +50,11 @@ class CardCollection
         items: new OA\Items(ref: "#/components/schemas/CardCollectionInfoCardCardCollection"),
         nullable: false
     )]
-    #[ORM\OneToMany(mappedBy: 'cardCollection', targetEntity: CardCardCollection::class)]
+    #[ORM\OneToMany(
+        mappedBy: 'cardCollection',
+        targetEntity: CardCardCollection::class,
+        cascade: ['persist', 'remove']
+    )]
     #[Groups(["collection_info"])]
     private Collection $cardCardCollections;
 

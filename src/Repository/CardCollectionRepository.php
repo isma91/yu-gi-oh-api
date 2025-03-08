@@ -73,6 +73,21 @@ class CardCollectionRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    /**
+     * @param int $cardId
+     * @return CardCollection[]
+     */
+    public function findAllContainingCard(int $cardId): array
+    {
+        return $this->createQueryBuilder('cc')
+            ->innerJoin('cc.cardCardCollections', 'ccc')
+            ->innerJoin('ccc.card', 'c')
+            ->where('c.id = :cardId')
+            ->setParameter('cardId', $cardId)
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return CardCollection[] Returns an array of CardCollection objects
     //     */

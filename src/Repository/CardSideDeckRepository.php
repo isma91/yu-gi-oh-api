@@ -16,9 +16,24 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class CardSideDeckRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    public function __construct(
+        ManagerRegistry $registry,
+        private readonly FindAllContainingCardRepository $findAllContainingCardRepository
+    )
     {
         parent::__construct($registry, CardSideDeck::class);
+    }
+
+    /**
+     * @param int $cardId
+     * @return CardSideDeck[]
+     */
+    public function findAllContainingCard(int $cardId): array
+    {
+        $tableAliasName = 'csd';
+        $qb = $this->createQueryBuilder($tableAliasName);
+        return $this->findAllContainingCardRepository
+            ->findAllContainingCard($qb, $tableAliasName, $cardId);
     }
 
     //    /**

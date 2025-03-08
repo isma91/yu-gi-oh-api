@@ -35,7 +35,11 @@ class SubType
     #[Groups(["search_card", "sub_type_list", "card_info"])]
     private ?string $slugName = null;
 
-    #[ORM\ManyToMany(targetEntity: Card::class, mappedBy: 'subTypes')]
+    #[ORM\ManyToMany(
+        targetEntity: Card::class,
+        mappedBy: 'subTypes',
+        cascade: ['persist']
+    )]
     private Collection $cards;
 
     public function __construct()

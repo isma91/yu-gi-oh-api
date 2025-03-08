@@ -51,7 +51,11 @@ class SubProperty
     #[Groups(["search_card", "card_info"])]
     private ?SubPropertyType $subPropertyType = null;
 
-    #[ORM\ManyToMany(targetEntity: Card::class, inversedBy: 'subProperties')]
+    #[ORM\ManyToMany(
+        targetEntity: Card::class,
+        inversedBy: 'subProperties',
+        cascade: ['persist']
+    )]
     private Collection $cards;
 
     public function __construct()

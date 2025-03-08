@@ -37,7 +37,11 @@ class CardSideDeck
         ),
         nullable: true,
     )]
-    #[ORM\ManyToMany(targetEntity: Card::class, inversedBy: 'cardSideDecks')]
+    #[ORM\ManyToMany(
+        targetEntity: Card::class,
+        inversedBy: 'cardSideDecks',
+        cascade: ['persist']
+    )]
     #[Groups(["card_info"])]
     private Collection $cards;
 
