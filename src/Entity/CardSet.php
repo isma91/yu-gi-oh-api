@@ -35,7 +35,11 @@ class CardSet
             ]
         ),
     )]
-    #[ORM\ManyToMany(targetEntity: Set::class, inversedBy: 'cardSets')]
+    #[ORM\ManyToMany(
+        targetEntity: Set::class,
+        inversedBy: 'cardSets',
+        cascade: ['persist']
+    )]
     #[Groups(["card_info", "search_card"])]
     private Collection $sets;
 
@@ -55,7 +59,11 @@ class CardSet
             ]
         )
     )]
-    #[ORM\ManyToMany(targetEntity: Rarity::class, inversedBy: 'cardSets')]
+    #[ORM\ManyToMany(
+        targetEntity: Rarity::class,
+        inversedBy: 'cardSets',
+        cascade: ['persist']
+    )]
     #[Groups(["card_info", "set_info", "search_card"])]
     private Collection $rarities;
 

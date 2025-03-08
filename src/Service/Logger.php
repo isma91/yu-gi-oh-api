@@ -281,14 +281,35 @@ final class Logger
                     // get content of current logfile as context
                     // to avoid load the full file in memory
                     $logFileContext = fopen($logFilePath, 'rb', 1, $streamContext);
-                    $this->filesystem->dumpFile($tempFilePath, $this->message);
-                    $this->filesystem->appendToFile($tempFilePath, $logFileContext);
-                    fclose($logFileContext);
-                    $this->filesystem->remove($logFilePath);
-                    $this->filesystem->rename($tempFilePath, $logFilePath);
+                    if (FALSE === $logFileContext) {
+                        $this->sendExceptionOrError(error_get_last());
+                    } else {
+                        $this->filesystem->dumpFile($tempFilePath, $this->message);
+                        $this->filesystem->appendToFile($tempFilePath, $logFileContext);
+                        fclose($logFileContext);
+                        $this->filesystem->remove($logFilePath);
+                        $this->filesystem->rename($tempFilePath, $logFilePath);
+                    }
                 }
             }
-        } catch (IOException|Exception $IOException) {
+        } catch (IOException|Exception $e) {
+            $this->sendExceptionOrError((array)$e);
+            //do nothing to avoid infinite loop
+        }
+    }
+
+    protected function sendExceptionOrError(?array $arrayExceptionOrError = NULL): void
+    {
+        try {
+            $errorMessage = $this->addDateTimeToMessage('ERROR LOG\n');
+            if (NULL !== $arrayExceptionOrError) {
+                $errorMessage .= "Error: " . $this->varDumpService->varDump($arrayExceptionOrError) . "\n";
+            }
+            $errorMessage .= "Original message: " . $this->message;
+            if (TRUE === $this->isSendToTelegram && NULL !== $this->telegramService) {
+                $this->telegramService->sendMessage($errorMessage);
+            }
+        } catch (\Exception $e) {
             //do nothing to avoid infinite loop
         }
     }

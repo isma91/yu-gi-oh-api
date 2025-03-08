@@ -91,7 +91,11 @@ class Card
             ]
         ),
     )]
-    #[ORM\OneToMany(mappedBy: 'card', targetEntity: CardPicture::class)]
+    #[ORM\OneToMany(
+        mappedBy: 'card',
+        targetEntity: CardPicture::class,
+        cascade: ['persist', 'remove']
+    )]
     #[Groups(["search_card", "card_info", "card_random_info"])]
     private Collection $pictures;
 
@@ -119,7 +123,11 @@ class Card
         ),
         nullable: true,
     )]
-    #[ORM\ManyToMany(targetEntity: SubType::class, inversedBy: 'cards')]
+    #[ORM\ManyToMany(
+        targetEntity: SubType::class,
+        inversedBy: 'cards',
+        cascade: ['persist']
+    )]
     #[Groups(["search_card", "card_info"])]
     private Collection $subTypes;
 
@@ -184,7 +192,11 @@ class Card
         ),
         nullable: true,
     )]
-    #[ORM\OneToMany(mappedBy: 'card', targetEntity: CardSet::class)]
+    #[ORM\OneToMany(
+        mappedBy: 'card',
+        targetEntity: CardSet::class,
+        cascade: ['persist', 'remove']
+    )]
     #[Groups(["card_info", "search_card"])]
     private Collection $cardSets;
 
@@ -199,7 +211,11 @@ class Card
         ),
         nullable: true
     )]
-    #[ORM\ManyToMany(targetEntity: SubProperty::class, mappedBy: 'cards')]
+    #[ORM\ManyToMany(
+        targetEntity: SubProperty::class,
+        mappedBy: 'cards',
+        cascade: ['persist']
+    )]
     #[Groups(["search_card", "card_info"])]
     private Collection $subProperties;
 
@@ -254,20 +270,39 @@ class Card
     #[Groups(["search_card", "card_info"])]
     private ?bool $isPendulum = null;
 
-    #[ORM\ManyToMany(targetEntity: CardMainDeck::class, mappedBy: 'cards')]
+    #[ORM\ManyToMany(
+        targetEntity: CardMainDeck::class,
+        mappedBy: 'cards',
+        cascade: ['persist']
+    )]
     private Collection $cardMainDecks;
 
     #[ORM\ManyToMany(targetEntity: Deck::class, inversedBy: 'cardsUnique')]
     private Collection $decks;
 
-    #[ORM\ManyToMany(targetEntity: CardExtraDeck::class, mappedBy: 'cards')]
+    #[ORM\ManyToMany(
+        targetEntity: CardExtraDeck::class,
+        mappedBy: 'cards',
+        cascade: ['persist']
+    )]
     private Collection $cardExtraDecks;
 
-    #[ORM\ManyToMany(targetEntity: CardSideDeck::class, mappedBy: 'cards')]
+    #[ORM\ManyToMany(
+        targetEntity: CardSideDeck::class,
+        mappedBy: 'cards',
+        cascade: ['persist']
+    )]
     private Collection $cardSideDecks;
 
-    #[ORM\OneToMany(mappedBy: 'card', targetEntity: CardCardCollection::class)]
+    #[ORM\OneToMany(
+        mappedBy: 'card',
+        targetEntity: CardCardCollection::class,
+        cascade: ['persist', 'remove']
+    )]
     private Collection $cardCardCollections;
+
+    #[ORM\Column(options: ['default' => true])]
+    private bool $isMaybeOCG = TRUE;
 
     public function __construct()
     {
@@ -745,6 +780,18 @@ class Card
                 $cardCardCollection->setCard(null);
             }
         }
+
+        return $this;
+    }
+
+    public function isIsMaybeOCG(): ?bool
+    {
+        return $this->isMaybeOCG;
+    }
+
+    public function setIsMaybeOCG(bool $isMaybeOCG): static
+    {
+        $this->isMaybeOCG = $isMaybeOCG;
 
         return $this;
     }
