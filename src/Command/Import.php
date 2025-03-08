@@ -487,7 +487,8 @@ class Import extends Command
                         ->setName($cardInfoName)
                         ->setSlugName($this->slugify($cardInfoName))
                         ->setDescription($cardInfoDesc)
-                        ->setSlugDescription($this->slugify($cardInfoDesc));
+                        ->setSlugDescription($this->slugify($cardInfoDesc))
+                        ->setIsMaybeOCG(TRUE);
                 } else {
                     $output->writeln(
                         sprintf(
