@@ -191,8 +191,9 @@ class OCGTCGConverter extends Command
             foreach ($cardEntityArray as $cardEntityMaybeOCGIdYGO => $cardEntityMaybeOCG) {
                 $output->writeln(
                     sprintf(
-                        'Checking Card n°<info-bold>%d</info-bold>...',
-                        $countCardChecked
+                        'Checking Card n°<info-bold>%d</info-bold> with idYGO <info-bold>%d</info-bold>...',
+                        $countCardChecked,
+                        $cardEntityMaybeOCGIdYGO
                     )
                 );
                 if ($limitCardToCheck !== NULL && $countCardChecked >= $limitCardToCheck) {
@@ -348,6 +349,7 @@ class OCGTCGConverter extends Command
                 $this->outputDone($output);
                 $countCardChecked++;
             }
+            $this->em->flush();
             $this->em->clear();
             $output->writeln('<info-bold>Converting Done !!</info-bold>');
         }  catch (Exception $e) {
