@@ -71,8 +71,6 @@ class OCGTCGConverter extends Command
     private GuzzleClient $guzzleClient;
     private string $cardUploadPath;
     private Country $unitedStateCountry;
-    private const BATCH_SIZE = 50;
-
     public function __construct(
         ParameterBagInterface $param,
         private readonly EntityManagerInterface $em,
@@ -128,7 +126,7 @@ class OCGTCGConverter extends Command
     {
         try {
             $countryResult = $this->countryRepository->findBy(["alpha3" => "USA"]);
-            if (0 === $countryResult) {
+            if (NULL === $countryResult) {
                 $this->loggerService->setException(
                     new CronException(
                         "Can't find the united state country !!",
@@ -204,15 +202,18 @@ class OCGTCGConverter extends Command
                 //can only make 10 req/sec to remote api
                 sleep(0.5);
                 if (null === $cardInfoRemote) {
-                    $this->loggerService->setException(
-                        new CronException(
-                            sprintf(
-                                "No Card Info found from ygoprodeck, idYGO => %s",
-                                $cardEntityMaybeOCGIdYGO
-                            ),
-                            $this::$defaultName
-                        )
-                    )->addErrorExceptionOrTrace();
+                    $this->loggerService->setLevel(LoggerService::INFO)
+                        ->setException(
+                            new CronException(
+                                sprintf(
+                                    "No Card Info found from ygoprodeck, idYGO => %s",
+                                    $cardEntityMaybeOCGIdYGO
+                                ),
+                                $this::$defaultName
+                            )
+                        )->addErrorExceptionOrTrace();
+                    $this->loggerService->setLevel(LoggerService::ERROR);
+                    $countCardChecked++;
                     continue;
                 }
                 $trueIdYGO = $cardInfoRemote['id'];
@@ -252,7 +253,6 @@ class OCGTCGConverter extends Command
                     )
                 );
                 $cardEntityIdOCG = $cardEntityMaybeOCG->getId();
-                $cardEntityIdTCG = $cardEntityTCG->getId();
                 $output->writeln('Remove the OCG card from Collection...');
                 $cardCollections = $this->cardCollectionRepository->findAllContainingCard($cardEntityIdOCG);
                 if (count($cardCollections) > 0) {
