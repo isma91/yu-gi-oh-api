@@ -202,17 +202,15 @@ class OCGTCGConverter extends Command
                 //can only make 10 req/sec to remote api
                 sleep(0.5);
                 if (null === $cardInfoRemote) {
-                    $this->loggerService->setLevel(LoggerService::INFO)
-                        ->setException(
-                            new CronException(
-                                sprintf(
-                                    "No Card Info found from ygoprodeck, idYGO => %s",
-                                    $cardEntityMaybeOCGIdYGO
-                                ),
-                                $this::$defaultName
-                            )
-                        )->addErrorExceptionOrTrace();
-                    $this->loggerService->setLevel(LoggerService::ERROR);
+                    $this->loggerService->setException(
+                        new CronException(
+                            sprintf(
+                                "No Card Info found from ygoprodeck, idYGO => %s",
+                                $cardEntityMaybeOCGIdYGO
+                            ),
+                            $this::$defaultName
+                        )
+                    )->addErrorExceptionOrTrace();
                     $countCardChecked++;
                     continue;
                 }
@@ -233,15 +231,18 @@ class OCGTCGConverter extends Command
                 }
                 $cardEntityTCG = $this->getLocalCardInfoFromIdYGO($trueIdYGO);
                 if (null === $cardEntityTCG) {
-                    $this->loggerService->setException(
-                        new CronException(
-                            sprintf(
-                                "No Card Info found from database, idYGO => %s",
-                                $trueIdYGO
-                            ),
-                            $this::$defaultName
-                        )
-                    )->addErrorExceptionOrTrace();
+                    $this->loggerService->setLevel(LoggerService::INFO)
+                        ->setException(
+                            new CronException(
+                                sprintf(
+                                    "No Card Info found from database, idYGO => %s",
+                                    $trueIdYGO
+                                ),
+                                $this::$defaultName
+                            )
+                        )->addErrorExceptionOrTrace();
+                    $this->loggerService->setLevel(LoggerService::ERROR);
+                    $countCardChecked++;
                     continue;
                 }
                 $output->writeln(
