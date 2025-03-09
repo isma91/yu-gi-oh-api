@@ -350,12 +350,7 @@ class OCGTCGConverter extends Command
             }
             $this->em->clear();
             $output->writeln('<info-bold>Converting Done !!</info-bold>');
-        }  catch (GuzzleException $e) {
-            $url = $e->getRequest()->getUri()->__toString();
-            $this->loggerService->setException($e)
-                ->addErrorExceptionOrTrace();
-            return Command::FAILURE;
-        } catch (JsonException|Exception $e) {
+        }  catch (Exception $e) {
             $this->loggerService->setException($e)
                 ->addErrorExceptionOrTrace();
             return Command::FAILURE;
@@ -391,8 +386,6 @@ class OCGTCGConverter extends Command
     /**
      * @param int $idYGO
      * @return array|null
-     * @throws GuzzleException
-     * @throws JsonException
      */
     protected function getCardInfoFromIdYGO(int $idYGO): ?array
     {
@@ -401,12 +394,17 @@ class OCGTCGConverter extends Command
             $this->arrayUri["card"],
             $idYGO
         );
-        $response = $this->getRequestFromUri($url);
-        if ($response !== NULL) {
-            $data = $response["data"];
-            if (true === is_array($data) && count($data) > 0) {
-                return $data[0];
+        try {
+            $response = $this->getRequestFromUri($url);
+            if ($response !== NULL) {
+                $data = $response["data"];
+                if (true === is_array($data) && count($data) > 0) {
+                    return $data[0];
+                }
             }
+        } catch (GuzzleException|JsonException $e) {
+            $this->loggerService->setException($e)
+                ->addErrorExceptionOrTrace();
         }
         return NULL;
     }
