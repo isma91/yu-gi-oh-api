@@ -305,6 +305,10 @@ class Import extends Command
 
             if ($skipDbCheck === TRUE) {
                 $output->writeln('<comment>No check to the databases...</comment>');
+                $databaseYGOEntity = NULL;
+                $needImport = TRUE;
+                $dbVersion = NULL;
+                $dbDatetime = NULL;
             } else {
                 $output->write('Get current DatabaseYGO info...');
                 $databaseYGOEntity = $this->getCurrentDatabaseYGO();
@@ -329,7 +333,6 @@ class Import extends Command
                         )
                     );
                 }
-
                 $output->write('Get last DatabaseYGO info from URI...');
                 $lastDatabaseYGO = $this->getLastDatabaseYGO();
                 if ($lastDatabaseYGO === NULL) {
@@ -347,26 +350,26 @@ class Import extends Command
                 $output->writeln(sprintf('Last DB update date: <info-bold>%s</info-bold>', $dbDatetime));
 
                 $needImport = $this->compareCurrentAndLastDatabaseYGO($databaseYGOEntity, $lastDatabaseYGO);
-                if ($cardIdYGOToImport === NULL) {
-                    if ($needImport === FALSE) {
-                        $output->writeln('<info-bold>No import needed !!</info-bold>');
-                        return Command::SUCCESS;
-                    }
-                    $output->writeln('<info-bold>Import begin...</info-bold>');
-                    $output->write('Getting all Card info from URI...');
-                } else {
-                    $output->writeln('<info-bold>Bypass Import Check because of import Card</info-bold>');
-                }
-
-                if ($cardIdYGOToImport === NULL) {
-                    $requestCardInfoArray = $this->getAllCardInfo();
-                } else {
-                    $requestCardInfoArray = $this->getCardInfoFromIdYGO($cardIdYGOToImport);
-                }
-                $this->outputDone($output);
             }
 
 
+            if ($cardIdYGOToImport === NULL) {
+                if ($needImport === FALSE) {
+                    $output->writeln('<info-bold>No import needed !!</info-bold>');
+                    return Command::SUCCESS;
+                }
+                $output->writeln('<info-bold>Import begin...</info-bold>');
+                $output->write('Getting all Card info from URI...');
+            } else {
+                $output->writeln('<info-bold>Bypass Import Check because of import Card</info-bold>');
+            }
+
+            if ($cardIdYGOToImport === NULL) {
+                $requestCardInfoArray = $this->getAllCardInfo();
+            } else {
+                $requestCardInfoArray = $this->getCardInfoFromIdYGO($cardIdYGOToImport);
+            }
+            $this->outputDone($output);
 
             $this->outputGetAllLocally($output, "Set");
             $setArray = $this->getAllSet();
@@ -1072,7 +1075,14 @@ class Import extends Command
                 $cardEntityArray[] = $cardEntity;
                 $this->em->persist($cardEntity);
             }
-            if ($skipDbCheck === FALSE && $noDatabaseYgoUpdate === FALSE && $cardIdYGOToImport === NULL) {
+            if (
+                $skipDbCheck === FALSE &&
+                $databaseYGOEntity !== NULL &&
+                $noDatabaseYgoUpdate === FALSE &&
+                $cardIdYGOToImport === NULL &&
+                $dbDatetime !== NULL &&
+                $dbVersion !== NULL
+            ) {
                 $output->write('Updating <bold>DatabaseYGO</bold>...');
                 $databaseYGOEntity->setDatabaseVersion((float)$dbVersion)
                     ->setLastUpdate(new DateTime($dbDatetime));
@@ -1314,16 +1324,24 @@ class Import extends Command
                 "set_name" => $setName,
                 "set_code" => $setCode,
                 "num_of_cards" => $nbCard,
-                "tcg_date" => $releaseDate,
             ] = $cardSetArray;
+            if (isset($cardSetArray['tcg_date']) === TRUE) {
+                $releaseDate = $cardSetArray['tcg_date'];
+            } else {
+                $releaseDate = NULL;
+            }
             $setSlugName = $this->slugify($setName);
             if (in_array($setSlugName, $setSlugNameArray, TRUE) === FALSE) {
                 $current = new DateTime();
-                $releaseDateTimestamp = strtotime($releaseDate);
-                if ($releaseDateTimestamp <= 0 || $releaseDateTimestamp === FALSE) {
-                    $releaseDateTime = NULL;
+                if ($releaseDate !== NULL) {
+                    $releaseDateTimestamp = strtotime($releaseDate);
+                    if ($releaseDateTimestamp <= 0 || $releaseDateTimestamp === FALSE) {
+                        $releaseDateTime = NULL;
+                    } else {
+                        $releaseDateTime = new DateTime($releaseDate);
+                    }
                 } else {
-                    $releaseDateTime = new DateTime($releaseDate);
+                    $releaseDateTime = NULL;
                 }
                 if (empty($setCode) === TRUE) {
                     $setCode = "";
