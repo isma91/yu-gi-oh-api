@@ -800,7 +800,6 @@ class Import extends Command
                     $cardEntity->setType($monsterTypeEntity);
                     $this->em->persist($monsterTypeEntity);
                     if ($cardInfoAttribute === NULL) {
-                        $monsterTypeEntity->removeCard($cardEntity);
                         [
                             "newArray" => $subTypeNewArray,
                             "array" => $subTypeArray
