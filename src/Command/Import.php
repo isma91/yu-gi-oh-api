@@ -841,7 +841,6 @@ class Import extends Command
                     $cardInfoPropertyValue = NULL;
                     if ($isLink === TRUE) {
                         if ($cardInfoLinkRating === NULL) {
-                            $cardAttributeEntity->removeCard($cardEntity);
                             [
                                 "newArray" => $subTypeNewArray,
                                 "array" => $subTypeArray
@@ -865,7 +864,6 @@ class Import extends Command
                         $propertyTypeEntity = $propertyTypeArray["link-rating"];
                     } else {
                         if ($cardInfoLevel === NULL) {
-                            $cardAttributeEntity->removeCard($cardEntity);
                             [
                                 "newArray" => $subTypeNewArray,
                                 "array" => $subTypeArray
