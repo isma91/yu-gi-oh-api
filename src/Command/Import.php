@@ -182,6 +182,12 @@ class Import extends Command
                 'If you want to not update the DatabaseYGO entity, mostly use the first time Import is launch.'
             )
             ->addOption(
+                'skip-db-check',
+                NULL,
+                InputOption::VALUE_NONE,
+                'If you want to skip the database YGO check: usefull if you need to import multiple times'
+            )
+            ->addOption(
                 "idYGO",
                 NULL,
                 InputOption::VALUE_REQUIRED,
@@ -278,6 +284,7 @@ class Import extends Command
     {
         try {
             $noDatabaseYgoUpdate = $input->getOption("no-dbygo-update");
+            $skipDbCheck = $input->getOption("skip-db-check");
             $importSpecificCardIdYGO = $input->getOption("idYGO");
             $limitOptionValue = $input->getOption("limit");
             $cardIdYGOToImport = NULL;
@@ -296,64 +303,69 @@ class Import extends Command
             $output->getFormatter()->setStyle("info-bold", $outputStyleInfoBold);
             $output->getFormatter()->setStyle("bold", $outputStyleBold);
 
-            $output->write('Get current DatabaseYGO info...');
-            $databaseYGOEntity = $this->getCurrentDatabaseYGO();
-            $this->outputDone($output);
-
-            if ($databaseYGOEntity === NULL) {
-                $output->writeln('<comment>No Database YGO find locally !!</comment>');
-                $databaseYGOEntity = $this->createDatabaseYGO();
+            if ($skipDbCheck === TRUE) {
+                $output->writeln('<comment>No check to the databases...</comment>');
             } else {
-                $databaseYGOEntityDate = $databaseYGOEntity->getLastUpdate();
-                $output->writeln(
-                    sprintf(
-                        'Current YGO DB Version: <info-bold>%s</info-bold>',
-                        $databaseYGOEntity->getDatabaseVersion()
-                    )
-                );
-                $databaseYGOEntityDateString = $databaseYGOEntityDate?->format("Y-m-d H:i:s");
-                $output->writeln(
-                    sprintf(
-                        'Current YGO DB update date: <info-bold>%s</info-bold>',
-                        $databaseYGOEntityDateString
-                    )
-                );
-            }
+                $output->write('Get current DatabaseYGO info...');
+                $databaseYGOEntity = $this->getCurrentDatabaseYGO();
+                $this->outputDone($output);
 
-            $output->write('Get last DatabaseYGO info from URI...');
-            $lastDatabaseYGO = $this->getLastDatabaseYGO();
-            if ($lastDatabaseYGO === NULL) {
-                $output->writeln('Error !!');
-                $output->writeln('<error>Can\'t get databaseYGO info !!</error>');
-                throw new CronException("Can't get databaseYGO info !!");
-            }
-            $this->outputDone($output);
-
-            [
-                "database_version" => $dbVersion,
-                "last_update" => $dbDatetime
-            ] = $lastDatabaseYGO;
-            $output->writeln(sprintf('Last DB Version: <info-bold>%s</info-bold>', $dbVersion));
-            $output->writeln(sprintf('Last DB update date: <info-bold>%s</info-bold>', $dbDatetime));
-
-            $needImport = $this->compareCurrentAndLastDatabaseYGO($databaseYGOEntity, $lastDatabaseYGO);
-            if ($cardIdYGOToImport === NULL) {
-                if ($needImport === FALSE) {
-                    $output->writeln('<info-bold>No import needed !!</info-bold>');
-                    return Command::SUCCESS;
+                if ($databaseYGOEntity === NULL) {
+                    $output->writeln('<comment>No Database YGO find locally !!</comment>');
+                    $databaseYGOEntity = $this->createDatabaseYGO();
+                } else {
+                    $databaseYGOEntityDate = $databaseYGOEntity->getLastUpdate();
+                    $output->writeln(
+                        sprintf(
+                            'Current YGO DB Version: <info-bold>%s</info-bold>',
+                            $databaseYGOEntity->getDatabaseVersion()
+                        )
+                    );
+                    $databaseYGOEntityDateString = $databaseYGOEntityDate?->format("Y-m-d H:i:s");
+                    $output->writeln(
+                        sprintf(
+                            'Current YGO DB update date: <info-bold>%s</info-bold>',
+                            $databaseYGOEntityDateString
+                        )
+                    );
                 }
-                $output->writeln('<info-bold>Import begin...</info-bold>');
-                $output->write('Getting all Card info from URI...');
-            } else {
-                $output->writeln('<info-bold>Bypass Import Check because of import Card</info-bold>');
+
+                $output->write('Get last DatabaseYGO info from URI...');
+                $lastDatabaseYGO = $this->getLastDatabaseYGO();
+                if ($lastDatabaseYGO === NULL) {
+                    $output->writeln('Error !!');
+                    $output->writeln('<error>Can\'t get databaseYGO info !!</error>');
+                    throw new CronException("Can't get databaseYGO info !!");
+                }
+                $this->outputDone($output);
+
+                [
+                    "database_version" => $dbVersion,
+                    "last_update" => $dbDatetime
+                ] = $lastDatabaseYGO;
+                $output->writeln(sprintf('Last DB Version: <info-bold>%s</info-bold>', $dbVersion));
+                $output->writeln(sprintf('Last DB update date: <info-bold>%s</info-bold>', $dbDatetime));
+
+                $needImport = $this->compareCurrentAndLastDatabaseYGO($databaseYGOEntity, $lastDatabaseYGO);
+                if ($cardIdYGOToImport === NULL) {
+                    if ($needImport === FALSE) {
+                        $output->writeln('<info-bold>No import needed !!</info-bold>');
+                        return Command::SUCCESS;
+                    }
+                    $output->writeln('<info-bold>Import begin...</info-bold>');
+                    $output->write('Getting all Card info from URI...');
+                } else {
+                    $output->writeln('<info-bold>Bypass Import Check because of import Card</info-bold>');
+                }
+
+                if ($cardIdYGOToImport === NULL) {
+                    $requestCardInfoArray = $this->getAllCardInfo();
+                } else {
+                    $requestCardInfoArray = $this->getCardInfoFromIdYGO($cardIdYGOToImport);
+                }
+                $this->outputDone($output);
             }
 
-            if ($cardIdYGOToImport === NULL) {
-                $requestCardInfoArray = $this->getAllCardInfo();
-            } else {
-                $requestCardInfoArray = $this->getCardInfoFromIdYGO($cardIdYGOToImport);
-            }
-            $this->outputDone($output);
 
 
             $this->outputGetAllLocally($output, "Set");
@@ -1060,7 +1072,7 @@ class Import extends Command
                 $cardEntityArray[] = $cardEntity;
                 $this->em->persist($cardEntity);
             }
-            if ($noDatabaseYgoUpdate === FALSE && $cardIdYGOToImport === NULL) {
+            if ($skipDbCheck === FALSE && $noDatabaseYgoUpdate === FALSE && $cardIdYGOToImport === NULL) {
                 $output->write('Updating <bold>DatabaseYGO</bold>...');
                 $databaseYGOEntity->setDatabaseVersion((float)$dbVersion)
                     ->setLastUpdate(new DateTime($dbDatetime));
